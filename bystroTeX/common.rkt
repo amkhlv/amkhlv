@@ -514,11 +514,12 @@ along with bystroTeX.  If not, see <http://www.gnu.org/licenses/>.
                                (for/first 
                                    ([dir (filter 
                                           directory-exists? 
-                                          (directory-list (current-directory)))])
-                                 #:when (file-exists? 
-                                         (build-path 
-                                          dir 
-                                          (string->path (string-append bare ".html")))) 
+                                          (directory-list (current-directory)))]
+				    #:when (file-exists? 
+					    (build-path 
+					     dir 
+					     (string->path (string-append bare ".html")))) 
+				    )
                                  (string-append (path->string dir) bare ".html"))])])
                        (list
                         (if html
