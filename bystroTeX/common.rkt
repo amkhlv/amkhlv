@@ -503,21 +503,37 @@ along with bystroTeX.  If not, see <http://www.gnu.org/licenses/>.
                      (let* ([s (path->string u)]
                             [n (string-length s)]
                             [bare (substring s 0 (- n 6))]
-                            [h (string-append bare ".html")]
-                            )
-                       (list 
-                        (hyperlink 
-                         #:style (make-style 
-                                  "scrbllink" 
-                                  (list (make-css-addition (build-path 
-                                                            css-dir
-                                                            (string->path "misc.css")
-                                                            ))))
-                         h
-                         bare)  
+                            [htmls? (file-exists? (string-append bare "/index.html"))]
+                            [html ; given notes.scrbl, where is the corresponding .html ?
+                             (cond
+                              [(file-exists? (string-append bare ".html")) 
+                               (string-append bare ".html")] ; notes.html
+                              [(file-exists? (string-append bare "/index.html"))
+                               (string-append bare "/index.html")] ; notes/index.html
+                              [else ; either dest/notes.html or not found
+                               (for/first 
+                                   ([dir (filter 
+                                          directory-exists? 
+                                          (directory-list (current-directory)))])
+                                 #:when (file-exists? 
+                                         (build-path 
+                                          dir 
+                                          (string->path (string-append bare ".html")))) 
+                                 (string-append (path->string dir) bare ".html"))])])
+                       (list
+                        (if html
+                            (hyperlink 
+                             #:style (make-style 
+                                      "scrbllink" 
+                                      (list (make-css-addition (build-path 
+                                                                css-dir
+                                                                (string->path "misc.css")
+                                                                ))))
+                             html
+                             bare)
+                            bare)
                         " ")))
-                   (bystro-list-scrbls ".")
-                   )))))
+                   (bystro-list-scrbls "."))))))
 ;; ---------------------------------------------------------------------------------------------------
 
   )
