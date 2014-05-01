@@ -22,6 +22,7 @@ along with bystroTeX.  If not, see <http://www.gnu.org/licenses/>.
   (require setup/dirs)
   (require mzlib/etc)
   (require racket/list)
+  (require racket/vector)
 
 ;; ---------------------------------------------------------------------------------------------------
   (define css-dir (build-path 'same))
@@ -515,12 +516,20 @@ along with bystroTeX.  If not, see <http://www.gnu.org/licenses/>.
                                    ([dir (filter 
                                           directory-exists? 
                                           (directory-list (current-directory)))]
-				    #:when (file-exists? 
-					    (build-path 
-					     dir 
-					     (string->path (string-append bare ".html")))) 
-				    )
-                                 (string-append (path->string dir) bare ".html"))])])
+                                    #:when (file-exists? 
+                                            (build-path 
+                                             dir 
+                                             (string->path (string-append bare ".html")))) 
+                                    )
+                                 (string-append (path->string dir) bare ".html"))])]
+                            [path-prefix ; we might need "../" if --htmls or --dest
+                             (let ((multipage (vector-member "--htmls" (current-command-line-arguments)))
+                                   (destination (vector-member "--dest" (current-command-line-arguments)))) 
+                               (cond
+                                [multipage "../"]
+                                [destination "../"] ; ugly: assume that destination is only a single dir down
+                                [else ""]))]
+                            )
                        (list
                         (if html
                             (hyperlink 
@@ -530,7 +539,7 @@ along with bystroTeX.  If not, see <http://www.gnu.org/licenses/>.
                                                                 css-dir
                                                                 (string->path "misc.css")
                                                                 ))))
-                             html
+                             (string-append path-prefix html)
                              bare)
                             bare)
                         " ")))
