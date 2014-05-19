@@ -396,7 +396,8 @@ along with bystroTeX.  If not, see <http://www.gnu.org/licenses/>.
              (->* ((or/c string? #f)) 
                   (#:style style? 
                    #:indent exact-nonnegative-integer?) 
-                  #:rest (listof string?) block?)]))
+                  #:rest (listof string?) 
+                  block?)]))
   (define (nolinebreaks p #:style [st #f])
     (make-table
      (if st st (make-style #f '()))
@@ -545,5 +546,27 @@ along with bystroTeX.  If not, see <http://www.gnu.org/licenses/>.
                         " ")))
                    (bystro-list-scrbls "."))))))
 ;; ---------------------------------------------------------------------------------------------------
+  (provide (contract-out 
+                                        ; dump the output of a shell command
+            [bystro-shell-dump 
+             (->* (string?) 
+                  (#:stdin (or/c (and/c input-port? file-stream-port?) #f) 
+                   #:style (or/c style? #f)
+                   #:indent exact-nonnegative-integer?) 
+                  block?)]))
+  (define (bystro-shell-dump #:stdin [stdin #f] #:style [style #f] #:indent [i 0] command)
+    (define x (regexp-split #px"\\s" command))
+    (display x)
+    (define-values
+      (process output inport errors)
+      (apply (curry subprocess #f stdin 'stdout (path->string (find-executable-path (car x)))) (cdr x)))
+    (define output-string (port->string output))
+    (close-input-port output)
+    (nolinebreaks 
+     #:style style 
+     (verbatim 
+      #:indent i 
+      output-string
+      ))) 
 
   )

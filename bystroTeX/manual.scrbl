@@ -430,6 +430,15 @@ Formatted list of all the @tt{.scrbl} files in the current directory,
 with the URL of my website prepended.
 }
 
+@defproc[
+(bystro-shell-dump
+ [command string?]
+ [#:stdin stdin (or/c (and/c input-port? file-stream-port?) #f) #f] 
+ [#:style style (or/c style? #f) #f]
+ [#:indent indent exact-nonnegative-integer? 0])
+block?]{
+Inserts the output of a shell command.
+} 
 
 @section{Legal}
 
