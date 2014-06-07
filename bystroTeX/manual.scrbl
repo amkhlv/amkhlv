@@ -44,6 +44,21 @@ As a general rule, those functions whose name starts with @tt{bystro-}, are eith
 for internal use or for use in the header. They are not meant to be used in slides by themselves,
 or at least not to be used frequently. (But this rule is not very strict.)
 
+@section{Some general tricks}
+To load a stylesheet from a file @tt{filename.css}:
+
+@verbatim|--{
+@(element (make-style #f (list (make-css-addition (string->path "filename.css")))) '())
+}--|
+
+Example of nesting things:
+
+@verbatim|--{
+@nested[ #:style @(make-style "comment" '()) @verb|{
+This is some text which I want to be show verbatim
+}|
+]
+}--|
 
 @section{Functions for manipulating slides}
 @defmodule[(planet amkhlv/bystroTeX/slides)]
