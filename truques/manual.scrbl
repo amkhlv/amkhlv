@@ -59,11 +59,19 @@ This prints @tt{x} to four decimal places:
 
 @defproc[
 (show-and-go
+ [a namespace-anchor?]
  [#:rest xs (listof string?)] 
 ) 
 block?
 ]{
-First prints the code, then executes it an prints the result of the execution
+First prints the code, then executes it an prints the result of the execution. But first need to set up 
+a namespace anchor, for example:
+@verb|--{
+@(define-namespace-anchor a)
+@show-and-go[a]|-{
+(format "Conversion rate: ~s" (~r #:precision '(= 4) dollar2real))
+}-|
+}--|
 }
 @section{Legal}
 

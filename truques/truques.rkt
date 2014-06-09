@@ -22,10 +22,10 @@ along with bystroTeX.  If not, see <http://www.gnu.org/licenses/>.
   (require (planet amkhlv/bystroTeX/common))
 
 
-  (provide (contract-out [show-and-go (->* () () #:rest (listof string?) block?)]))
-  (define (show-and-go . x)
-    (let ((mycode (apply string-append x))
-          (ns (make-base-namespace)))
-      (nested (nested #:style (style "comment" '()) (verb mycode))
-              (verb (eval (read (open-input-string (string-append "(begin " mycode ")"))) ns)))))
-)
+  (provide (contract-out [show-and-go (->* (namespace-anchor?) () #:rest (listof string?) block?)]))
+  (define (show-and-go a . x)
+    (define thisns (namespace-anchor->namespace a))
+    (let ((mycode (apply string-append x)))
+        (nested (nested #:style (style "comment" '()) (verb mycode))
+                (verb (eval (read (open-input-string (string-append "(begin " mycode ")"))) thisns)))))
+  )
