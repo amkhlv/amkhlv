@@ -19,5 +19,13 @@ along with bystroTeX.  If not, see <http://www.gnu.org/licenses/>.
 
 (module truques racket
   (require scribble/core scribble/base scribble/html-properties scribble/decode scriblib/render-cond)
+  (require (planet amkhlv/bystroTeX/common))
 
-  )
+
+  (provide (contract-out [show-and-go (->* () () #:rest (listof string?) block?)]))
+  (define (show-and-go . x)
+    (let ((mycode (apply string-append x))
+          (ns (make-base-namespace)))
+      (nested (nested #:style (style "comment" '()) (verb mycode))
+              (verb (eval (read (open-input-string (string-append "(begin " mycode ")"))) ns)))))
+)

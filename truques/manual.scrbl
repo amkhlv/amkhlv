@@ -29,11 +29,42 @@ along with bystroTeX.  If not, see <http://www.gnu.org/licenses/>.
                      (planet amkhlv/bystroTeX/common)
                      "truques.rkt" 
                      ))
-
+@(require (planet amkhlv/bystroTeX/common))
 @title{Truques}
 
-Here I will write up various tricks useful with Scribble.
+Here I will write up various tricks useful with Scribble. 
 
+@section{Format}
+This prints @tt{x} to four decimal places:
+@verb|--{
+@(require racket/format)
+(~r #:precision '(= 4) x)
+}--|
+
+@section{YAML}
+@verb|--{
+@(require (planet esilkensen/yaml))
+@(define yaml-dict
+   (let*
+       ((in (open-input-file "filename.yaml"))
+        (yml (read-yaml in))
+        )
+     (close-input-port in)
+     yml))
+@(tt (hash-ref yaml-dict "keyname"))
+}--|
+
+@section{Truques}
+@defmodule[(planet amkhlv/truques/truques)]
+
+@defproc[
+(show-and-go
+ [#:rest xs (listof string?)] 
+) 
+block?
+]{
+First prints the code, then executes it an prints the result of the execution
+}
 @section{Legal}
 
 Copyright 2012,2013,2014 Andrei Mikhailov
