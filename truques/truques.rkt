@@ -31,7 +31,7 @@ along with bystroTeX.  If not, see <http://www.gnu.org/licenses/>.
 
   (provide (contract-out [curdir (-> element?)]))
   (define (curdir)
-                                        ;  Inserts link to the dir where the HTML is located
+                                        ;  Inserts the link to the current dir
     (hyperlink (bystro-path-to-link ".") 
                #:style (make-style 
                         "sourcelink" 

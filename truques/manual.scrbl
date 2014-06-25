@@ -73,6 +73,12 @@ a namespace anchor, for example:
 }-|
 }--|
 }
+
+@defproc[
+(curdir) element?
+]{
+Inserts link to the current dir 
+}
 @section{Legal}
 
 Copyright 2012,2013,2014 Andrei Mikhailov
