@@ -28,4 +28,14 @@ along with bystroTeX.  If not, see <http://www.gnu.org/licenses/>.
     (let ((mycode (apply string-append x)))
         (nested (nested #:style (style "comment" '()) (verb mycode))
                 (verb (eval (read (open-input-string (string-append "(begin " mycode ")"))) thisns)))))
+
+  (provide (contract-out [curdir (-> element?)]))
+  (define (curdir)
+                                        ;  Inserts link to the dir where the HTML is located
+    (hyperlink (bystro-path-to-link ".") 
+               #:style (make-style 
+                        "sourcelink" 
+                        (list (make-css-addition "misc.css"))) 
+               "*dir*"))
+
   )

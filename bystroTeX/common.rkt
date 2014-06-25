@@ -442,10 +442,12 @@ along with bystroTeX.  If not, see <http://www.gnu.org/licenses/>.
                   scribble-file-name)
                 name))))))))
 ;; ---------------------------------------------------------------------------------------------------
-  (provide (contract-out [bystro-dir-contains-scrbl? (-> path? boolean?)]))
-  (define (bystro-dir-contains-scrbl? p)
+  (provide (contract-out 
+            [bystro-dir-contains-scrbl? 
+             (->* (path?) (#:exclude-same-name boolean?) boolean?)]))
+  (define (bystro-dir-contains-scrbl? p #:exclude-same-name [x #f])
     (if (directory-exists? p)
-        (pair? (find-files bystro-is-scrbl? p))
+        (pair? (find-files (curry bystro-is-scrbl? #:exclude-same-name x) p))
         #f))
 ;; ---------------------------------------------------------------------------------------------------
   (provide (contract-out
@@ -456,7 +458,8 @@ along with bystroTeX.  If not, see <http://www.gnu.org/licenses/>.
       (filter 
        (λ (u) (bystro-is-scrbl? #:exclude-same-name x u))
        fs
-      )))
+      ))
+    )
 ;; ---------------------------------------------------------------------------------------------------
   (provide (contract-out
             [bystro-list-scrbls-in-dir
