@@ -438,7 +438,7 @@ along with bystroTeX.  If not, see <http://www.gnu.org/licenses/>.
                  )
             (and 
              (equal? ".scrbl" (substring ps (max 0 (- n 6))))
-             (not (and x (equal? filename-of-scribble-file name))))))))
+             (not (and x (equal? filename-of-scribble-file (path->string name)))))))))
 ;; ---------------------------------------------------------------------------------------------------
   (provide (contract-out 
             [bystro-dir-contains-scrbl? 

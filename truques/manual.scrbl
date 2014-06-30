@@ -54,6 +54,11 @@ This prints @tt{x} to four decimal places:
 @(tt (hash-ref yaml-dict "keyname"))
 }--|
 
+@section{Nested styles}
+@verb|---{
+@nested[#:style @(make-style "comment" '()) @nested[#:style @(make-style "greenbox" '()) @verb|-{ ... @verb}-|
+}---|
+
 @section{Truques}
 @defmodule[(planet amkhlv/truques/truques)]
 
