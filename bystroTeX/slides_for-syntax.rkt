@@ -18,6 +18,7 @@ along with bystroTeX.  If not, see <http://www.gnu.org/licenses/>.
 |#
 
 (module slides_for-syntax racket
+
   (provide bystro-formula-syntax)
   (define (bystro-formula-syntax #:autoalign-formula-prefix auto-prefix 
                                  #:manual-formula-prefix    formula-prefix 
@@ -36,6 +37,12 @@ along with bystroTeX.  If not, see <http://www.gnu.org/licenses/>.
                                   (lambda (s) `(+ (bystro-formula-size bystro-conf) ,(* 2 s)))]
                                  stx)
     (let* (
+           [formula-db `(define formula-database
+                          (begin 
+                            (configure-bystroTeX-using bystro-conf)
+                            (bystro-initialize-formula-collection bystro-conf)))]
+           [formula-proc `(unless (bystro-formula-processor bystro-conf)
+                            (error "*** could not find executable for formula processing ***"))]
            [auto `(define ,(string->symbol auto-prefix) 
                     (lambda u (bystro-formula #:use-depth #t (apply string-append u))))]
            [disp `(define ( ,(string->symbol display-math-prefix) 
@@ -71,6 +78,7 @@ along with bystroTeX.  If not, see <http://www.gnu.org/licenses/>.
                       (set-bystro-autoalign-adjust! bystro-conf ,old-autoalign-adjust)
                       )]
            [fname  `(register-path-to-scribble-file (syntax-source #`stx))]
+           [ttp-init '(bystro-titlepage-init #:singlepage-mode singlepage-mode)]
            [l+ (lambda (m)
                  `(define 
                     (,(string->symbol (format "~a+~a" formula-prefix m)) . u)
@@ -127,6 +135,8 @@ along with bystroTeX.  If not, see <http://www.gnu.org/licenses/>.
                 #'x
                 (append (list 
                          'begin 
+                         formula-db
+                         formula-proc
                          auto 
                          disp 
                          oldsz 
@@ -135,6 +145,7 @@ along with bystroTeX.  If not, see <http://www.gnu.org/licenses/>.
                          inc-sz 
                          rs-sz 
                          fname
+                         ttp-init
                          ) 
                         def-list+ def-list-
                         def-list++ def-list+- def-list-+ def-list--
