@@ -70,9 +70,7 @@ along with bystroTeX.  If not, see <http://www.gnu.org/licenses/>.
                       (set-bystro-formula-size! bystro-conf ,old-formula-size)
                       (set-bystro-autoalign-adjust! bystro-conf ,old-autoalign-adjust)
                       )]
-           ;; [l      `(define (,(string->symbol formula-prefix) . u)
-           ;;            (bystro-formula #:align ,(calc-align 0) 
-           ;;                            (apply string-append u)))]
+           [fname  `(register-path-to-scribble-file (syntax-source #`stx))]
            [l+ (lambda (m)
                  `(define 
                     (,(string->symbol (format "~a+~a" formula-prefix m)) . u)
@@ -136,7 +134,7 @@ along with bystroTeX.  If not, see <http://www.gnu.org/licenses/>.
                          ch-sz 
                          inc-sz 
                          rs-sz 
-;;                         l
+                         fname
                          ) 
                         def-list+ def-list-
                         def-list++ def-list+- def-list-+ def-list--

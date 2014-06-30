@@ -23,7 +23,15 @@ along with bystroTeX.  If not, see <http://www.gnu.org/licenses/>.
   (require mzlib/etc)
   (require racket/list)
   (require racket/vector)
+  (require racket/path)
 
+;; ---------------------------------------------------------------------------------------------------
+  (define filename-of-scribble-file "")
+  (provide (contract-out
+                                        ; Set the path to the folder containing the .css files
+            [register-path-to-scribble-file (-> path? void?)]))
+  (define (register-path-to-scribble-file s)
+    (set! filename-of-scribble-file (path->string (file-name-from-path s))))
 ;; ---------------------------------------------------------------------------------------------------
   (define css-dir (build-path 'same))
   (provide (contract-out
@@ -430,17 +438,7 @@ along with bystroTeX.  If not, see <http://www.gnu.org/licenses/>.
                  )
             (and 
              (equal? ".scrbl" (substring ps (max 0 (- n 6))))
-             (not 
-              (and 
-               x
-               (equal? 
-                (let-values 
-                    ([(x scribble-file-name y) 
-                      (split-path 
-                       (string->path 
-                        (vector-ref (current-command-line-arguments) 0)))])
-                  scribble-file-name)
-                name))))))))
+             (not (and x (equal? filename-of-scribble-file name))))))))
 ;; ---------------------------------------------------------------------------------------------------
   (provide (contract-out 
             [bystro-dir-contains-scrbl? 
@@ -485,7 +483,7 @@ along with bystroTeX.  If not, see <http://www.gnu.org/licenses/>.
                  (bystro-path-to-link (string-append s "/" h))  
                  bare) 
                 " ")))
-           (bystro-list-scrbls s #:exclude-same-name #f)))))
+           (bystro-list-scrbls s #:exclude-same-name #t)))))
 ;; ---------------------------------------------------------------------------------------------------
   (provide (contract-out [boldred (->* () #:rest (listof pre-content?) element?)]))
   (define (boldred . x) 
