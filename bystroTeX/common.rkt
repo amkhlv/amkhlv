@@ -496,8 +496,8 @@ along with bystroTeX.  If not, see <http://www.gnu.org/licenses/>.
 ;; ---------------------------------------------------------------------------------------------------
   (provide (contract-out 
                                         ; a nice ribbon with local scribblings
-            [bystro-www-ribbon (->* () () table?)]))
-  (define (bystro-www-ribbon)
+            [bystro-ribbon (->* () () table?)]))
+  (define (bystro-ribbon)
      (apply (compose tbl list list elem)
             (append 
              (list)

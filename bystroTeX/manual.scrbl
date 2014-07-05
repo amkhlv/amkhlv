@@ -437,7 +437,7 @@ A nicely formatted list of links to scribble files in the folder @racket[p]
 }
 
 @defproc[
-(bystro-www-ribbon)
+(bystro-ribbon)
 table?
 ]{
 This is for putting pages on my website.
