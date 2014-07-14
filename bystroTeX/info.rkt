@@ -7,4 +7,4 @@
 (define primary-file "slides_setup.rkt")
 (define scribblings '(("manual.scrbl" ())))
 (define homepage "http://andreimikhailov.com/slides/bystroTeX/slides-manual/index.html")
-(define release-notes '("introduced LaTeX preamble, correction in the definition of counters"))
+(define release-notes '("streamlined headers, various small improvements; backwards compatible after a modification of slide headers"))
