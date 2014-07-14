@@ -115,10 +115,12 @@ public class LaTeXServer {
             TeXIcon ti = formula.createTeXIcon(TeXConstants.STYLE_DISPLAY, sz);
             int height = ti.getIconHeight();
             int newdepth = ti.getIconDepth();
+            /*
             if ((2 * height) > (3 * sz)) {
                 newdepth = newdepth + 10;  // this is a hack around the jlatexmath bug
                 formula = formula.addStrut(TeXConstants.UNIT_PIXEL, 4, 1, newdepth);
             }
+            */
             //            formula.createPNG(TeXConstants.STYLE_DISPLAY, sz, fname, java.awt.Color.WHITE, java.awt.Color.BLACK);
             formula.createPNG(TeXConstants.STYLE_DISPLAY, sz, fname, bg, fg);
             Element root = domOut.createElement("report");
