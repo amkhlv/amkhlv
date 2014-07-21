@@ -553,14 +553,17 @@ along with bystroTeX.  If not, see <http://www.gnu.org/licenses/>.
              (->* (string?) 
                   (#:stdin (or/c (and/c input-port? file-stream-port?) #f) 
                    #:style (or/c style? #f)
-                   #:indent exact-nonnegative-integer?) 
+                   #:indent exact-nonnegative-integer?
+                   )
+                  #:rest (listof string?)
                   block?)]))
-  (define (bystro-shell-dump #:stdin [stdin #f] #:style [style #f] #:indent [i 0] command)
+  (define (bystro-shell-dump #:stdin [stdin #f] #:style [style #f] #:indent [i 0] command . arguments)
     (define x (regexp-split #px"\\s" command))
-    (display x)
     (define-values
       (process output inport errors)
-      (apply (curry subprocess #f stdin 'stdout (path->string (find-executable-path (car x)))) (cdr x)))
+      (apply 
+       (curry subprocess #f stdin 'stdout (path->string (find-executable-path (car x)))) 
+       (remove* (list "") (map string-trim (append (cdr x) arguments)))))
     (define output-string (port->string output))
     (close-input-port output)
     (nolinebreaks 
@@ -568,6 +571,4 @@ along with bystroTeX.  If not, see <http://www.gnu.org/licenses/>.
      (verbatim 
       #:indent i 
       output-string
-      ))) 
-
-  )
+      ))))

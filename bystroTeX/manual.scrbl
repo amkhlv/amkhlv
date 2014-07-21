@@ -450,9 +450,16 @@ with the URL of my website prepended.
  [command string?]
  [#:stdin stdin (or/c (and/c input-port? file-stream-port?) #f) #f] 
  [#:style style (or/c style? #f) #f]
- [#:indent indent exact-nonnegative-integer? 0])
+ [#:indent indent exact-nonnegative-integer? 0]
+ [#:rest arguments (listof string?)]
+ )
 block?]{
-Inserts the output of a shell command.
+Inserts the output of a shell command. For example:
+@verbatim|--{
+@bystro-shell-dump|{sqlite3 -line base.sqlite
+                    select capital,population from countries where continent like '%asia%'}|
+Note how we use the at-syntax instead of quotation marks in the SQL query
+}--|
 } 
 
 @section{Legal}
