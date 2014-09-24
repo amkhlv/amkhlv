@@ -523,7 +523,7 @@ along with bystroTeX.  If not, see <http://www.gnu.org/licenses/>.
                                              dir 
                                              (string->path (string-append bare ".html")))) 
                                     )
-                                 (string-append (path->string dir) bare ".html"))])]
+                                 (string-append (path->string dir) "/" bare ".html"))])]
                             [path-prefix ; we might need "../" if --htmls or --dest
                              (let ((multipage (vector-member "--htmls" (current-command-line-arguments)))
                                    (destination (vector-member "--dest" (current-command-line-arguments)))) 
