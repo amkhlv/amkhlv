@@ -41,6 +41,20 @@ This prints @tt{x} to four decimal places:
 (~r #:precision '(= 4) x)
 }--|
 
+@section{XML}
+@verb|--{
+@(require (prefix-in the: xml) xml/path)
+
+@(define x (call-with-input-file "FILENAME.xml"
+             (lambda (inport) (the:xml->xexpr (the:read-xml/element inport)))))
+
+@tbl[#:orient 'hor
+@(for/list 
+  ([p (se-path*/list '(people) x)] #:when (cons? p)) 
+  `(,(se-path* '(person #:nick) p) ,(se-path* '(person) p)))
+]
+}--|
+
 @section{YAML}
 @verb|--{
 @(require (planet esilkensen/yaml))
