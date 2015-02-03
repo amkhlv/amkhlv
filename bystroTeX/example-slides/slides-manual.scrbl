@@ -90,7 +90,32 @@ Sometimes you might want to press the ``up'' link, which will bring you to the t
 The title page has the list of contents, so you can jump to particular slides from there.
 }
 
-@slide["Installation" #:tag "Installation" #:showtitle #t]{
+@slide["Installation Part I" #:tag "Installation" #:showtitle #t]{
+BystroTeX consists of the frontend (Racket) and backend (Java). The Java part works
+like a server. It is actually an HTTP server. It listens on some port on the @tt{localhost}.
+We will start with setting up this server.
+
+Execute the following commands:
+
+@smaller{@tt{git clone https://github.com/amkhlv/latex2svg}}
+
+@smaller{@tt{cd latex2svg}}
+
+@smaller{@tt{./activator stage}}
+
+This will take some time, as various libraries will have to be downloaded (and saved in @tt{~/.ivy2}).
+After that, execute this command:
+
+@smaller{@tt{target/universal/stage/bin/latex2svg -Dhttp.port=9749 -Dhttp.address=127.0.0.1}}
+
+Now the server is running. Notice that we specified the option @smaller{@tt{-Dhttp.address=127.0.0.1}}. Therefore the server
+is only listening on a local interface (the ``loopback''); @bold{it is not possible to connect to it from the outside}.
+
+}
+
+@slide["Installation Part II" #:tag "Installation2" #:showtitle #t]{
+Now comes the frontend.
+
 You should start with installing @hyperlink["http://racket-lang.org/"]{@tt{Racket}} on your computer.
 For example, on @tt{Debian} you should issue this command @bold{@clr["red"]{as root:}}
 @verb{
@@ -111,16 +136,25 @@ In particular, on Debian Wheezy, the default version of Java is actually 1.6, bu
 You should switch to 1.7, using the command @tt{update-java-alternatives}.
 }
 
-Next you should install @tt{bystroTeX} using this command @bold{@clr["red"]{as normal user}} 
+Next you should install @tt{bystroTeX} using this command @bold{@clr["red"]{as a normal user}} 
 (i.e. @bold{@clr["red"]{not}} root):
 @verb{
 racket -e '(require (planet amkhlv/bystroTeX/slides_setup))'
 }
 This command will take some time, because it has to download and compile things.
-It will talk back to you, asking some questions and giving further instructions. 
-In particular, it will ask you to choose a folder where to store the Java staff, and also the
-folder where a sample slide presentation is stored.
-After the installation, @clr["red"]{go to that sample folder}.
+It will talk back to you, asking some questions and giving further instructions.
+In particular, it will ask you to choose a folder where to store some Java staff.
+
+@div[comment]{This sounds strange, because all the Java part belongs to the server, which
+we already installed. However, there is an @seclink["AlternativeBackend"]{alternative backend},
+using named pipes instead of a server,
+which I am thinking to deprecate but keeping for now. The setup also compiles this
+alternative backend (just in case you want to try it). And this is the only reason why
+I am asking  you to handle some more Java at this stage.}
+
+Most importantly, during the installation you will be asked to choose a folder
+where a sample slide presentation will be stored.
+After the installation, @spn[attn]{go to that sample folder}.
 }
 
 
@@ -533,10 +567,11 @@ This may happen on slow machines. Do the following:
 ]]
 }
 
-@slide["Under the hood" #:tag "UnderTheHood" #:showtitle #t]{
-@image{svg/under-the-hood.svg}
+@slide["Alternative backends" #:tag "AlternativeBackend" #:showtitle #t]{
+We think that it is best to @seclink["Installation"]{use a server} as a backend.
 
-The @bold{backend} can be replaced with any program which has the following properties:
+But it is also possible, instead of connecting to a server, just call a program of
+your choice. That program should satisfy the following properties:
 @itemlist[#:style 'ordered
 @item{It should wait on @tt{stdin} for a text string of the form:
 @verb|{
@@ -566,8 +601,10 @@ specified (among other things) at the top of the slides header in these lines:
            0   ; manual alignment adjustment
            ))
 }|
-Our backend which we are using contains a @hyperlink["http://www.linuxjournal.com/article/2156"]{Linux pipe},
-which prevents it from being used on Windows. 
+The alternative backend which we are supplying
+contains a @hyperlink["http://www.linuxjournal.com/article/2156"]{Linux pipe},
+(which prevents it from being used on Windows):
+@image{svg/under-the-hood.svg}
 }
 @slide["Why not Beamer?" #:tag "Beamer" #:showtitle #t]{
 There is an excellent tool called @hyperlink["http://en.wikipedia.org/wiki/Beamer_(LaTeX)"]{Beamer},
