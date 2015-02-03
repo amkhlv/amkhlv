@@ -32,6 +32,10 @@ along with bystroTeX.  If not, see <http://www.gnu.org/licenses/>.
   (require racket/provide-syntax)
   
   (require (prefix-in xml: xml) (prefix-in xml: xml/path))
+  (require (prefix-in net: net/http-client))
+  (require (prefix-in net: net/url))
+  (require (prefix-in net: net/url-structs))
+
 ;; ---------------------------------------------------------------------------------------------------
                                         ; Global variables
   (provide (struct-out bystro))
@@ -44,8 +48,28 @@ along with bystroTeX.  If not, see <http://www.gnu.org/licenses/>.
                   formula-fg-color
                   autoalign-adjust
                   manual-base-alignment
+                  [extension #:auto]
                   )
+          #:auto-value "png"
           #:mutable)
+  (provide (struct-out bystro-server))
+  (struct bystro-server (
+                         connection
+                         user
+                         host
+                         port
+                         path
+                         )
+          #:mutable)
+  (provide (contract-out
+                                        ; opens the server connection and returns the corresponding struct
+            [bystro-connect-to-server (-> (or/c false/c string?) string? exact-nonnegative-integer? string? bystro-server?)]))
+  (define (bystro-connect-to-server user host port path)
+    (bystro-server (net:http-conn-open host #:port port) user host port path))
+  (provide (contract-out
+            [bystro-close-connection (-> bystro? void?)]))
+  (define (bystro-close-connection bconf)
+    (net:http-conn-close! (bystro-server-connection (bystro-formula-processor bconf))))
   (define configuration (bystro (find-executable-path "amkhlv-java-formula.sh")
                                 "formulas.sqlite"
                                 "formulas"
@@ -274,7 +298,56 @@ along with bystroTeX.  If not, see <http://www.gnu.org/licenses/>.
          (lambda () "100") ; TODO: what is this?
          (lambda () "")    ; TODO: what is this?
          ))
-;; ---------------------------------------------------------------------------------------------------
+  ;; ---------------------------------------------------------------------------------------------------
+  (define (get-svg-from-server texstring size bg-color fg-color filename)
+                                        ; The procedure returns an integer representing the vertical offset.
+    (let*-values
+     ([(bserv) (values (bystro-formula-processor configuration))]
+      [(u) (values
+            (net:url
+             "http"                          ;scheme
+             (bystro-server-user bserv)      ;user
+             (bystro-server-host bserv)      ;host 
+             (bystro-server-port bserv)      ;port
+             #t                              ;path-absolute?
+             (list (net:path/param "svg" '()))   ;path
+             (list (cons 'latex texstring)
+                   (cons 'size (number->string size))
+                   (cons 'bg (rgb-list->string bg-color))
+                   (cons 'fg (rgb-list->string fg-color))) ;query
+             #f ;fragment
+             ))]
+      [(status headers inport)
+       (net:http-conn-sendrecv!
+        (bystro-server-connection bserv)
+        (net:url->string u)
+        #:method #"POST"
+        )]
+      [(result) (values (port->string inport))]
+      [(error-type) (values
+                     (for/first ([h headers] #:when (equal?
+                                                     "BystroTeX-error:"
+                                                     (car (string-split (bytes->string/utf-8 h)))))
+                       (cadr (string-split (bytes->string/utf-8 h)))))]                
+      )
+     (if error-type
+         (begin 
+           (display (string-append "\n\n --- ERROR of the type: <<"
+                                   error-type
+                                   ">>, while processing:\n"
+                                   texstring
+                                   "\n\n --- The error message was:\n"
+                                   result))
+           (error "*** please make corrections and run again ***")
+           )
+         (let ([depth-string (for/first ([h headers]
+                                         #:when (equal?
+                                                 "BystroTeX-depth:"
+                                                 (car (string-split (bytes->string/utf-8 h)))))
+                               (cadr (string-split (bytes->string/utf-8 h))))])
+           (with-output-to-file #:exists 'replace filename (lambda () (display result)))
+           depth-string))))
+  ;; ---------------------------------------------------------------------------------------------------
   (define (bystro-command-to-typeset-formula shell-command-path texstring size bg-color fg-color filename)
                                         ; The procedure returns an integer representing the vertical offset.
     (define-values (pr outport inport errport) 
@@ -308,6 +381,8 @@ along with bystroTeX.  If not, see <http://www.gnu.org/licenses/>.
             )
           ;; if no error, return the depth (as a string):
           (xml:se-path* '(depth) report-xexpr))))
+  ;; ---------------------------------------------------------------------------------------------------
+
 ;; ---------------------------------------------------------------------------------------------------
   (provide (contract-out  
                                         ; corresponds to \equation in LaTeX
@@ -406,20 +481,25 @@ along with bystroTeX.  If not, see <http://www.gnu.org/licenses/>.
            use-depth 
            (string->number (vector-ref row 1)) 
            aa-adj 
-           (build-path formdir (string-append (vector-ref row 0) ".png")) 
+           (build-path formdir (string-append (vector-ref row 0) "." (bystro-extension configuration))) 
            bsz)
+
           (let* 
               ([formnum (totalnumber . + . 1)]
-               [filename (string-append formdir "/" (number->string formnum) ".png")]
+               [filename (string-append formdir "/" (number->string formnum) "." (bystro-extension configuration))]
                [insert-stmt (prepare mydb "insert into formulas values (?,?,?,?,?,?,?)")]
                                         ;(tex, scale, bg, fg, filename, depth, tags)
-               [dpth-str (bystro-command-to-typeset-formula 
-                          shell-command-path 
+               [procedure-to-typeset-formula
+                (if (bystro-server? (bystro-formula-processor configuration))
+                    get-svg-from-server
+                    (curry bystro-command-to-typeset-formula (bystro-formula-processor configuration)))]
+               [dpth-str (procedure-to-typeset-formula
                           (apply string-append (cons preamble tex))
                           bsz 
                           bg-color
                           fg-color
                           filename)])
+            (unless (string? dpth-str) (error "ERROR: procedure to typeset formulas did not return the depth string"))
             (run 
              insert-stmt 
              (apply string-append (cons preamble tex))

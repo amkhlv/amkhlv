@@ -6,7 +6,7 @@
 @; ---------------------------------------------------------------------------------------------------
 @; User definitions:
 @(define bystro-conf 
-   (bystro (find-executable-path "amkhlv-java-formula.sh")
+   (bystro (bystro-connect-to-server #f "127.0.0.1" 9749 "svg") ;(find-executable-path "amkhlv-java-formula.sh")
            "formulas.sqlite"  ; name for the database
            "formulas" ; directory where to store .png files of formulas
            25  ; formula size
@@ -15,6 +15,7 @@
            2   ; automatic alignment adjustment
            0   ; manual alignment adjustment
            ))
+@(set-bystro-extension! bystro-conf "svg")
 @; This controls the single page mode:
 @(define singlepage-mode #f)
 @; ---------------------------------------------------------------------------------------------------
@@ -599,4 +600,7 @@ The syntax of TeX/LaTeX is pain.}
 
 }
 
+@; ---------------------------------------------------------------------------------------------------
 @close[formula-database]
+@(bystro-close-connection bystro-conf)
+ 
