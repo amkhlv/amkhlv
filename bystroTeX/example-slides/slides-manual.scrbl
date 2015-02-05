@@ -8,7 +8,7 @@
 @(define bystro-conf 
    (bystro (bystro-connect-to-server #f "127.0.0.1" 9749 "svg") ;(find-executable-path "amkhlv-java-formula.sh")
            "formulas.sqlite"  ; name for the database
-           "formulas" ; directory where to store .png files of formulas
+           "formulas" ; directory where to store the image files of formulas
            25  ; formula size
            (list 255 255 255) ; formula background color
            (list 0 0 0) ; formula foreground color
@@ -45,7 +45,7 @@ We can insert @f{W(\phi)} as an inline formula, or a display formula:
 Or, formula in the box:
 @longtbl[#:styless @'(((center) (right))) 
 @list[@list[@nested[@redbox["padding:36px;8px;0px;8px;"]{
-@f{\dot{\phi} = - {\partial W\over \partial \phi}} 
+@f{{\partial\phi\over\partial\sigma} = - {\partial W\over \partial \phi}} 
 }] @nested{@label{SolitonEquation}}]]]
 If we need, we can also insert @f-4{x^2} shifted down, 
 or insert a shifted up and rescaled: @f+3+8{y^2}. @smaller{
@@ -93,7 +93,17 @@ The title page has the list of contents, so you can jump to particular slides fr
 @slide["Installation Part I" #:tag "Installation" #:showtitle #t]{
 BystroTeX consists of the frontend (Racket) and backend (Java). The Java part works
 like a server. It is actually an HTTP server. It listens on some port on the @tt{localhost}.
-We will start with setting up this server.
+We will start with @bold{setting up this server}.
+
+First of all, you need to have installed @bold{Java 7 or 8} (because Java 6 will not work), including the JDK.
+OpenJDK is OK. To verify that you have Java installed, type the commands:
+@verb{
+java -version
+javac -version
+}
+They should say something like ``java version 1.7....'' and ``javac 1.7....''.
+
+To install the server, you need the command called @tt{git}.
 
 Execute the following commands:
 
@@ -121,23 +131,23 @@ For example, on @tt{Debian} you should issue this command @bold{@clr["red"]{as r
 @verb{
 aptitude install racket
 }
-This command will install @tt{Racket} environment on your computer.
+This command will install the @tt{Racket} environment on your computer. Now we are ready to
+install @tt{bystroTeX}.
 
-You also need to have installed @bold{Java 7} (because Java 6 will not work), including the JDK.
-OpenJDK is OK. To verify that you have Java installed, type the commands:
-@verb{
-java -version
-javac -version
-}
-They should say something like ``java version 1.7....'' and ``javac 1.7....''.
+There are two methods of installation:
 
-@div[comment]{
-In particular, on Debian Wheezy, the default version of Java is actually 1.6, but 1.7 is also available.
-You should switch to 1.7, using the command @tt{update-java-alternatives}.
-}
+@table-of-contents[]
 
-Next you should install @tt{bystroTeX} using this command @bold{@clr["red"]{as a normal user}} 
-(i.e. @bold{@clr["red"]{not}} root):
+
+@smaller{Comments @bold{for Windows users}:}
+@itemlist[
+@item{@smaller{Install @seclink["FromGitHub"]{from GitHub}}}
+@item{@smaller{You will have to manually install the @tt{dll} for the @tt{sqlite3}, please consult the Google}}
+]
+
+@section{Installation from Planet}
+
+Execute this command @bold{@clr["red"]{as a normal user}} (i.e. @bold{@clr["red"]{not}} root):
 @verb{
 racket -e '(require (planet amkhlv/bystroTeX/slides_setup))'
 }
@@ -155,6 +165,25 @@ I am asking  you to handle some more Java at this stage.}
 Most importantly, during the installation you will be asked to choose a folder
 where a sample slide presentation will be stored.
 After the installation, @spn[attn]{go to that sample folder}.
+
+@section[#:tag "FromGitHub"]{Installation from GitHub}
+The second method of @tt{bystroTeX} installation is to install directly from its @tt{git} repository.
+I usually set up a ``development link'', this way I can do changes in the repository and they are
+immediately in effect. This is done as follows:  @bold{@clr["red"]{as a normal user}} (i.e. @bold{@clr["red"]{not}} root),
+exectute:
+
+@smaller{@tt{git clone https://github.com/amkhlv/amkhlv}}
+
+@smaller{@tt{cd amkhlv}}
+
+@smaller{@tt{raco planet link amkhlv bystroTeX.plt 7 1 bystroTeX/}}
+
+With this method of installation, the sample folder ends up in in @tt{bystroTeX/example-slides}
+
+Now @spn[attn]{go to that sample folder}:
+
+@smaller{@tt{cd bystroTeX/example-slides}}
+
 }
 
 
@@ -347,7 +376,7 @@ gives @bystro-bg[255 200 200] @bystro-fg[0 0 250]
 @bystro-bg[255 255 255] @bystro-fg[0 0 0] 
 
 @section{Some technical details}
-We use @hyperlink["http://forge.scilab.org/index.php/p/jlatexmath/"]{@tt{JLaTeXMath}} to produce @tt{png} files.
+We use @hyperlink["http://forge.scilab.org/index.php/p/jlatexmath/"]{@tt{JLaTeXMath}} to produce @tt{svg} (or @tt{png}) files.
 We had some problems with large size integral signs: @f{\int {f\over g}  dt} and large size 
 brackets: @f{\left( {x\over y} \right)}. As you can see, they come out a bit weird. 
 It seems that this is caused by a general bug in @tt{OpenJDK} (which is the default implementation
@@ -366,30 +395,16 @@ Scrolling is easier on the audience than jumping from page to page.
 }
 
 @slide[@elem{Putting @f{\epsilon} and @f{\delta} in the slide title} #:tag "FormulasInSlideTitle" #:showtitle #t]{
-@verb|----{
-@slide[@elem{Putting @f{\epsilon} and @f{\delta} in the slide title} #:tag "FormulasInSlideTitle" #:showtitle #t]{
-@verb|---{
-@slide[@elem{Putting @f{\epsilon} and @f{\delta} in the slide title} #:tag "FormulasInSlideTitle" #:showtitle #t]{
-@verb|--{
-@slide[@elem{Putting @f{\epsilon} and @f{\delta} in the slide title} #:tag "FormulasInSlideTitle" #:showtitle #t]{
-@verb|-{
-@slide[@elem{Putting @f{\epsilon} and @f{\delta} in the slide title} #:tag "FormulasInSlideTitle" #:showtitle #t]{
+
 @verb|{
 @slide[@elem{Putting @f{\epsilon} and @f{\delta} in the slide title} #:tag "FormulasInSlideTitle" #:showtitle #t]{
 
-...... дурная бесконечность или вещь в себе ? ......
+...
 
 }
 }|
 }
-}-|
-}
-}--|
-}
-}---|
-}
-}----|
-}
+
 @slide["Writing html in scribble" #:tag "InsertingHTML" #:showtitle #t]{
 
 What if we want to insert, for example, a remote animated gif
@@ -397,7 +412,7 @@ from  @hyperlink["http://www.123gifs.eu/free-gifs"]{123gifs.eu} ?
 
 As far as I understand, there is no way to directly insert a raw @tt{html} code in scribble. 
 Instead, we have to rewrite our @tt{html} 
-the @hyperlink["http://docs.racket-lang.org/scribble/index.html"]{scribble way}. For example, this @tt{html}:
+the @hyperlink["http://docs.racket-lang.org/scribble/index.html"]{scribble way}. For example, @bold{this HTML}:
 
 @(element 
      (make-style #f (list
@@ -418,7 +433,7 @@ Flag of Brazil
 </img>
 }|
 
-will become:
+@bold{will become:}
 
 @verb|--{
 @(element 
