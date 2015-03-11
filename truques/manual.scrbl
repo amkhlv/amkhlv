@@ -51,9 +51,18 @@ This prints @tt{x} to four decimal places:
 @tbl[#:orient 'hor
 @(for/list 
   ([p (se-path*/list '(people) x)] #:when (cons? p)) 
-  `(,(se-path* '(person #:nick) p) ,(se-path* '(person) p)))
+  `(,(se-path* '(person #:nick) p)
+    ,(apply string-append (se-path*/list '(person) p))))
 ]
 }--|
+
+Why did not we write:
+@verb|--{
+(se-path* '(person) p)  (WRONG!)  ?
+}--|
+Because sometimes we have: @tt|--{ <person>&amp;john</person> }--| (can we exclude that a person's name starts with an ampersand?)
+
+@bold{Attn:} this assumes that XML does not have empty elements , such as e.g. @tt{<person></person>}
 
 @section{YAML}
 @verb|--{
