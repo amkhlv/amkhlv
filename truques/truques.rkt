@@ -37,5 +37,4 @@ along with bystroTeX.  If not, see <http://www.gnu.org/licenses/>.
                         "sourcelink" 
                         (list (make-css-addition "misc.css"))) 
                "*dir*"))
-
   )

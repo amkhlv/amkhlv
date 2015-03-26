@@ -25,9 +25,12 @@ along with bystroTeX.  If not, see <http://www.gnu.org/licenses/>.
                      scribble/base 
                      scribble/html-properties 
                      scribble/decode
-                     scriblib/render-cond 
+                     scriblib/render-cond
+                     (prefix-in the: xml)
+                     xml/path
                      (planet amkhlv/bystroTeX/common)
-                     "truques.rkt" 
+                     "truques.rkt"
+                     "xml.rkt"
                      ))
 @(require (planet amkhlv/bystroTeX/common))
 @title{Truques}
@@ -42,18 +45,20 @@ This prints @tt{x} to four decimal places:
 }--|
 
 @section{XML}
+@defmodule[(planet amkhlv/truques/xml)]
+
+@defproc[
+(file->xexpr [a path-string?]) 
+the:xexpr?
+]{Reads the @racket[the:xexpr] from the XML file}
+
+
 @verb|--{
-@(require (prefix-in the: xml) xml/path)
-
-@(define x (call-with-input-file "FILENAME.xml"
-             (lambda (inport) (the:xml->xexpr (the:read-xml/element inport)))))
-
-@tbl[#:orient 'hor
-@(for/list 
-  ([p (se-path*/list '(people) x)] #:when (cons? p)) 
-  `(,(se-path* '(person #:nick) p)
-    ,(apply string-append (se-path*/list '(person) p))))
-]
+@(let ([x (file->xexpr  "FILENAME.xml")])
+   (tbl #:orient 'hor
+        (for/list ([p (se-path*/list '(people) x)] #:when (cons? p)) 
+          `(,(se-path* '(person #:nick) p)
+            ,(apply string-append (se-path*/list '(person) p))))))
 }--|
 
 Why did not we write:
@@ -62,7 +67,6 @@ Why did not we write:
 }--|
 Because sometimes we have: @tt|--{ <person>&amp;john</person> }--| (can we exclude that a person's name starts with an ampersand?)
 
-@bold{Attn:} this assumes that XML does not have empty elements , such as e.g. @tt{<person></person>}
 
 @section{YAML}
 @verb|--{
