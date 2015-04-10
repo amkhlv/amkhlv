@@ -145,7 +145,7 @@ along with bystroTeX.  If not, see <http://www.gnu.org/licenses/>.
   (define (after-pause #:tag [tg #f] . more-content)
     (set-current-slide-part-number! state (+ 1 (current-slide-part-number state)))
     (when (pair? more-content)
-      (set-current-content! state (append (current-content state) more-content)))
+      (set-current-content! state (append (current-content state) (list more-content))))
     (let ([stl (if ((current-slide-part-number state) . < . 2) 
                    to-hide
                    (cons 'toc-hidden to-hide))]
