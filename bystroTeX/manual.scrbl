@@ -242,6 +242,11 @@ Creates @tt{<someword>content</someword>}, for example:
 @tg[li]{@f{X} and the empty set @f{\emptyset} are open sets.}
 }
 }--|
+Attributes are also supported:
+@verbatim|--{
+@tg[span #:attrs ([style "color:blue;text-decoration:underline;"] [title "not clickable! Example only!"])]{pseudo-link!!!}
+}--|
+
 }
 
 @defform[(init-counter name)]{

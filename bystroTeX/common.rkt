@@ -91,10 +91,20 @@ along with bystroTeX.  If not, see <http://www.gnu.org/licenses/>.
   (provide tg)
   (define-syntax (tg stx)
     (syntax-case stx ()
+      ((_ class #:attrs ([n v] ...) content ...)
+       #`(element
+             (make-style #f (list (alt-tag 
+                                   #,(symbol->string (syntax->datum #'class)))
+                                  (attributes 
+                                   (map 
+                                    (lambda (x) (cons (car x) (cadr x)))
+                                    (syntax->datum #`((n v) ...))))))
+           (list content ...)))
       ((_ class content ...)
        #`(element 
              (make-style #f (list (alt-tag #,(symbol->string (syntax->datum #'class))))) 
-           (list content ...)))))
+           (list content ...)))
+      ))
 ;; ---------------------------------------------------------------------------------------------------
   (define (parse-alignment-string x)
     (if (= (string-length x) 0) 
