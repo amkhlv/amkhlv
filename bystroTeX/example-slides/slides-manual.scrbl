@@ -488,8 +488,11 @@ Audience will start reading section titles instead of reading formulas.
 But it could be good for something else.
 }
 @slide["Single page and printing" #:tag "SinglePage" #:showtitle #t]{
-It is also possible to have everything on one single long @tt{html} page. This is useful, for example,
-for @red{printing}. 
+It is also possible to have everything on one single long @tt{html} page. 
+
+This might be useful, for example, for @red{printing}. However, it is also easy
+to print multiple pages, using the program called @hyperlink["http://wkhtmltopdf.org/"]{wkhtmltopdf}.
+(The only problem is to keep track of the ordering of pages...)
 
 For that, two things have to be done:
 @itemlist[#:style 'ordered

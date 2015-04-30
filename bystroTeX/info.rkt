@@ -7,4 +7,4 @@
 (define primary-file "slides_setup.rkt")
 (define scribblings '(("manual.scrbl" ())))
 (define homepage "http://andreimikhailov.com/slides/bystroTeX/slides-manual/index.html")
-(define release-notes '("PNG replaced with SVG, named pipes replaced with an HTTP server; now works on Windows"))
+(define release-notes '("corrected bug in slide removal"))
