@@ -324,7 +324,7 @@ The only problem is, there is a small alignment defect. To fix it, do this:
 @verb|{
 @align[r.l
  @list[
-@f{{2\over 1 - x^2} = }  @v+[8 @f{1+x+x^2 + \ldots +}]
+@f{{2\over 1 - x^2} = }  @v+[3 @f{1+x+x^2 + \ldots +}]
 ]@list[
 "" @f{1-x+x^2- \ldots}
 ]
@@ -332,7 +332,7 @@ The only problem is, there is a small alignment defect. To fix it, do this:
 }|
 @align[r.l
  @list[
-@f{{2\over 1 - x^2} = }  @v+[8 @f{1+x+x^2 + \ldots +}]
+@f{{2\over 1 - x^2} = }  @v+[3 @f{1+x+x^2 + \ldots +}]
 ]@list[
 "" @f{1-x+x^2- \ldots}
 ]
@@ -345,7 +345,7 @@ The numbered version of the same formula will be
 @verb|{
 @align[r.l.n
  @list[
-@f{{2\over 1 - x^2} = }  @v+[8 @f{1+x+x^2 + \ldots +}] ""
+@f{{2\over 1 - x^2} = }  @v+[3 @f{1+x+x^2 + \ldots +}] ""
 ]@list[
 "" @f{1-x+x^2- \ldots} @label{SumOfGeometricProgressions}
 ]
@@ -353,7 +353,7 @@ The numbered version of the same formula will be
 }|
 @align[r.l.n
  @list[
-@f{{2\over 1 - x^2} = }  @v+[8 @f{1+x+x^2 + \ldots +}] ""
+@f{{2\over 1 - x^2} = }  @v+[3 @f{1+x+x^2 + \ldots +}] ""
 ]@list[
 "" @f{1-x+x^2- \ldots} @label{SumOfGeometricProgressions}
 ]
@@ -427,7 +427,7 @@ the @hyperlink["http://docs.racket-lang.org/scribble/index.html"]{scribble way}.
    )
 
 
-@verb|{
+@verb[#:style @(make-style "comment" '())]|{
 <img style="border:0;" src="http://www.123gifs.eu/free-gifs/flags/flagge-0544.gif" alt="flagge-0544.gif from 123gifs.eu">
 Flag of Brazil
 </img>
@@ -435,7 +435,7 @@ Flag of Brazil
 
 @bold{will become:}
 
-@verb|--{
+@verb[#:style @(make-style "comment" '())]|--{
 @(element 
      (make-style #f (list
                      (alt-tag "img")
@@ -458,7 +458,7 @@ from @hyperlink["http://www.neilvandyke.org"]{www.neilvandyke.org}. Not as power
 
 Some more staff in @tt{.emacs}, if you wish:
 
-@verb|--{
+@verb[#:style @(make-style "comment" '())]|--{
 (add-outline 'scribble-mode-hook)
 (add-hook 'scribble-mode-hook '(lambda () (setq outline-regexp "@section\\|@subsection\\|@subsubsection\\|@slide")))
 (defface scribble-slide-face
@@ -490,10 +490,6 @@ But it could be good for something else.
 @slide["Single page and printing" #:tag "SinglePage" #:showtitle #t]{
 It is also possible to have everything on one single long @tt{html} page. 
 
-This might be useful, for example, for @red{printing}. However, it is also easy
-to print multiple pages, using the program called @hyperlink["http://wkhtmltopdf.org/"]{wkhtmltopdf}.
-(The only problem is to keep track of the ordering of pages...)
-
 For that, two things have to be done:
 @itemlist[#:style 'ordered
 @item{Change @tt|{@(define singlepage-mode #f)}| to @tt|{@(define singlepage-mode #t)}| in the 
@@ -504,6 +500,35 @@ Instead of compiling as we explained @seclink["SamplePresentation"]{here}, do th
 @item{Create new directory: @verb{mkdir singlepage}}
 @item{Now compile: @verb|{scribble --dest singlepage slides-manual.scrbl}|
 }]}]
+
+This might be useful, for example, for @red{printing}. However, it is also easy
+to print multiple pages, using the program called @hyperlink["http://wkhtmltopdf.org/"]{wkhtmltopdf}.
+The only problem is to keep track of the ordering of pages. Notice that the @tt{index.html} has the
+list of all your multiple pages, and this script will extract them and print the filenames sorted:
+
+@verb[#:style @(make-style "comment" '())]|--{
+#!/usr/bin/env racket
+#lang racket 
+(require xml xml/path racket/file)
+(define x 
+  (call-with-input-file "index.html"
+    (lambda (inport) (xml->xexpr (document-element (read-xml inport))))))
+(for ([ttl (se-path*/list '(a) x)] 
+      #:when (and (string? ttl) (equal? (se-path* '(a #:class) x) "toptoclink")))
+  (for ([fp (find-files 
+             (lambda (f) (equal? (string-append ttl ".html") (path->string f))))])
+    (write-string (path->string fp))
+    (newline))
+  (for ([fp (find-files 
+             (lambda (f) (regexp-match 
+                          (regexp (string-append ttl "_[0-9]+" ".html"))
+                          (path->string f))))])
+    (display (path->string fp))
+    (newline))))
+}--|
+
+
+
 }
 
 @slide["Automatic LaTeX → BystroTeX conversion" #:tag "LaTeX2BystroTeX" #:showtitle #t]{
@@ -638,11 +663,9 @@ than the @tt{Beamer}'s format @tt{.pdf}.
 what a pity!}
 }
 
-@slide["From TeX to HTML" #:tag "FromTeXtoHTML" #:showtitle #t]{
-Seriously,
-@redbox["padding:8px;8px;8px;8px;"]{
-@larger{I think that we should switch from TeX to HTML}
-}
+@slide["From TeX to HTML?" #:tag "FromTeXtoHTML" #:showtitle #t]{
+I think that we should @bold{switch from TeX to HTML}:
+
 @itemlist[
 @item{TeX is optimized for the quality of typesetting. This is not very important for us.}
 @item{HTML is all about @spn[attn]{creating links}. This is exactly what we need. 
