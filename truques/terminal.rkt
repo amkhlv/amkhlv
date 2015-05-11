@@ -54,6 +54,35 @@ along with bystroTeX.  If not, see <http://www.gnu.org/licenses/>.
        ))
     passphrase)
 
+  (provide get-one-char)
+  (define (get-one-char)
+    (define stty-orig
+      (with-external-command-as 
+       stty "stty" (stty-minus-f-arg-string "/dev/tty" "-g")
+       (let ([x (read-line stty-stdout)]
+             [e (port->lines stty-stderr)]
+             )
+         (for ([l e]) (display l) (display "  <--- error!\n"))
+         x
+         )))
+    (with-external-command-as
+     stty "stty" (stty-minus-f-arg-string "/dev/tty" "-echo" "raw")
+     (let (
+           [e (port->lines stty-stderr)]
+           )
+       (for ([l e]) (display l) (display "  <--- error!\n"))
+       ))
+    (define onechar (read-char))
+    (with-external-command-as
+     stty "stty" (stty-minus-f-arg-string "/dev/tty" stty-orig)
+     (let (
+           [e (port->lines stty-stderr)]
+           )
+       (for ([l e]) (display l) (display "  <--- error!\n"))
+       ))
+    onechar)
+
+
   (provide ansi-off)
   (define ansi-off "\033[0m")
   (provide ansi-fg256)
