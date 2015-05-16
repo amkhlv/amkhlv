@@ -30,7 +30,7 @@ along with bystroTeX.  If not, see <http://www.gnu.org/licenses/>.
   (define (askpass)
     (define stty-orig
       (with-external-command-as 
-       stty "stty" (stty-minus-f-arg-string "/dev/tty" "-g")
+       stty ("stty" stty-minus-f-arg-string "/dev/tty" "-g")
        (let ([x (read-line stty-stdout)]
              [e (port->lines stty-stderr)]
              )
@@ -38,7 +38,7 @@ along with bystroTeX.  If not, see <http://www.gnu.org/licenses/>.
          x
          )))
     (with-external-command-as
-     stty "stty" (stty-minus-f-arg-string "/dev/tty" "-echo")
+     stty ("stty" stty-minus-f-arg-string "/dev/tty" "-echo")
      (let (
            [e (port->lines stty-stderr)]
            )
@@ -46,7 +46,7 @@ along with bystroTeX.  If not, see <http://www.gnu.org/licenses/>.
        ))
     (define passphrase (read-line))
     (with-external-command-as
-     stty "stty" (stty-minus-f-arg-string "/dev/tty" stty-orig)
+     stty ("stty" stty-minus-f-arg-string "/dev/tty" stty-orig)
      (let (
            [e (port->lines stty-stderr)]
            )
@@ -58,7 +58,7 @@ along with bystroTeX.  If not, see <http://www.gnu.org/licenses/>.
   (define (get-one-char)
     (define stty-orig
       (with-external-command-as 
-       stty "stty" (stty-minus-f-arg-string "/dev/tty" "-g")
+       stty ("stty" stty-minus-f-arg-string "/dev/tty" "-g")
        (let ([x (read-line stty-stdout)]
              [e (port->lines stty-stderr)]
              )
@@ -66,7 +66,7 @@ along with bystroTeX.  If not, see <http://www.gnu.org/licenses/>.
          x
          )))
     (with-external-command-as
-     stty "stty" (stty-minus-f-arg-string "/dev/tty" "-echo" "raw")
+     stty ("stty" stty-minus-f-arg-string "/dev/tty" "-echo" "raw")
      (let (
            [e (port->lines stty-stderr)]
            )
@@ -74,7 +74,7 @@ along with bystroTeX.  If not, see <http://www.gnu.org/licenses/>.
        ))
     (define onechar (read-char))
     (with-external-command-as
-     stty "stty" (stty-minus-f-arg-string "/dev/tty" stty-orig)
+     stty ("stty" stty-minus-f-arg-string "/dev/tty" stty-orig)
      (let (
            [e (port->lines stty-stderr)]
            )
