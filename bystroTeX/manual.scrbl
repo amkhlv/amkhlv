@@ -21,6 +21,7 @@ along with bystroTeX.  If not, see <http://www.gnu.org/licenses/>.
 
 @(require scribble/manual
           (for-label racket  
+                     racket/system
                      scribble/core 
                      scribble/base 
                      scribble/html-properties 
@@ -466,6 +467,42 @@ Inserts the output of a shell command. For example:
 Note how we use the at-syntax instead of quotation marks in the SQL query
 }--|
 } 
+
+@section{Auxiliary functions}
+
+@defmodule[(planet amkhlv/bystroTeX/utils)]
+
+@defform[(with-external-command-as nick (com arg ...) action ...)]{
+A wrapper around the Racket's @racket[process*] procedure. It executes
+@tt{(find-executable-path com)} to find the executable. The following identifiers are
+available:
+@itemlist[
+@item{@tt{nick-stdout} is the @racket[input-port] from the @tt{stdout} of the process}
+@item{@tt{nick-stdin} is the @racket[output-port] to the @tt{stdin} of the process}
+@item{@tt{nick-pid} is the PID}
+@item{@tt{nick-stderr} is the @racket[input-port] from the @tt{stderr} of the process}
+@item{@tt{nick-ctl} is the control procedure, see the manual for @racket[process*]}
+]
+}
+
+@defform[(with-subprocess-as nick outp inp errp (com arg ...) action ...)]{
+A wrapper around the Racket's @racket[subprocess] procedure. It executes
+@tt{(find-executable-path com)} to find the executable. The following identifiers are
+available:
+@itemlist[
+@item{@tt{nick-process} is the resulting @racket[subprocess]}
+@item{@tt{nick-stdout} is the @racket[input-port] from the @tt{stdout} of the process}
+@item{@tt{nick-stdin} is the @racket[output-port] to the @tt{stdin} of the process}
+@item{@tt{nick-stderr} is the @racket[input-port] from the @tt{stderr} of the process}
+]
+See the manual for @racket[subprocess]
+}
+
+@defform[(run-pipeline pipe-stdout pipe-stdin (com arg ...) ...)]{
+Runs the pipeline and returns the @racket[input-port] from its @tt{stdout}.
+(Which should eventually be closed by calling @racket[close-input-port] !)
+}
+
 
 @section{Legal}
 

@@ -22,6 +22,7 @@ along with bystroTeX.  If not, see <http://www.gnu.org/licenses/>.
 
 (require (prefix-in the: xml) xml/path racket/format)
 (require (planet amkhlv/bystroTeX/common))
+(require scribble/core scribble/base scribble/decode)
 
 (provide (all-from-out xml/path) (all-from-out racket/format))
 
@@ -30,4 +31,19 @@ along with bystroTeX.  If not, see <http://www.gnu.org/licenses/>.
   (call-with-input-file x
     (lambda (inport) (the:xml->xexpr (the:document-element (the:read-xml inport))))))
 
+(provide (contract-out [xexprs->nested-flow (->* ((listof the:xexpr?)) (#:style any/c) (or/c #f nested-flow?))]))
+(define (xexprs->nested-flow xs #:style [s #f])
+  (if (cons? xs) 
+      (keyword-apply 
+       nested
+       '(#:style)
+       (list s)
+       (map (λ (y) 
+              (cond [(char? y) (make-string 1 y)]
+                    [(or (eq? 10 y) (eq? 13 y)) (linebreak)]
+                    [(integer? y) (make-string 1 (integer->char y))] 
+                    [else y])) 
+            xs))
+      #f))
 
+         

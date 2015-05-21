@@ -52,21 +52,26 @@ This prints @tt{x} to four decimal places:
 the:xexpr?
 ]{Reads the @racket[the:xexpr] from the XML file}
 
+@defproc[
+(xexprs->nested-flow [xs (listof the:xexpr?)] [#:style s any/c #f])
+nested-flow?
+]{concatenates the values of XML nodes into a nested flow}
 
 @verb|--{
 @(let ([x (file->xexpr  "FILENAME.xml")])
    (tbl #:orient 'hor
         (for/list ([p (se-path*/list '(people) x)] #:when (cons? p)) 
           `(,(se-path* '(person #:nick) p)
-            ,(apply string-append (se-path*/list '(person) p))))))
+            ,(xexprs->nested-flow #:style (bystro-elemstyle "background-color: LightCyan;") (se-path*/list '(person) p))))))
 }--|
 
-Why did not we write:
+Why did not we write simply:
 @verb|--{
 (se-path* '(person) p)  (WRONG!)  ?
 }--|
 Because sometimes we have: @tt|--{ <person>&amp;john</person> }--| (can we exclude that a person's name starts with an ampersand?)
 
+In XML, to insert the newline use @tt{&#a;}, and to insert the space use @tt{&#a0;}.
 
 @section{YAML}
 @verb|--{
@@ -111,6 +116,22 @@ a namespace anchor, for example:
 ]{
 Inserts link to the current dir 
 }
+
+@section{Terminal}
+@defmodule[(planet amkhlv/truques/terminal)]
+
+@defproc[(stty-minus-f-arg-string) string?]{returns "-F" for Linux and "-f" for Mac}
+@defproc[(askpass) string?]{reads password from the console, without echo}
+@defproc[(get-one-char) char?]{waits for keypress}
+@defproc[(ansi-off) string?]{gives "\\033[0m"}
+@defproc[(ansi-fg256 [rgb integer?] [x string?]) string?]{256-color terminal}
+@defproc[(ansi-bg256 [rgb integer?] [x string?]) string?]{256-color terminal}
+@defproc[(ansi-bold [x string?]) string?]{bold}
+@defproc[(ansi-underline [x string?]) string?]{underlined}
+@defproc[(ansi-blink [x string?]) string?]{blinking}
+@defproc[(ansi-reverse [x string?]) string?]{reverse}
+@defproc[(ansi-clear-screen) any/c]{clear screen}
+
 @section{Legal}
 
 Copyright 2012,2013,2014 Andrei Mikhailov
