@@ -23,6 +23,7 @@ along with bystroTeX.  If not, see <http://www.gnu.org/licenses/>.
 (require (prefix-in the: xml) xml/path racket/format)
 (require (planet amkhlv/bystroTeX/common))
 (require scribble/core scribble/base scribble/decode)
+(require racket/date)
 
 (provide (all-from-out xml/path) (all-from-out racket/format))
 
@@ -46,4 +47,33 @@ along with bystroTeX.  If not, see <http://www.gnu.org/licenses/>.
             xs))
       #f))
 
-         
+(provide (contract-out [xsd:date->date* (-> string? date*?)]))
+(define (xsd:date->date* x)
+  (let* ([is-UTC? (char=? (last (string->list x)) #\Z)]
+         [x+ (string-split x "+")]
+         [positive-offset (and (cons? (cdr x+)) (cadr x+))]
+         [xx (string-split x "-")]
+         [y (string->number (car xx))]
+         [m (string->number (cadr xx))]
+         [d (string->number (substring (caddr xx) 0 2))])
+    (define (hh:mm->sec t) 
+      (let ([hm (string-split t ":")])
+        (+ (* 3600 (string->number (car hm)))
+           (* 60 (string->number (cadr hm))))))
+    (define time-zone-offset 
+      (cond
+       [is-UTC? 0]
+       [positive-offset (- (hh:mm->sec positive-offset))]
+       [(cons? (cdddr xx)) (hh:mm->sec (cadddr xx))]
+       [else #f]))
+    (define dst-here? (date-dst? (current-date)))
+    (define result
+      (let ([summer? (and (not time-zone-offset) dst-here?)])
+        (seconds->date
+         (+ (or time-zone-offset 0)
+            (date->seconds 
+             (date 0 0 0 d m y 0 0 summer? 0)
+             (not time-zone-offset)))
+         (not time-zone-offset))))
+    result
+    ))
