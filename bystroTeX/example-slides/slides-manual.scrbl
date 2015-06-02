@@ -1,6 +1,6 @@
 #lang scribble/base
 @(require racket scribble/core scribble/base scribble/html-properties)
-@(require (for-syntax "defs_for-syntax.rkt" (planet amkhlv/bystroTeX/slides_for-syntax)))
+@(require "defs_for-syntax.rkt" (for-syntax (planet amkhlv/bystroTeX/slides_for-syntax)))
 @(require "defs.rkt" (planet amkhlv/bystroTeX/common) (planet amkhlv/bystroTeX/slides))
 @(require (only-in (planet jaymccarthy/sqlite) close))
 @; ---------------------------------------------------------------------------------------------------
@@ -18,12 +18,8 @@
 @(set-bystro-extension! bystro-conf "svg")
 @; This controls the single page mode:
 @(define singlepage-mode #f)
-@; ---------------------------------------------------------------------------------------------------
-@(begin ;do not change anything here:
-   (define-syntax (syntax-setter x) (defines-syntax-for-formulas x))                
-   (syntax-setter defineshiftedformula)
-   (defineshiftedformula "formula-enormula-humongula!"))
-@; ---------------------------------------------------------------------------------------------------
+@(bystro-def-formula "formula-enormula-humongula!")
+
 @; AND HOPEFULLY SOME CONTENT:
 
 @title{BystroTeX}

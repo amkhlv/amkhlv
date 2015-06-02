@@ -35,7 +35,8 @@ along with bystroTeX.  If not, see <http://www.gnu.org/licenses/>.
 ;; ---------------------------------------------------------------------------------------------------
   (provide (contract-out
             ; Get the filename of the scribble file
-            [bystro-scrbl-filename string?]))
+            [get-bystro-scrbl-filename (-> string?)]))
+  (define (get-bystro-scrbl-filename) bystro-scrbl-filename)
 ;; ---------------------------------------------------------------------------------------------------
   (define css-dir (build-path 'same))
   (provide (contract-out
