@@ -26,12 +26,16 @@ along with bystroTeX.  If not, see <http://www.gnu.org/licenses/>.
   (require racket/path)
 
 ;; ---------------------------------------------------------------------------------------------------
-  (define filename-of-scribble-file "")
+  (define bystro-scrbl-filename "")
   (provide (contract-out
                                         ; Set the path to the folder containing the .css files
             [register-path-to-scribble-file (-> path? void?)]))
   (define (register-path-to-scribble-file s)
-    (set! filename-of-scribble-file (path->string (file-name-from-path s))))
+    (set! bystro-scrbl-filename (path->string (file-name-from-path s))))
+;; ---------------------------------------------------------------------------------------------------
+  (provide (contract-out
+            ; Get the filename of the scribble file
+            [bystro-scrbl-filename string?]))
 ;; ---------------------------------------------------------------------------------------------------
   (define css-dir (build-path 'same))
   (provide (contract-out
@@ -444,7 +448,7 @@ along with bystroTeX.  If not, see <http://www.gnu.org/licenses/>.
                  )
             (and 
              (equal? ".scrbl" (substring ps (max 0 (- n 6))))
-             (not (and x (equal? filename-of-scribble-file (path->string name)))))))))
+             (not (and x (equal? bystro-scrbl-filename (path->string name)))))))))
 ;; ---------------------------------------------------------------------------------------------------
   (provide (contract-out 
             [bystro-dir-contains-scrbl? 

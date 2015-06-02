@@ -197,6 +197,8 @@ Insert the list of slides. This is for use on the title-slide.
 
 @defmodule[(planet amkhlv/bystroTeX/common)]
 
+@defthing[bystro-scrbl-filename string?]{This .scrbl filename}
+
 @defproc[
 (bystro-set-css-dir [x path?])
 void?]{
