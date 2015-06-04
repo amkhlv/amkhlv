@@ -19,90 +19,70 @@ along with bystroTeX.  If not, see <http://www.gnu.org/licenses/>.
 
 
 (module sqlite racket
-
-  (require (planet jaymccarthy/sqlite))
-  (require setup/dirs)
-  (require racket/vector scribble/core scribble/base scribble/html-properties)
+  
+  (require db/base db/sqlite3)
+  (require racket/list racket/vector scribble/core scribble/base scribble/html-properties)
   (require (planet amkhlv/bystroTeX/common))
 
-  (define myfilter-out-rows 
-    (lambda (x #:rows-to-hide fields) 
-      (let ([tst (lambda (field) (not (equal? (car x) field)))])
-        (and (for/and ([f fields]) (tst f)) (not (equal? (car (cdr x)) "")))
-	)
-      )
-    )
-  (define mytransform-rows
-    (lambda (x #:title-rows rows-to-highlight)
-      (if (for/or ([row-name rows-to-highlight]) (equal? (car x) row-name))
-          ;; (if (or (equal? (car x) "last") (equal? (car x) "first"))
-          (list (car x) (elem #:style persname-style (car (cdr x))))
-          (list (car x) (verb 
-                         (let ([u (car (cdr x))])
-                           (if u u "")) 
-                         ))
-          )
-      )
-    )
-  (define cardtable-style
-    (make-style "cardtable"
-		(list (make-css-addition 
-		       (build-path  (string->path "/home/andrei/usr/lib/racket/scribble/css/abkstyle.css"))
-               )
-              )
-        )
-    )
+  (provide (all-from-out db/base) (all-from-out db/sqlite3))
 
-  (define persname-style
-    (make-style "persname"
-		(list (make-css-addition 
-		       (build-path (string->path "/home/andrei/usr/lib/racket/scribble/css/abkstyle.css")
-				   )
-		       )
-		      )
-		)
-    )
+  (provide (contract-out
+                                        ; get column titles
+            [get-column-names (-> connection? #:table string? (listof string?))]))
+  (define (get-column-names conn #:table t)
+    (let* ([row-vectors (query-rows conn (string-append "pragma table_info(" t ")"))])
+      (for/list ([v row-vectors]) (vector-ref v 1))))
+                                
 
-  (define mytranspose-vecs
-    (lambda (x)
-      (let ([n (vector-length (car x))])
-        (build-list n 
-		    (lambda (j) 
-		      (let ([g (lambda (vec) (vector-ref vec j))]) (map g x))
-		      )
-		    )
-	)
-      )
-    )
-  
-  (define sqli-rows 
-    (lambda (dbfilename query ttls rsth)
-      (let* (
-             [mydb (open (string->path dbfilename))]
-             [myres  (select mydb query)]
-             [colnames (if (pair? myres) (car myres) #f)]
-             [rows (if (pair? myres) (cdr myres) #f)]
-             [printrow
-              (if (pair? myres)
-              (lambda (row)
-                (tabular 
-                 (map (lambda (x) (mytransform-rows x #:title-rows ttls))
-                      (filter (lambda (r) (myfilter-out-rows r #:rows-to-hide rsth))  
-                              (mytranspose-vecs (list colnames row)))
-                      ) 
-                 #:style cardtable-style
-                 ))
-              #f)])
-        (close mydb)
-        (if (pair? myres)
-            (map printrow rows)
-            '("*** No matches in the database ***"))
-        )))
-
-  (provide mysqli-tables)
-  (define mysqli-tables
-    (lambda (#:dbfile dbf #:sql query #:to-highlight [ttls '()] #:to-hide [rsth '()])
-      (sqli-rows dbf query ttls rsth)
-      )
-    )
+  (provide (contract-out 
+                                        ; print sqlite tables
+            [mysqli-tables (->*
+                            (connection? 
+                             #:sql 
+                             string?
+                             #:column-titles 
+                             (listof string?)
+                             #:css
+                             path-string?)
+                            (#:params
+                             (listof any/c)
+                             #:to-highlight
+                             (listof string?)
+                             #:to-hide
+                             (listof string?))
+                            (listof block?))]))
+  (define (mysqli-tables
+           conn
+           #:column-titles column-titles
+           #:sql x
+           #:css css-filename
+           #:params [prms '()] 
+           #:to-highlight [rows-to-hl '()] 
+           #:to-hide [rows-to-hide '()])
+    (let* ([lookup (prepare conn x)]
+           [row-vectors (query-rows conn (bind-prepared-statement lookup prms))])
+      (for/list ([row-vector row-vectors])
+        (let* ([all-table-rows 
+                (map
+                 (λ (j) 
+                   `(,(list-ref column-titles j) 
+                     ,(vector-ref row-vector j)))
+                 (range (length column-titles)))]
+               [rows-to-show 
+                (filter (λ (x) 
+                          (and (not (member (car x) rows-to-hide))
+                               (and (cadr x) (not (equal? (cadr x) "")))))
+                          all-table-rows)]
+               [formatted-table-rows
+                (map
+                 (λ (x) 
+                   `(,(car x) 
+                     ,(if (not (member (car x) rows-to-hl)) (verb (cadr x)) (bold (cadr x)))))
+                 rows-to-show)])
+          (tabular 
+           #:style 
+           (make-style "cardtable"
+                       (list (make-css-addition 
+                              (build-path  (string->path css-filename)))))
+           formatted-table-rows)))))
   )

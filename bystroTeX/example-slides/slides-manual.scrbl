@@ -2,7 +2,7 @@
 @(require racket scribble/core scribble/base scribble/html-properties)
 @(require "defs_for-syntax.rkt" (for-syntax (planet amkhlv/bystroTeX/slides_for-syntax)))
 @(require "defs.rkt" (planet amkhlv/bystroTeX/common) (planet amkhlv/bystroTeX/slides))
-@(require (only-in (planet jaymccarthy/sqlite) close))
+@(require (only-in db/base disconnect))
 @; ---------------------------------------------------------------------------------------------------
 @; User definitions:
 @(define bystro-conf 
@@ -675,6 +675,6 @@ The syntax of TeX/LaTeX is pain.}
 }
 
 @; ---------------------------------------------------------------------------------------------------
-@close[formula-database]
+@disconnect[formula-database]
 @(bystro-close-connection bystro-conf)
  

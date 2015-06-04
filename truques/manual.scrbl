@@ -31,6 +31,8 @@ along with bystroTeX.  If not, see <http://www.gnu.org/licenses/>.
                      (planet amkhlv/bystroTeX/common)
                      "truques.rkt"
                      "xml.rkt"
+                     "sqlite.rkt"
+                     "terminal.rkt"
                      ))
 @(require (planet amkhlv/bystroTeX/common))
 @title{Truques}
@@ -90,6 +92,56 @@ In XML, to insert the newline use @tt{&#a;}, and to insert the space use @tt{&#a
 @verb|---{
 @nested[#:style @(make-style "comment" '()) @nested[#:style @(make-style "greenbox" '()) @verb|-{ ... @verb}-|
 }---|
+
+@section{SQLite tables}
+@defmodule[(planet amkhlv/truques/sqlite)]
+
+Start with defining the database connection:
+
+@verb|--{
+@(define conn (sqlite3-connect #:database "/path/to/your/database.sqlite" #:mode 'read-only))
+}--|
+
+And in the end do not forget to disconnect:
+
+@verb|--{
+@(disconnect conn)
+}--|
+
+
+
+@defproc[
+(mysqli-tables 
+ [conn connection?] 
+ [#:column-titles column-titles (listof string?)]
+ [#:sql x string?] 
+ [#:params params (listof string?) '()]
+ [#:css css-file path-string?]
+ [#:to-highlight to-hl (listof string?) '()]
+ [#:to-hide  to-hide     (listof string?) '()])
+(listof block?)]{
+Prints out an SQLite database. The parameters @racket[to-highlight] and @racket[to-hide] are column titles as specified in 
+@racket[column-titles]. Notice that @racket[column-titles] do not have to be same as actual names of columns in the database.
+They are supposed to be ``titles'' for nice printing. Their assignment to the column names are by order (in the query).
+}
+
+@defproc[
+(get-column-names
+ [conn connection?] 
+ [#:table t string?])
+ (listof string?)]{
+
+Get the list of the column names. Sample use:
+@verb|--{
+@(mysqli-tables
+  conn
+  #:column-titles (get-column-names conn #:table "mytable")
+  #:sql "select * from mytable where name like ?"
+  #:params '("Andrei")
+  #:css "my-tables-style.css")
+}--|
+}
+
 
 @section{Truques}
 @defmodule[(planet amkhlv/truques/truques)]

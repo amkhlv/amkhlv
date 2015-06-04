@@ -23,7 +23,7 @@ along with bystroTeX.  If not, see <http://www.gnu.org/licenses/>.
   (require setup/dirs)
   (require scribble/decode)
 
-  (require (planet jaymccarthy/sqlite))
+  (require db/base db/sqlite3)
   (require racket/vector)
   (require racket/list)
   (require racket/dict)
@@ -35,6 +35,8 @@ along with bystroTeX.  If not, see <http://www.gnu.org/licenses/>.
   (require (prefix-in net: net/http-client))
   (require (prefix-in net: net/url))
   (require (prefix-in net: net/url-structs))
+
+  (provide (all-from-out db/base) (all-from-out db/sqlite3))
 
 ;; ---------------------------------------------------------------------------------------------------
                                         ; Global variables
@@ -245,7 +247,7 @@ along with bystroTeX.  If not, see <http://www.gnu.org/licenses/>.
   (provide (contract-out  
                                         ; initialize formula collection dir and database
    [bystro-initialize-formula-collection 
-    (-> bystro? db?)]))
+    (-> bystro? connection?)]))
   (define (bystro-initialize-formula-collection bstr)
     (display "\n --- initializing formula collection in the directory: ")
     (display (bystro-formula-dir-name bstr))
@@ -253,14 +255,13 @@ along with bystroTeX.  If not, see <http://www.gnu.org/licenses/>.
     (display (bystro-formula-database-name bstr))
     (unless (directory-exists? (string->path (bystro-formula-dir-name bstr)))
       (make-directory (string->path (bystro-formula-dir-name bstr))))
-    (let* ([mydb (open (string->path (bystro-formula-database-name bstr)))]
-           [query (prepare mydb "select name from SQLITE_MASTER")]
-           [tbls (step* query)]
+    (let* ([mydb (sqlite3-connect #:database (bystro-formula-database-name bstr) #:mode 'create)]
+           [sqlite-master_rows (query-rows mydb "select name from SQLITE_MASTER")])
+      (and (not (for/or ([r sqlite-master_rows]) (equal? (vector-ref r 0) "formulas")))
+           (begin
+             (query-exec mydb "CREATE TABLE formulas (tex, scale, bg, fg, filename, depth, tags)")
+             (commit-transaction mydb))
            )
-      (and (not (for/or ([tbl tbls]) (equal? (vector-ref tbl 0) "formulas")))
-           (exec/ignore mydb "CREATE TABLE formulas (tex, scale, bg, fg, filename, depth, tags)")
-           )
-      (finalize query)
       (set-current-running-database! state mydb)
       mydb))
 ;; ---------------------------------------------------------------------------------------------------
@@ -386,7 +387,7 @@ along with bystroTeX.  If not, see <http://www.gnu.org/licenses/>.
 ;; ---------------------------------------------------------------------------------------------------
   (provide (contract-out  
                                         ; corresponds to \equation in LaTeX
-   [bystro-equation (->* ((listof string?) 
+            [bystro-equation (->* ((listof string?) 
                           #:size natural-number/c) 
                          (#:label (or/c string? #f)
                           #:bg-color (listof natural-number/c)
@@ -437,7 +438,7 @@ along with bystroTeX.  If not, see <http://www.gnu.org/licenses/>.
                                         ; inline formula
             [bystro-formula (->* () 
                                  (#:shell-command path?
-                                  #:database db? 
+                                  #:database connection? 
                                   #:formulas-in-dir string?
                                   #:size natural-number/c 
                                   #:bg-color (listof natural-number/c)
@@ -459,22 +460,19 @@ along with bystroTeX.  If not, see <http://www.gnu.org/licenses/>.
            #:use-depth [use-depth #f] 
            #:aa-adjust [aa-adj (bystro-autoalign-adjust configuration)] 
            . tex)
-    (let* ([query (prepare 
-                   mydb
-                   (string-append 
-                    "select filename,depth  from formulas where scale = ? and tex = ? and bg = ? and fg = ?"
-                    ))]
-           [row  (begin (load-params 
-                         query 
-                         bsz 
-                         (apply string-append (cons preamble tex))
-                         (rgb-list->string bg-color) 
-                         (rgb-list->string fg-color))
-                        (step query)
-                        )]
-           [totalnumber (vector-ref (car (cdr (select mydb "select count(*) from formulas"))) 0)]
+    (let* ([lookup (prepare 
+                    mydb
+                    "select filename,depth  from formulas where scale = ? and tex = ? and bg = ? and fg = ?")]
+           [rows  (query-rows mydb (bind-prepared-statement
+                                    lookup
+                                    (list 
+                                     bsz 
+                                     (apply string-append (cons preamble tex))
+                                     (rgb-list->string bg-color) 
+                                     (rgb-list->string fg-color))))]
+           [row (if (cons? rows) (car rows) #f)]
+           [totalnumber (query-value mydb "select count(*) from formulas")]
            )
-      (finalize query)
       (if row
           (aligned-formula-image 
            align 
@@ -483,7 +481,6 @@ along with bystroTeX.  If not, see <http://www.gnu.org/licenses/>.
            aa-adj 
            (build-path formdir (string-append (vector-ref row 0) "." (bystro-extension configuration))) 
            bsz)
-
           (let* 
               ([formnum (totalnumber . + . 1)]
                [filename (string-append formdir "/" (number->string formnum) "." (bystro-extension configuration))]
@@ -500,16 +497,18 @@ along with bystroTeX.  If not, see <http://www.gnu.org/licenses/>.
                           fg-color
                           filename)])
             (unless (string? dpth-str) (error "ERROR: procedure to typeset formulas did not return the depth string"))
-            (run 
-             insert-stmt 
-             (apply string-append (cons preamble tex))
-             bsz 
-             (rgb-list->string bg-color) 
-             (rgb-list->string fg-color) 
-             (number->string formnum) 
-             dpth-str 
-             "")
-            (finalize insert-stmt)
+            (query
+             mydb
+             (bind-prepared-statement
+              insert-stmt 
+              (list (apply string-append (cons preamble tex))
+                    bsz 
+                    (rgb-list->string bg-color) 
+                    (rgb-list->string fg-color) 
+                    (number->string formnum) 
+                    dpth-str 
+                    "")))
+            (commit-transaction mydb)
             (aligned-formula-image 
              align 
              use-depth 
