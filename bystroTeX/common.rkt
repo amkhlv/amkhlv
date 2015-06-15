@@ -494,7 +494,7 @@ along with bystroTeX.  If not, see <http://www.gnu.org/licenses/>.
                  (bystro-path-to-link (string-append s "/" h))  
                  bare) 
                 " ")))
-           (bystro-list-scrbls s #:exclude-same-name #t)))))
+           (bystro-list-scrbls s #:exclude-same-name #f)))))
 ;; ---------------------------------------------------------------------------------------------------
   (provide (contract-out [boldred (->* () #:rest (listof pre-content?) element?)]))
   (define (boldred . x) 

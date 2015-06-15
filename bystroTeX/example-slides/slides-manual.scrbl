@@ -149,16 +149,7 @@ racket -e '(require (planet amkhlv/bystroTeX/slides_setup))'
 }
 This command will take some time, because it has to download and compile things.
 It will talk back to you, asking some questions and giving further instructions.
-In particular, it will ask you to choose a folder where to store some Java staff.
-
-@div[comment]{This sounds strange, because all the Java part belongs to the server, which
-we already installed. However, there is an @seclink["AlternativeBackend"]{alternative backend},
-using named pipes instead of a server,
-which I am thinking to deprecate but keeping for now. The setup also compiles this
-alternative backend (just in case you want to try it). And this is the only reason why
-I am asking  you to handle some more Java at this stage.}
-
-Most importantly, during the installation you will be asked to choose a folder
+During the installation you will be asked to choose a folder
 where a sample slide presentation will be stored.
 After the installation, @spn[attn]{go to that sample folder}.
 
@@ -607,7 +598,7 @@ This may happen on slow machines. Do the following:
 }
 
 @slide["Alternative backends" #:tag "AlternativeBackend" #:showtitle #t]{
-We think that it is best to @seclink["Installation"]{use a server} as a backend.
+We think that it is best to @seclink["Installation"]{use our HTTP server} as a backend.
 
 But it is also possible, instead of connecting to a server, just call a program of
 your choice. That program should satisfy the following properties:
@@ -628,7 +619,7 @@ your choice. That program should satisfy the following properties:
 which reports the depth (@italic{i.e.} vertical offset) of the formula}
 ]}
 ]
-The name of such a program (in our case it is @tt{amkhlv-java-formula.sh}) should be
+The name of such a program (here it is @tt{amkhlv-java-formula.sh}) should be
 specified (among other things) at the top of the slides header in these lines:
 @verb|{
 @(define bystro-conf 
@@ -640,11 +631,8 @@ specified (among other things) at the top of the slides header in these lines:
            0   ; manual alignment adjustment
            ))
 }|
-The alternative backend which we are supplying
-contains a @hyperlink["http://www.linuxjournal.com/article/2156"]{Linux pipe},
-(which prevents it from being used on Windows):
-@image{svg/under-the-hood.svg}
 }
+
 @slide["Why not Beamer?" #:tag "Beamer" #:showtitle #t]{
 There is an excellent tool called @hyperlink["http://en.wikipedia.org/wiki/Beamer_(LaTeX)"]{Beamer},
 which is based on @tt{LaTeX} and can be used with @hyperlink["http://www.gnu.org/s/auctex/"]{AUCTeX}. 

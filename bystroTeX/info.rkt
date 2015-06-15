@@ -7,4 +7,4 @@
 (define primary-file "slides_setup.rkt")
 (define scribblings '(("manual.scrbl" ())))
 (define homepage "http://andreimikhailov.com/slides/bystroTeX/slides-manual/index.html")
-(define release-notes '("now can specify attributes in tg[]"))
+(define release-notes '("cleanup, streamlined headers"))

@@ -176,7 +176,8 @@ Inserts link to the current dir
 @defproc[(askpass) string?]{reads password from the console, without echo}
 @defproc[(get-one-char) char?]{waits for keypress}
 @defproc[(ansi-off) string?]{gives "\\033[0m"}
-@defproc[(ansi-fg256 [rgb integer?] [x string?]) string?]{256-color terminal}
+@defproc[(ansi-fg256 [rgb integer?] [x string?]) string?]{256-color terminal, 
+see @hyperlink["https://en.wikipedia.org/wiki/File:Xterm_256color_chart.svg"]{Xterm_256color_chart.svg}}
 @defproc[(ansi-bg256 [rgb integer?] [x string?]) string?]{256-color terminal}
 @defproc[(ansi-bold [x string?]) string?]{bold}
 @defproc[(ansi-underline [x string?]) string?]{underlined}

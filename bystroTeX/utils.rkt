@@ -23,29 +23,47 @@ along with bystroTeX.  If not, see <http://www.gnu.org/licenses/>.
 
   (provide process*)
 
+  (provide (contract-out [close-these-ports: (->* () #:rest (listof (or/c input-port? output-port?)) void?)]))
+  (define (close-these-ports: . ps)
+    (for ([p ps] #:when p)
+      (cond
+       [(input-port? p) (close-input-port p)]
+       [(output-port? p) (close-output-port p)])))
+
   (provide with-external-command-as)
   (define-syntax (with-external-command-as stx)
     (syntax-case stx ()
-      [(_ p-nick (com arg ...) action ...) 
+      [(_ p-nick x y action ...) 
        (with-syntax 
            ([nick-stdout (format-id stx "~a-stdout" #'p-nick)]
             [nick-stdin  (format-id stx "~a-stdin"  #'p-nick)]
             [nick-pid    (format-id stx "~a-pid"    #'p-nick)]
             [nick-stderr (format-id stx "~a-stderr" #'p-nick)]
-            [nick-ctl    (format-id stx "~a-ctrl"   #'p-nick)]
+            [nick-ctrl   (format-id stx "~a-ctrl"   #'p-nick)]
             )
-         #`(let* 
-               ([p-params (process* (find-executable-path com) arg ...)]
-                [nick-stdout (car p-params)]
-                [nick-stdin  (cadr p-params)]
-                [nick-pid    (caddr p-params)]
-                [nick-stderr (cadddr p-params)]
-                [nick-ctrl   (cadr (cdddr p-params))])
-             (define results (let () action ...))
-             (when nick-stdout (close-input-port nick-stdout))
-             (when nick-stdin  (close-output-port nick-stdin))
-             (when nick-stderr (close-input-port nick-stderr))
-             results))]))
+         (syntax-case #'x ()
+           [(com arg ...)
+            #`(let* 
+                  ([p-params (process* (find-executable-path com) arg ...)]
+                   [nick-stdout (car p-params)]
+                   [nick-stdin  (cadr p-params)]
+                   [nick-pid    (caddr p-params)]
+                   [nick-stderr (cadddr p-params)]
+                   [nick-ctrl   (cadr (cdddr p-params))])
+                (define results (let () y action ...))
+                (close-these-ports: nick-stdout nick-stdin nick-stderr)
+                results)]
+           [#:cmdline 
+            #`(let* 
+                  ([p-params (apply process* (find-executable-path (car y)) (cdr y))]
+                   [nick-stdout (car p-params)]
+                   [nick-stdin  (cadr p-params)]
+                   [nick-pid    (caddr p-params)]
+                   [nick-stderr (cadddr p-params)]
+                   [nick-ctrl   (cadr (cdddr p-params))])
+                (define results (let () #t action ...))
+                (close-these-ports: nick-stdout nick-stdin nick-stderr)
+                results)]))]))
 
   (provide with-subprocess-as)
   (define-syntax (with-subprocess-as stx)
