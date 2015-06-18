@@ -1,6 +1,5 @@
 (module defs_for-syntax racket
-  (require 
-   (for-syntax racket/base (planet amkhlv/bystroTeX/slides_for-syntax)))
+  (require (for-syntax racket/base bystroTeX/slides_for-syntax))
   (provide bystro-def-formula)
    (define-syntax (bystro-def-formula stx)
      (bystro-formula-syntax 

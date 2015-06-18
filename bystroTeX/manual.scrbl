@@ -62,7 +62,7 @@ This is some text which I want to be show verbatim
 }--|
 
 @section{Functions for manipulating slides}
-@defmodule[(planet amkhlv/bystroTeX/slides)]
+@defmodule[bystroTeX/slides]
 
 @defstruct[bystro ([formula-processor path?]
                    [formula-database-name string?]
@@ -195,7 +195,7 @@ Insert the list of slides. This is for use on the title-slide.
 
 @section{Miscellaneous functions}
 
-@defmodule[(planet amkhlv/bystroTeX/common)]
+@defmodule[bystroTeX/common]
 
 @defproc[(get-bystro-scrbl-filename) string?]{This .scrbl filename}
 
@@ -472,7 +472,7 @@ Note how we use the at-syntax instead of quotation marks in the SQL query
 
 @section{Auxiliary functions}
 
-@defmodule[(planet amkhlv/bystroTeX/utils)]
+@defmodule[bystroTeX/utils]
 
 @defform[(with-external-command-as nick (com arg ...) action ...)]{
 A wrapper around the Racket's @racket[process*] procedure. It executes

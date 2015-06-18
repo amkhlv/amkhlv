@@ -1,7 +1,7 @@
 #lang scribble/base
 @(require racket scribble/core scribble/base scribble/html-properties)
-@(require "defs_for-syntax.rkt" (for-syntax (planet amkhlv/bystroTeX/slides_for-syntax)))
-@(require "defs.rkt" (planet amkhlv/bystroTeX/common) (planet amkhlv/bystroTeX/slides))
+@(require "defs_for-syntax.rkt" (for-syntax bystroTeX/slides_for-syntax))
+@(require "defs.rkt" bystroTeX/common bystroTeX/slides)
 @(require (only-in db/base disconnect))
 @; ---------------------------------------------------------------------------------------------------
 @; User definitions:
@@ -130,46 +130,25 @@ aptitude install racket
 This command will install the @tt{Racket} environment on your computer. Now we are ready to
 install @tt{bystroTeX}.
 
-There are two methods of installation:
 
-@table-of-contents[]
-
-
-@smaller{Comments @bold{for Windows users}:}
 @itemlist[
-@item{@smaller{Install @seclink["FromGitHub"]{from GitHub}}}
-@item{@smaller{You will have to manually install the @tt{dll} for the @tt{sqlite3}, please consult the Google}}
+@item{@bold{For Windows users}:@smaller{You will have to manually install the @tt{dll} for the @tt{sqlite3}, please consult the Google}}
 ]
 
-@section{Installation from Planet}
 
-Execute this command @bold{@clr["red"]{as a normal user}} (i.e. @bold{@clr["red"]{not}} root):
-@verb{
-racket -e '(require (planet amkhlv/bystroTeX/slides_setup))'
-}
-This command will take some time, because it has to download and compile things.
-It will talk back to you, asking some questions and giving further instructions.
-During the installation you will be asked to choose a folder
-where a sample slide presentation will be stored.
-After the installation, @spn[attn]{go to that sample folder}.
 
-@section[#:tag "FromGitHub"]{Installation from GitHub}
-The second method of @tt{bystroTeX} installation is to install directly from its @tt{git} repository.
-I usually set up a ``development link'', this way I can do changes in the repository and they are
-immediately in effect. This is done as follows:  @bold{@clr["red"]{as a normal user}} (i.e. @bold{@clr["red"]{not}} root),
-exectute:
+@bold{@clr["red"]{As a normal user}} (i.e. @bold{@clr["red"]{not}} root), exectute:
 
-@smaller{@tt{git clone https://github.com/amkhlv/amkhlv}}
+@verb|{
+git clone https://github.com/amkhlv/amkhlv
+cd amkhlv
+raco pkg install --link bystroTeX/
+}|
 
-@smaller{@tt{cd amkhlv}}
+Now @spn[attn]{Now go to the sample folder}:
 
-@smaller{@tt{raco planet link amkhlv bystroTeX.plt 7 1 bystroTeX/}}
+@verb{cd examples/bystroTeX_manual}
 
-With this method of installation, the sample folder ends up in in @tt{bystroTeX/example-slides}
-
-Now @spn[attn]{go to that sample folder}:
-
-@smaller{@tt{cd bystroTeX/example-slides}}
 
 }
 
@@ -539,24 +518,6 @@ own LaTeX style.
 
 }
 
-@slide["Updating bystroTeX" #:tag "Updating" #:showtitle #t]{
-If you already have @tt{bystroTeX} installed, but want to update to the latest
-version. Go to @hyperlink["http://planet.racket-lang.org/display.ss?package=bystroTeX.plt&owner=amkhlv"]{the Planet page}.
-Somewhere at the top of the page, you will find the following line:
-@verb|{
-To load: 	(require (planet amkhlv/bystroTeX:5:0/slides_setup))
-}|
-except for instead of @tt{bystroTeX:5:0} there will be @tt{bystroTeX:m:n} where @tt{m:n} is the latest version number.
-Then execute this command:
-@verb|{
-racket -e '(require (planet amkhlv/bystroTeX:m:n/slides_setup))'
-}|
-This will repeat the installation procedure and update to the latest version. 
-
-I recommend cleaning up the directories @tt{~/bystro} and @tt{~/java} (or whatever you called them
-@seclink["Installation"]{during the previous installation}) before updating. This is because I may
-have some changes both in the sample slides and in the Java part.
-}
 
 @slide["Troubleshooting" #:tag "Troubleshooting" #:showtitle #t]{
 You need @bold{Java 7} (because Java 6 will not work). OpenJDK should be OK. 
@@ -571,9 +532,6 @@ correctly in the headers, as explained @seclink["SinglePage"]{here}.}
 @para{Some formulas look ugly}
 @para{Use Sun Java as explained @seclink["Syntax"]{here}}
 ]@list[
-@para{First time execution of the ``@tt{scribble ...}'' command takes about half a minute, and then error message like @tt{read-xml: parse-error: expected root element ...}}
-@para{Looks like a Java error, cannot find @tt{jlatexmath.jar} or something; see the contents of the log file @tt{server-error.txt}}
-]@list[
 @para{Execution of the command ``@tt{scribble ...}'' freezes}
 @para{If your talk has many formulas, and this is the first time you are
 executing the @tt{scribble} command, you may need to wait 1 min or so...
@@ -583,13 +541,9 @@ This may happen on slow machines. Do the following:
 @linebreak[]
 1. Stop @tt{scribble} (just @tt{Ctrl-C})
 @linebreak[]
-2. @tt{rm bystrotex.fifo}
-@linebreak[]
 3. @tt{rm formulas.sqlite}
 @linebreak[]
 4. @tt{rm formulas/*}
-@linebreak[]
-5. @tt{pkill -n java}
 @linebreak[]
 6. Start your @tt{scribble} command again
 }
