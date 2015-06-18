@@ -1,10 +1,11 @@
 #lang setup/infotab
-(define name "bystroTeX")
-(define blurb
-  '("Scribble-based tool for preparing"
-    "slides with LaTeX formulas"))
-(define categories '(scientific media))
-(define primary-file "slides_setup.rkt")
-(define scribblings '(("manual.scrbl" ())))
-(define homepage "http://andreimikhailov.com/slides/bystroTeX/slides-manual/index.html")
-(define release-notes '("cleanup, streamlined headers"))
+(define collection 'use-pkg-name)
+(define version "9.0")
+(define deps 
+  '("base"
+    "compatibility-lib"
+    "db-lib"
+    "scheme-lib"
+    "scribble-lib"))
+(define build-deps '("at-exp-lib"))
+
