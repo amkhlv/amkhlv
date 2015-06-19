@@ -99,17 +99,22 @@ javac -version
 }
 They should say something like ``java version 1.7....'' and ``javac 1.7....''.
 
-To install the server, you need the command called @tt{git}.
+To install the server, you will need to install two things on your computer: 
 
-Execute the following commands:
+@itemlist[#:style 'ordered 
+@item[@tt{git}]
+@item{@hyperlink["https://en.wikipedia.org/wiki/SBT_(software)"]{sbt} --- please use the @hyperlink["https://dl.bintray.com/sbt/debian/"]{latest version!}}
+]
+
+After you have them installed, execute the following commands:
 
 @smaller{@tt{git clone https://github.com/amkhlv/latex2svg}}
 
 @smaller{@tt{cd latex2svg}}
 
-@smaller{@tt{./activator stage}}
+@smaller{@tt{sbt stage}}
 
-This will take some time, as various libraries will have to be downloaded (and saved in @tt{~/.ivy2}).
+This will take some time, as various libraries will have to be downloaded (and saved in @tt{~/.ivy2} and @tt{~/.sbt}).
 After that, execute this command:
 
 @smaller{@tt{target/universal/stage/bin/latex2svg -Dhttp.port=9749 -Dhttp.address=127.0.0.1}}
