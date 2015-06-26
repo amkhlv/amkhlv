@@ -8,4 +8,5 @@
     "scheme-lib"
     "scribble-lib"))
 (define build-deps '("at-exp-lib"))
-
+(define scribblings
+    '(("manual.scrbl" ()))) 

@@ -28,16 +28,60 @@ along with bystroTeX.  If not, see <http://www.gnu.org/licenses/>.
                      scriblib/render-cond
                      (prefix-in the: xml)
                      xml/path
-                     (planet amkhlv/bystroTeX/common)
+                     bystroTeX/common
                      "truques.rkt"
                      "xml.rkt"
                      "sqlite.rkt"
                      "terminal.rkt"
                      ))
-@(require (planet amkhlv/bystroTeX/common))
+@(require bystroTeX/common "truques.rkt")
 @title{Truques}
 
 Here I will write up various tricks useful with Scribble. 
+
+
+@section{Truques}
+@defmodule[truques/truques]
+
+@defproc[
+(show-and-go
+ [a namespace-anchor?]
+ [#:rest xs (listof string?)] 
+) 
+block?
+]{
+First prints the code, then executes it an prints the result of the execution. But first need to set up 
+a namespace anchor, for example:
+@verb|--{
+@(define-namespace-anchor a)
+@show-and-go[a]|-{
+(format "Conversion rate: ~s" (~r #:precision '(= 4) dollar2real))
+}-|
+}--|
+}
+
+@defproc[
+(curdir) element?
+]{
+Inserts link to the current dir 
+}
+@section{Text}
+@subsection{Nested styles}
+@verb|---{
+@nested[#:style @(make-style "comment" '()) @nested[#:style @(make-style "greenbox" '()) @verb|-{ ... @verb}-|
+}---|
+
+@subsection{Align to right}
+@(define-namespace-anchor b)
+@show-and-go[b]|--{
+(tg table #:attrs ([border "0"] [width "100%"])
+    (tg tr (tg td #:attrs ([style "text-align:right;"])
+               "First line"
+               (linebreak)
+               "Second line"
+               )))
+}--|
+
 
 @section{Format}
 This prints @tt{x} to four decimal places:
@@ -47,7 +91,7 @@ This prints @tt{x} to four decimal places:
 }--|
 
 @section{XML}
-@defmodule[(planet amkhlv/truques/xml)]
+@defmodule[truques/xml]
 
 @defproc[
 (file->xexpr [a path-string?]) 
@@ -75,26 +119,9 @@ Because sometimes we have: @tt|--{ <person>&amp;john</person> }--| (can we exclu
 
 In XML, to insert the newline use @tt{&#a;}, and to insert the space use @tt{&#a0;}.
 
-@section{YAML}
-@verb|--{
-@(require (planet esilkensen/yaml))
-@(define yaml-dict
-   (let*
-       ((in (open-input-file "filename.yaml"))
-        (yml (read-yaml in))
-        )
-     (close-input-port in)
-     yml))
-@(tt (hash-ref yaml-dict "keyname"))
-}--|
-
-@section{Nested styles}
-@verb|---{
-@nested[#:style @(make-style "comment" '()) @nested[#:style @(make-style "greenbox" '()) @verb|-{ ... @verb}-|
-}---|
 
 @section{SQLite tables}
-@defmodule[(planet amkhlv/truques/sqlite)]
+@defmodule[truques/sqlite]
 
 Start with defining the database connection:
 
@@ -107,8 +134,6 @@ And in the end do not forget to disconnect:
 @verb|--{
 @(disconnect conn)
 }--|
-
-
 
 @defproc[
 (mysqli-tables 
@@ -143,34 +168,9 @@ Get the list of the column names. Sample use:
 }
 
 
-@section{Truques}
-@defmodule[(planet amkhlv/truques/truques)]
-
-@defproc[
-(show-and-go
- [a namespace-anchor?]
- [#:rest xs (listof string?)] 
-) 
-block?
-]{
-First prints the code, then executes it an prints the result of the execution. But first need to set up 
-a namespace anchor, for example:
-@verb|--{
-@(define-namespace-anchor a)
-@show-and-go[a]|-{
-(format "Conversion rate: ~s" (~r #:precision '(= 4) dollar2real))
-}-|
-}--|
-}
-
-@defproc[
-(curdir) element?
-]{
-Inserts link to the current dir 
-}
 
 @section{Terminal}
-@defmodule[(planet amkhlv/truques/terminal)]
+@defmodule[truques/terminal]
 
 @defproc[(stty-minus-f-arg-string) string?]{returns "-F" for Linux and "-f" for Mac}
 @defproc[(askpass) string?]{reads password from the console, without echo}

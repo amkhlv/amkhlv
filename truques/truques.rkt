@@ -27,7 +27,7 @@ along with bystroTeX.  If not, see <http://www.gnu.org/licenses/>.
     (define thisns (namespace-anchor->namespace a))
     (let ((mycode (apply string-append x)))
         (nested (nested #:style (style "comment" '()) (verb mycode))
-                (verb (eval (read (open-input-string (string-append "(begin " mycode ")"))) thisns)))))
+                (eval (read (open-input-string (string-append "(begin " mycode ")"))) thisns))))
 
   (provide (contract-out [curdir (-> element?)]))
   (define (curdir)

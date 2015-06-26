@@ -1,6 +1,11 @@
 #lang setup/infotab
-(define name "truques")
-(define blurb '("Various tricks"))
-(define categories '(misc))
-(define primary-file "truques.rkt")
-(define scribblings '(("manual.scrbl" ())))
+(define collection 'use-pkg-name)
+(define version "1.0")
+(define deps 
+  '("base"
+    "db-lib"
+    "scheme-lib"
+    "scribble-lib"))
+(define build-deps '("at-exp-lib"))
+(define scribblings
+    '(("manual.scrbl" ()))) 
