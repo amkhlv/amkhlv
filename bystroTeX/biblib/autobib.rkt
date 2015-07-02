@@ -27,13 +27,7 @@
 
 (define abbreviate-given-names (make-parameter #f))
 
-(define autobib-style-extras
-  (let ([abs (lambda (s)
-               (path->main-collects-relative
-                (collection-file-path s "scriblib")))])
-    (list
-     (make-css-addition (abs "autobib.css"))
-     (make-tex-addition (abs "autobib.tex")))))
+(define autobib-style-extras `( ,(make-css-addition "autobib.css")))
 
 (define bib-single-style (make-style "AutoBibliography" autobib-style-extras))
 (define bib-columns-style (make-style #f autobib-style-extras))
@@ -42,7 +36,7 @@
 (define colbibnumber-style (make-style "Autocolbibnumber" autobib-style-extras))
 (define colbibentry-style (make-style "Autocolbibentry" autobib-style-extras))
 
-(define-struct auto-bib (author date title location url note is-book? key specific))
+(define-struct auto-bib (author date title location url electronic doi note is-book? key specific))
 (define-struct bib-group (ht))
 
 (define-struct (author-element element) (names cite))
@@ -190,7 +184,7 @@
 (define author+date-style
   (new
    (class object%
-     (define/public (bibliography-table-style) bib-single-style)
+     (define/public (bibliography-table-style n) bib-single-style)
      (define/public (entry-style) bibentry-style)
      (define/public (disambiguate-date?) #t)
      (define/public (collapse-for-date?) #t)
@@ -206,7 +200,16 @@
 (define number-style
   (new
    (class object%
-     (define/public (bibliography-table-style) bib-columns-style)
+     (define/public (bibliography-table-style n) 
+       (make-style 
+        #f 
+        (list
+         (table-cells 
+          (make-list n (list (make-style #f 
+                                         (list 'top
+                                               (attributes 
+                                                (list (cons 'style "padding-right:8px;")))))
+                             (make-style #f (list 'top))))))))
      (define/public (entry-style) colbibentry-style)
      (define/public (disambiguate-date?) #f)
      (define/public (collapse-for-date?) #f)
@@ -319,7 +322,7 @@
              (list sec-title)
              (make-style #f '(unnumbered))
              null
-             (list (make-table (send style bibliography-table-style)
+             (list (make-table (send style bibliography-table-style (length disambiguated))
                                (add-between #:splice? #t
                                             disambiguated
                                             (for/list ([i (in-range 1 spaces)])
@@ -327,12 +330,14 @@
              null))
 
 (define (bib->entry bib style disambiguation render-date-bib i)
-  (define-values (author date title location url note is-book?)
+  (define-values (author date title location url electronic doi note is-book?)
     (values (auto-bib-author bib)
             (auto-bib-date bib)
             (auto-bib-title bib)
             (auto-bib-location bib)
             (auto-bib-url bib)
+            (auto-bib-electronic bib)
+            (auto-bib-doi bib)
             (auto-bib-note bib)
             (auto-bib-is-book? bib)))
   (make-element (send style entry-style)
@@ -354,19 +359,21 @@
                  (if location
                      `(" " ,@(decode-content (list location)) ,(if date "," "."))
                      null)
+                 (if electronic `(" " ,@(decode-content (list electronic)) ", ") null)
                  (if date `(" "
                             ,@(if disambiguation
                                   `(,@(decode-content (list (render-date-bib date))) ,disambiguation)
                                   (decode-content (list (render-date-bib date))))
-                            ".")
+                            ",")
                      null)
+                 (if doi `(" " ,@(decode-content (list (bold "doi:") doi)) ", ") null)
                  (if url `(" " ,(link url (make-element 'url (list url)))) null)
                  (if note `(" " ,note) null))))
 
 (define-syntax (define-cite stx)
   (syntax-parse stx
     [(_ (~var ~cite) citet generate-bibliography
-        (~or (~optional (~seq #:style style) #:defaults ([style #'author+date-style]))
+        (~or (~optional (~seq #:style style) #:defaults ([style #'number-style]))
              (~optional (~seq #:disambiguate fn) #:defaults ([fn #'#f]))
              (~optional (~seq #:render-date-in-bib render-date-bib) #:defaults ([render-date-bib #'#f]))
              (~optional (~seq #:spaces spaces) #:defaults ([spaces #'1]))
@@ -410,13 +417,15 @@
                   #:location [location #f]
                   #:date [date #f]
                   #:url [url #f]
+                  #:electronic [el #f]
+                  #:doi [doi #f]
                   #:note [note #f])
   (define author*
     (cond [(not author) #f]
           [(author-element? author) author]
           [else (parse-author author)]))
   (define parsed-date (understand-date date))
-  (make-auto-bib author* parsed-date title location url note is-book?
+  (make-auto-bib author* parsed-date title location url el doi note is-book?
                  (content->string
                   (make-element #f
                                 (append
@@ -425,6 +434,8 @@
                                  (if location (decode-content (list location)) null)
                                  (if date (decode-content (list (default-render-date-bib parsed-date))) null)
                                  (if url (list (link url (make-element 'url (list url)))) null)
+                                 (if el (list el) null)
+                                 (if doi (list doi) null)
                                  (if note (list note) null))))
                  ""))
 
@@ -435,6 +446,8 @@
    (auto-bib-title bib)
    (auto-bib-location bib)
    (auto-bib-url bib)
+   (auto-bib-electronic bib)
+   (auto-bib-doi bib)
    (auto-bib-note bib)
    (auto-bib-is-book? bib)
    (auto-bib-key bib)

@@ -184,7 +184,7 @@
         (bibtex-parse (current-input-port)))))
   bibdb)
 
-(require scriblib/autobib
+(require "autobib.rkt"
          scribble/manual)
 
 (define-syntax-rule
@@ -262,7 +262,7 @@
     [#f
      #f]
     [_
-     (error 'parse-pages "Invalid page format ~e" ps)]))
+     (list ps "")]))
 
 (define (generate-bib db key)
   (match-define (bibdb raw bibs) db)
@@ -273,8 +273,7 @@
                  (hash-ref the-raw a def))
                (define (raw-attr* a)
                  (hash-ref the-raw a
-                           (λ () (error 'bibtex "Key ~a is missing attribute ~a, has ~a"
-                                        key a the-raw))))
+                           (λ () "---")))
                (match (raw-attr 'type)
                  ["misc"
                   (make-bib #:title (raw-attr "title")
@@ -295,7 +294,12 @@
                                                          #:pages (parse-pages (raw-attr "pages"))
                                                          #:number (raw-attr "number")
                                                          #:volume (raw-attr "volume"))
-                            #:url (raw-attr "url"))]
+                            #:url (raw-attr "url")
+                            #:electronic (let ((pref (raw-attr "archiveprefix"))
+                                               (eprint (raw-attr "eprint")))
+                                           (string-append  (if pref pref "") "/" (if eprint eprint "")))
+                            #:doi (let ((d (raw-attr "doi"))) (if d d #f))
+                            )]
                  ["inproceedings"
                   (make-bib #:title (raw-attr "title")
                             #:author (parse-author (raw-attr "author"))
