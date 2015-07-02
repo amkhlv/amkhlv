@@ -22,7 +22,10 @@
          (contract-out
           [authors (->* (content?) #:rest (listof content?) element?)])
          other-authors
-         editor)
+         editor
+         abbreviate-given-names)
+
+(define abbreviate-given-names (make-parameter #f))
 
 (define autobib-style-extras
   (let ([abs (lambda (s)
@@ -39,7 +42,7 @@
 (define colbibnumber-style (make-style "Autocolbibnumber" autobib-style-extras))
 (define colbibentry-style (make-style "Autocolbibentry" autobib-style-extras))
 
-(define-struct auto-bib (author date title location url electronic doi note is-book? key specific))
+(define-struct auto-bib (author date title location url note is-book? key specific))
 (define-struct bib-group (ht))
 
 (define-struct (author-element element) (names cite))
@@ -214,10 +217,9 @@
      (define/public (render-citation date-cite i) (number->string i))
      (define/public (render-author+dates author dates) dates)
      (define/public (bibliography-line i e)
-       (list 
-        (make-paragraph plain
-                        (list (make-element colbibnumber-style (map bold (list "[" (number->string i) "] "))) (paragraph-content e) ))
-        ))
+       (list (make-paragraph plain
+                             (make-element colbibnumber-style (list "[" (number->string i) "]")))
+             e))
      (super-new))))
 
 (define (gen-bib tag group sec-title 
@@ -325,14 +327,12 @@
              null))
 
 (define (bib->entry bib style disambiguation render-date-bib i)
-  (define-values (author date title location url electronic doi note is-book?)
+  (define-values (author date title location url note is-book?)
     (values (auto-bib-author bib)
             (auto-bib-date bib)
             (auto-bib-title bib)
             (auto-bib-location bib)
             (auto-bib-url bib)
-            (auto-bib-electronic bib)
-            (auto-bib-doi bib)
             (auto-bib-note bib)
             (auto-bib-is-book? bib)))
   (make-element (send style entry-style)
@@ -354,21 +354,19 @@
                  (if location
                      `(" " ,@(decode-content (list location)) ,(if date "," "."))
                      null)
-                 (if electronic `(" " ,@(decode-content (list electronic)) ", ") null)
                  (if date `(" "
                             ,@(if disambiguation
                                   `(,@(decode-content (list (render-date-bib date))) ,disambiguation)
                                   (decode-content (list (render-date-bib date))))
-                            ",")
+                            ".")
                      null)
-                 (if doi `(" " ,@(decode-content (list (bold "doi:") doi)) ", ") null)
                  (if url `(" " ,(link url (make-element 'url (list url)))) null)
                  (if note `(" " ,note) null))))
 
 (define-syntax (define-cite stx)
   (syntax-parse stx
     [(_ (~var ~cite) citet generate-bibliography
-        (~or (~optional (~seq #:style style) #:defaults ([style #'number-style]))
+        (~or (~optional (~seq #:style style) #:defaults ([style #'author+date-style]))
              (~optional (~seq #:disambiguate fn) #:defaults ([fn #'#f]))
              (~optional (~seq #:render-date-in-bib render-date-bib) #:defaults ([render-date-bib #'#f]))
              (~optional (~seq #:spaces spaces) #:defaults ([spaces #'1]))
@@ -412,15 +410,13 @@
                   #:location [location #f]
                   #:date [date #f]
                   #:url [url #f]
-                  #:electronic [el #f]
-                  #:doi [doi #f]
                   #:note [note #f])
   (define author*
     (cond [(not author) #f]
           [(author-element? author) author]
           [else (parse-author author)]))
   (define parsed-date (understand-date date))
-  (make-auto-bib author* parsed-date title location url el doi note is-book?
+  (make-auto-bib author* parsed-date title location url note is-book?
                  (content->string
                   (make-element #f
                                 (append
@@ -429,8 +425,6 @@
                                  (if location (decode-content (list location)) null)
                                  (if date (decode-content (list (default-render-date-bib parsed-date))) null)
                                  (if url (list (link url (make-element 'url (list url)))) null)
-                                 (if el (list el) null)
-                                 (if doi (list doi) null)
                                  (if note (list note) null))))
                  ""))
 
@@ -441,8 +435,6 @@
    (auto-bib-title bib)
    (auto-bib-location bib)
    (auto-bib-url bib)
-   (auto-bib-electronic bib)
-   (auto-bib-doi bib)
    (auto-bib-note bib)
    (auto-bib-is-book? bib)
    (auto-bib-key bib)
@@ -454,14 +446,30 @@
         [else
          (define s (content->string a)) ;; plain text rendering
          (define m (regexp-match #px"^(.*) (([\\-]|\\p{L})+)$" s))
+         (define given-names (and m (cadr m)))
+         (define family-name (and m (caddr m)))
          (define names
-           (cond [m (string-append (caddr m) " " (cadr m))]
+           (cond [m (string-append family-name " " given-names)]
                  [else s]))
          (define cite
            (cond [m (caddr m)]
                  [else s]))
-         (make-author-element #f (list a) names cite)]))
+         (define element-content
+           (cond
+             [(and given-names (abbreviate-given-names))
+              (string-append (given-names->initials given-names) family-name)]
+             [else a]))
+         (make-author-element #f (list element-content) names cite)]))
 
+(define (given-names->initials str)
+  (regexp-replace* #rx"(.)[^ ]*( |$)" str "\\1. "))
+
+(module+ test
+  (require rackunit)
+  (check-equal? (given-names->initials "Matthew") "M. ")
+  (check-equal? (given-names->initials "Matthew R.") "M. R. ")
+  (check-equal? (given-names->initials "Matthew Raymond") "M. R. "))
+         
 (define (proceedings-location
          location
          #:pages [pages #f]
@@ -527,9 +535,14 @@
   (make-author-element
    #f
    (list
-    (format "~a ~a~a" first last (if suffix
-                                     (format " ~a" suffix)
-                                     "")))
+    (format "~a ~a~a" 
+            (if (abbreviate-given-names)
+                (given-names->initials first)
+                first)
+            last 
+            (if suffix
+                (format " ~a" suffix)
+                "")))
    (format "~a ~a~a" last first (if suffix
                                     (format " ~a" suffix)
                                     ""))

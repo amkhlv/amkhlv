@@ -184,7 +184,7 @@
         (bibtex-parse (current-input-port)))))
   bibdb)
 
-(require "autobib.rkt"
+(require scriblib/autobib
          scribble/manual)
 
 (define-syntax-rule
@@ -216,11 +216,45 @@
 (define (parse-author as)
   (and as
       (apply authors
-         (for/list ([a (in-list (regexp-split #rx" +and +" as))])
+         (for/list ([a (in-list (regexp-split #rx" +and *" as))])
            (match (regexp-split #rx" +" a)
              [(list one) (org-author-name one)]
              [(list one two) (author-name one two)]
-             [(list-rest first rest) (author-name first (apply string-append (add-between rest " ")))])))))
+             [(list-rest first rest) 
+              (author-name (apply string-append (add-between (cons first (drop-right rest 1))
+                                                             " "))
+                           (last rest))])))))
+
+(module+ test
+  (require rackunit)
+  
+  ;; use this as a predicate to hack around lack of 
+  ;; ability to use equal? on author element structs;
+  ;; unfortunately, it ony compares the composed strings
+  (define (print-as-equal-string? a b)
+    (equal? (format "~s" a)
+            (format "~s" b)))
+  
+  (check 
+   print-as-equal-string? 
+   (parse-author "James Earl Jones")
+   (authors
+    (author-name "James Earl" "Jones")))
+  
+  (check
+   print-as-equal-string?
+   (parse-author "Tim Robbins and Morgan Freeman")
+   (authors (author-name "Tim" "Robbins")
+            (author-name "Morgan" "Freeman")))
+  
+  (check
+   print-as-equal-string? 
+   (parse-author "Edward L. Deci and Robert J. Vallerand and Luc G. Pelletier and Richard M. Ryan")
+   (authors (author-name "Edward L." "Deci")
+            (author-name "Robert J." "Vallerand")
+            (author-name "Luc G." "Pelletier")
+            (author-name "Richard M." "Ryan"))))
+
 (define (parse-pages ps)
   (match ps
     [(regexp #rx"^([0-9]+)\\-+([0-9]+)$" (list _ f l))
@@ -228,7 +262,7 @@
     [#f
      #f]
     [_
-     (list ps "")]))
+     (error 'parse-pages "Invalid page format ~e" ps)]))
 
 (define (generate-bib db key)
   (match-define (bibdb raw bibs) db)
@@ -239,7 +273,8 @@
                  (hash-ref the-raw a def))
                (define (raw-attr* a)
                  (hash-ref the-raw a
-                           (λ () "---")))
+                           (λ () (error 'bibtex "Key ~a is missing attribute ~a, has ~a"
+                                        key a the-raw))))
                (match (raw-attr 'type)
                  ["misc"
                   (make-bib #:title (raw-attr "title")
@@ -260,11 +295,7 @@
                                                          #:pages (parse-pages (raw-attr "pages"))
                                                          #:number (raw-attr "number")
                                                          #:volume (raw-attr "volume"))
-                            #:url (raw-attr "url")
-                            #:electronic (let ((pref (raw-attr "archiveprefix")))
-                                           (string-append  (if pref pref "") "/" (raw-attr "eprint")))
-                            #:doi (let ((d (raw-attr "doi"))) (if d d #f))
-                            )]
+                            #:url (raw-attr "url"))]
                  ["inproceedings"
                   (make-bib #:title (raw-attr "title")
                             #:author (parse-author (raw-attr "author"))
