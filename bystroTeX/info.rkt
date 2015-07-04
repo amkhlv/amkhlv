@@ -7,6 +7,9 @@
     "db-lib"
     "scheme-lib"
     "scribble-lib"))
-(define build-deps '("at-exp-lib"))
+(define build-deps '("racket-doc"
+                     "rackunit-lib"
+                     "scribble-doc"
+                     "at-exp-lib"))
 (define scribblings
     '(("manual.scrbl" ()))) 
