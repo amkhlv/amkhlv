@@ -87,6 +87,11 @@ along with bystroTeX.  If not, see <http://www.gnu.org/licenses/>.
             [configure-bystroTeX-using (-> bystro? void?)]))
   (define (configure-bystroTeX-using c)
     (set! configuration c))
+  (define css-dir_slides (build-path 'same))
+  (provide (contract-out
+                                        ; Set the path to the folder containing the .css files
+            [bystro-set-css-dir_slides (-> path? void?)]))
+  (define (bystro-set-css-dir_slides x) (set! css-dir_slides x))
   (define preamble "")
   (provide (contract-out
                                         ; set the LaTeX preamble
@@ -119,8 +124,9 @@ along with bystroTeX.  If not, see <http://www.gnu.org/licenses/>.
 ;; ---------------------------------------------------------------------------------------------------
   (define (bystro-css-element-from-file filename)
     (make-element 
-     (make-style #f (list (make-css-addition filename))) '())    
-    )
+     (make-style #f 
+                 (list (make-css-addition (path->string (build-path css-dir_slides filename))))) 
+     '()))
 ;; ---------------------------------------------------------------------------------------------------
   (provide (contract-out 
                                         ; Titlepage initialization

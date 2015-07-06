@@ -27,14 +27,20 @@
 
 (define abbreviate-given-names (make-parameter #f))
 
-(define autobib-style-extras `( ,(make-css-addition "autobib.css")))
+(define css-dir_autobib (build-path 'same))
+(provide (contract-out
+                                        ; Set the path to the folder containing the .css files
+          [bystro-set-css-dir_autobib (-> path? void?)]))
+(define (bystro-set-css-dir_autobib x) (set! css-dir_autobib x))
 
-(define bib-single-style (make-style "AutoBibliography" autobib-style-extras))
-(define bib-columns-style (make-style #f autobib-style-extras))
+(define (autobib-style-extras) `( ,(make-css-addition (path->string (build-path css-dir_autobib "autobib.css")))))
 
-(define bibentry-style (make-style "Autobibentry" autobib-style-extras))
-(define colbibnumber-style (make-style "Autocolbibnumber" autobib-style-extras))
-(define colbibentry-style (make-style "Autocolbibentry" autobib-style-extras))
+(define (bib-single-style) (make-style "AutoBibliography" (autobib-style-extras)))
+(define (bib-columns-style) (make-style #f (autobib-style-extras)))
+
+(define (bibentry-style) (make-style "Autobibentry" (autobib-style-extras)))
+(define (colbibnumber-style) (make-style "Autocolbibnumber" (autobib-style-extras)))
+(define (colbibentry-style) (make-style "Autocolbibentry" (autobib-style-extras)))
 
 (define-struct auto-bib (author date title location url electronic doi note is-book? key specific))
 (define-struct bib-group (ht))
@@ -184,8 +190,8 @@
 (define author+date-style
   (new
    (class object%
-     (define/public (bibliography-table-style n) bib-single-style)
-     (define/public (entry-style) bibentry-style)
+     (define/public (bibliography-table-style n) (bib-single-style))
+     (define/public (entry-style) (bibentry-style))
      (define/public (disambiguate-date?) #t)
      (define/public (collapse-for-date?) #t)
      (define/public (get-cite-open) "(")
@@ -210,7 +216,7 @@
                                                (attributes 
                                                 (list (cons 'style "padding-right:8px;")))))
                              (make-style #f (list 'top))))))))
-     (define/public (entry-style) colbibentry-style)
+     (define/public (entry-style) (colbibentry-style))
      (define/public (disambiguate-date?) #f)
      (define/public (collapse-for-date?) #f)
      (define/public (get-cite-open) "[")
@@ -221,7 +227,7 @@
      (define/public (render-author+dates author dates) dates)
      (define/public (bibliography-line i e)
        (list (make-paragraph plain
-                             (make-element colbibnumber-style (list "[" (number->string i) "]")))
+                             (make-element (colbibnumber-style) (list "[" (number->string i) "]")))
              e))
      (super-new))))
 

@@ -38,11 +38,14 @@ along with bystroTeX.  If not, see <http://www.gnu.org/licenses/>.
             [get-bystro-scrbl-filename (-> string?)]))
   (define (get-bystro-scrbl-filename) bystro-scrbl-filename)
 ;; ---------------------------------------------------------------------------------------------------
+  (provide (contract-out 
+            ; Location of CSS files
+            [css-dir path-string?]))
   (define css-dir (build-path 'same))
   (provide (contract-out
                                         ; Set the path to the folder containing the .css files
-            [bystro-set-css-dir (-> path? void?)]))
-  (define (bystro-set-css-dir x) (set! css-dir x))
+            [bystro-set-css-dir_common (-> path? void?)]))
+  (define (bystro-set-css-dir_common x) (set! css-dir x))
 ;; ---------------------------------------------------------------------------------------------------
   (provide (contract-out [bystro-inject-style (->* () #:rest (listof string?) element?)]))
   (define (bystro-inject-style . css-file-names)
