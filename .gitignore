@@ -1,6 +1,8 @@
 bystroTeX/compiled/
 bystroTeX/doc/
+bystroTeX/bystrotex
 truques/compiled/
 truques/planet-docs/
 truques.plt
 bystroTeX.plt
+examples/automatic-build/*.html

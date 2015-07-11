@@ -2,14 +2,13 @@
 @(require racket scribble/core scribble/base scribble/html-properties)
 @(require "defs_for-syntax.rkt" (for-syntax bystroTeX/slides_for-syntax))
 @(require "defs.rkt" bystroTeX/common bystroTeX/slides)
-@(require (only-in db/base disconnect))
 @; ---------------------------------------------------------------------------------------------------
 @; User definitions:
 @(bystro-set-css-dir (build-path 'same "css"))
 @(define bystro-conf 
    (bystro (bystro-connect-to-server #f "127.0.0.1" 9749 "svg") ;(find-executable-path "amkhlv-java-formula.sh")
            "formulas.sqlite"  ; name for the database
-           "formulas" ; directory where to store the image files of formulas
+           "slides-manual" ; directory where to store the image files of formulas
            25  ; formula size
            (list 255 255 255) ; formula background color
            (list 0 0 0) ; formula foreground color
@@ -613,11 +612,17 @@ I think that we should @bold{switch from TeX to HTML}:
 @itemlist[
 @item{TeX is optimized for the quality of typesetting. This is not very important for us.}
 @item{HTML is all about @spn[attn]{creating links}. This is exactly what we need. 
-After all, scientific publishing is for @spn[attn]{linking} ideas.}
+After all, scientific publishing is for @spn[attn]{linking ideas.}}
+@item{TeX+PDF has a serious disadvantage: the document gets split, in an arbitrary way, 
+into @bold{pages} of fixed size. This is just harmful.}
+@item{TeX does not have a convincing support for internationalization; in its basic form,
+it is essentially English only. Exist various extensions allowing to overcome this, but they are 
+confusing and unstable}
 @item{Practically, TeX is very hard to learn, and hard to use properly.
 With the right markup tools (perhaps this project?) HTML should be easier.}
-@item{Learning the syntax of LISP (@hyperlink["http://racket-lang.org/"]{Racket}) is pleasure. 
-The syntax of TeX/LaTeX is pain.}
+@item{Learning Lisp/Scheme/@hyperlink["http://racket-lang.org/"]{Racket}
+is a rewarding intellectual experience.
+}
 ]
 
 }
