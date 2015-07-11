@@ -1,0 +1,15 @@
+<config>
+  <scribblings>
+    <scribbling>
+      <name>sample-plain</name>
+    </scribbling>
+    <scribbling>
+      <name>sample-dest</name>
+      <dest>sample-dest</dest>
+    </scribbling>
+    <scribbling>
+      <name>sample-multipage</name>
+      <multipage/>
+    </scribbling>
+  </scribblings>
+</config>

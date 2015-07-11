@@ -1,0 +1,10 @@
+<config>
+  <scribblings>
+    <scribbling>
+      <name>slides-manual</name>
+      <formulas-dir>formulas</formulas-dir>
+      <sqlite-file>formulas.sqlite</sqlite-file>
+      <multipage/>
+    </scribbling>
+  </scribblings>
+</config>
