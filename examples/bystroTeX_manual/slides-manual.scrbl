@@ -502,6 +502,31 @@ list of all your multiple pages, and this script will extract them and print the
 
 }
 
+@slide["Automated build" #:tag "AutomatedBuild" #:showtitle #t]{
+If you have several @tt{.scrbl} files, executing the @tt{scribble} command could become tedious.
+To address this, I wrote a simple build script @tt{bystrotex.rkt}. The best way to use it is
+to compile first:
+@verb|{raco exe bystrotex.rkt}|
+This produces an executable file @tt{bystrotex}. Just put it somewhere on your @tt{PATH}
+(for example in @tt{/usr/local/bin/}). 
+
+Notice that the sample folder @tt{examples/bystroTeX_manual} contains the file @tt{bystrotex.xml},
+which describes the build configuration.
+In that sample folder, execute the command:
+@verb{bystrotex}
+It will read the configuration from @tt{bystrotex.xml} and build accordingly.
+To cleanup, say:
+@verb{bystrotex -c}
+The syntax of @tt{bystrotex.xml} is described in @tt{schemas/bystrotex.rnc}
+Notice that @tt{<name>filename</name>} corresponds to the file @tt{filenames.scrbl}.
+
+You can also build individual files. To build two files, say:
+@verb{bystrotex filename1 filename2}
+This is equivalent to:
+@verb{bystrotex filename1. filename2.scrbl}
+The trailing dot is stripped to facilitate the use of TAB completion.
+}
+
 @slide["Automatic LaTeX → BystroTeX conversion" #:tag "LaTeX2BystroTeX" #:showtitle #t]{
 I have tried to write a program which converts a LaTeX document into BystroTeX, for example
 replaces every @tt{$x$} with @tt|--{@f{x}}--|. This is very difficult to do correctly,

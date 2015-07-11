@@ -132,12 +132,21 @@
 
 (for ([nm (names)])
   (printf "Building ~a " nm)
+  (let* ([nml (string-length nm)]
+         [lastchar (string-ref nm (- nml 1))]
+         [.scrbl   (equal? (substring nm (- nml 6)) ".scrbl")])
+    (if (eqv? lastchar #\.) ; this is to facilitate TAB-completion
+        (set! nm (substring nm 0 (- nml 1)))
+        (when .scrbl ; strib the extension .scrbl if it is present
+          (set! nm (substring nm 0 (- nml 6))))))
   (let* ([confs (se-path*/list '(scribblings) config)]
          [confcons (filter   
                     (λ  (x)  (let ([v (se-path* '(name) x)]) 
                                (and v (equal? (string-trim v) nm))))   
                     confs)]
-         [conf (if (cons? confcons) (car confcons) (begin (error "ERROR: Wrong name")))])
+         [conf (if (cons? confcons) 
+                   (car confcons) 
+                   (begin (error (string-append "ERROR: name --->" nm "<--- not found"))))])
     (with-conf 
      conf '(name dest name.html name.scrbl formulas/ .sqlite multipage?)
      (if multipage?
