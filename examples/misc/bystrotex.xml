@@ -1,0 +1,8 @@
+<config>
+  <scribblings>
+    <scribbling>
+      <name>show-xml</name>
+      <dest>show-xml</dest>
+    </scribbling>
+  </scribblings>
+</config>

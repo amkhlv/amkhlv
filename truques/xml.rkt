@@ -47,6 +47,52 @@ along with bystroTeX.  If not, see <http://www.gnu.org/licenses/>.
             xs))
       #f))
 
+(provide (contract-out [show-xexpr (->* (the:xexpr?)  
+                                        (#:transformers (hash/c 
+                                                         symbol?
+                                                         (-> the:xexpr? nested-flow?))) 
+                                        (or/c #f nested-flow?))]))
+(define (show-xexpr x #:transformers [t (make-hash '())])
+  (define (not-whitespace? u) (or (not (string? u)) (regexp-match #px"[^[:space:]]" u)))
+  (displayln x)
+  (cond
+    [(symbol? x) (nested (symbol->string x))]
+    [(cons? x) 
+     (define fn (let ([m (member (car x) (hash-keys t))]) 
+                  (if m (hash-ref t (car m)) #f)))
+     (if fn
+         (fn x)
+         (cond 
+          [(null? (cadr x)) (show-xexpr (cons (car x) (cddr x)) #:transformers t)]
+          [(the:xexpr? (cadr x))
+           (nested
+            (tbl 
+             (list 
+              (list (symbol->string (car x))
+                    (tbl 
+                     (for/list ([y (cdr x)] #:when (not-whitespace? y)) 
+                       (list (show-xexpr y #:transformers t))))))))]
+          [(and (list? (cadr x)) 
+                (for/and ([y (cadr x)]) (and (symbol? (car y)) (string? (cadr y)))))
+           (nested
+            (tbl
+             (list 
+              (list 
+               (tbl 
+                (list (list (symbol->string (car x))) 
+                      (list (tbl #:orient 'hor 
+                                 (for/list ([y (cadr x)]) (list (symbol->string (car y)) (cadr y)))))))
+               (if (cons? (cddr x))
+                   (tbl 
+                    (for/list ([z (cddr x)] #:when (not-whitespace? z)) 
+                      (list (show-xexpr z #:transformers t))))
+                   (nested "---"))))))]))]
+    [(the:valid-char? x) (nested "ValidChar")]
+    [else (printf "x-->~a<--" x) (nested x)]
+    ))
+                              
+
+
 (provide (contract-out [xsd:date->date* (-> string? date*?)]))
 (define (xsd:date->date* x)
   (let* ([is-UTC? (char=? (last (string->list x)) #\Z)]

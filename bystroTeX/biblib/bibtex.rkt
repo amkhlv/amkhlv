@@ -275,18 +275,18 @@
                  (hash-ref the-raw a
                            (λ () "---")))
                (match (raw-attr 'type)
-                 ["misc"
+                 [(or "misc" "Misc")
                   (make-bib #:title (raw-attr "title")
                             #:author (parse-author (raw-attr "author"))
                             #:date (raw-attr "year")
                             #:url (raw-attr "url"))]
-                 ["book"
+                 [(or "book" "Book")
                   (make-bib #:title (raw-attr "title")
                             #:author (parse-author (raw-attr "author"))
                             #:date (raw-attr "year")
                             #:is-book? #t
                             #:url (raw-attr "url"))]
-                 ["article"
+                 [(or "article" "Article")
                   (make-bib #:title (raw-attr "title")
                             #:author (parse-author (raw-attr "author"))
                             #:date (raw-attr "year")

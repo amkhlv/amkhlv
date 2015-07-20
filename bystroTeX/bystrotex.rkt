@@ -134,7 +134,7 @@
   (printf "Building ~a " nm)
   (let* ([nml (string-length nm)]
          [lastchar (string-ref nm (- nml 1))]
-         [.scrbl   (equal? (substring nm (- nml 6)) ".scrbl")])
+         [.scrbl   (and (> nml 6) (equal? (substring nm (- nml 6)) ".scrbl"))])
     (if (eqv? lastchar #\.) ; this is to facilitate TAB-completion
         (set! nm (substring nm 0 (- nml 1)))
         (when .scrbl ; strib the extension .scrbl if it is present
