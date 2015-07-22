@@ -32,6 +32,12 @@ along with bystroTeX.  If not, see <http://www.gnu.org/licenses/>.
   (call-with-input-file x
     (lambda (inport) (the:xml->xexpr (the:document-element (the:read-xml inport))))))
 
+(define (unsanitize i)
+  (cond [(char? i) (make-string 1 i)]
+        [(or (eq? 10 i) (eq? 13 i)) "\n"]
+        [(integer? i) (make-string 1 (integer->char i))] 
+        [(string? i) (string-trim i)]))  
+
 (provide (contract-out [xexprs->nested-flow (->* ((listof the:xexpr?)) (#:style any/c) (or/c #f nested-flow?))]))
 (define (xexprs->nested-flow xs #:style [s #f])
   (if (cons? xs) 
@@ -62,7 +68,7 @@ along with bystroTeX.  If not, see <http://www.gnu.org/licenses/>.
     (make-style 
      #f 
      (list (make-attributes (list (cons 'style (format "font-size: ~a%;" (round (* 100 size)))))))))
-  (displayln x)
+  (display "\nProcessing: ") (displayln x)
   (cond
     [(symbol? x) (nested #:style stl (symbol->string x))]
     [(cons? x) 
@@ -71,25 +77,36 @@ along with bystroTeX.  If not, see <http://www.gnu.org/licenses/>.
      (if fn
          (fn x)
          (cond 
-          [(null? (cadr x)) (show-xexpr (cons (car x) (cddr x)) 
-                                        #:transformers t
-                                        #:size-init subsize
-                                        #:size-step step
-                                        #:size-min smin)]
-          [(the:xexpr? (cadr x))
+          [(null? (cadr x)) ; (a () smth ...)
+           (show-xexpr (cons (car x) (cddr x)) ; (a smth ...)
+                       #:transformers t
+                       #:size-init size
+                       #:size-step step
+                       #:size-min smin)]
+          [(the:xexpr? (cadr x)) ; (a XEXPR ...)
            (nested 
             #:style stl
             (tbl 
              (list 
-              (list (symbol->string (car x))
-                    (tbl 
-                     (for/list ([y (cdr x)] #:when (not-whitespace? y)) 
-                       (list (show-xexpr y 
+              (list (symbol->string (car x)) ; a
+                    (let* ([tail (cdr x)]
+                           [leafs? (for/and ([z tail]) (or (the:valid-char? z) (string? z)))])
+                      (if leafs?
+                          (begin
+                            (displayln "LEAFS_")
+                            (verb 
+                             (apply 
+                              string-append 
+                              (for/list ([i tail]) (unsanitize i)))))
+                          (nested-flow
+                           stl
+                           (for/list ([y (cdr x)] #:when (not-whitespace? y)) 
+                             (show-xexpr y 
                                          #:transformers t
                                          #:size-init subsize
                                          #:size-step step
-                                         #:size-min smin))))))))]
-          [(and (list? (cadr x)) 
+                                         #:size-min smin)))))))))]
+          [(and (list? (cadr x)) ; (a  ((b c) ...)  XEXPR  ...) 
                 (for/and ([y (cadr x)]) (and (symbol? (car y)) (string? (cadr y)))))
            (nested
             #:style stl
@@ -109,8 +126,6 @@ along with bystroTeX.  If not, see <http://www.gnu.org/licenses/>.
                                         #:size-step step
                                         #:size-min smin))))
                    (nested #:style stl "---"))))))]))]
-    [(the:valid-char? x) (nested #:style stl "ValidChar")]
-    [else (printf "x-->~a<--" x) (nested #:style stl x)]
     ))
                               
 

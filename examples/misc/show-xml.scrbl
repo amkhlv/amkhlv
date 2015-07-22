@@ -32,26 +32,15 @@
 @(show-xexpr "this is a string")
 
 @section{Symbol}
-@(show-xexpr 'symbol-example)
-
-@section{Nodes}
-@subsection{With string value}
-one value:
-@(show-xexpr '(sample-node "hi"))
-two values:
-@(show-xexpr '(sample-node "line 1" "line 2"))
-tree:
-@(show-xexpr '(tree (node1 "line 1" "line 2") (node2 "line 1" "line 2")))
-
-@section{Nodes with attributes}
-@(show-xexpr '(with-attributes ((a "attr-a") (b "attr-b")) "string value"))
+@(show-xexpr 'this-is-a-symbol)
 
 @section{XML from file}
 
 @(let ([href (λ (x) (nested (hyperlink (se-path* '(a #:href) x) (se-path* '(a) x))))])
    (show-xexpr 
     (file->xexpr "example.xml")
-    #:transformers (hash 'a href)))
+    #:transformers (hash 'a href)
+    #:size-step 0.9))
 
 
 

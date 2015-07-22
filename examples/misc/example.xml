@@ -1,4 +1,19 @@
 <root>
   <x>value-a</x>
   <a href="http://www.google.com">Google</a>
+  <address>
+    First line&#xa;
+    Second line&#xa;
+    Third line
+  </address>
+  <streets>
+    <street>45th</street>
+    <street>34th</street>
+    <street>street</street>
+    <street>New&#xa;Street</street>
+  </streets>
+  <inequality>x&gt;y</inequality>
+  <ampersand>&amp;</ampersand>
+  <unicode>&#x2118;</unicode>
+  <unicode>more Unicode: ℘</unicode>
 </root>
