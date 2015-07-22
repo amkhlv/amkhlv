@@ -22,7 +22,7 @@ along with bystroTeX.  If not, see <http://www.gnu.org/licenses/>.
 
 (require (prefix-in the: xml) xml/path racket/format)
 (require (planet amkhlv/bystroTeX/common))
-(require scribble/core scribble/base scribble/decode)
+(require scribble/core scribble/base scribble/html-properties scribble/decode)
 (require racket/date)
 
 (provide (all-from-out xml/path) (all-from-out racket/format))
@@ -48,33 +48,51 @@ along with bystroTeX.  If not, see <http://www.gnu.org/licenses/>.
       #f))
 
 (provide (contract-out [show-xexpr (->* (the:xexpr?)  
-                                        (#:transformers (hash/c 
-                                                         symbol?
-                                                         (-> the:xexpr? nested-flow?))) 
+                                        (#:transformers 
+                                         (hash/c symbol? (-> the:xexpr? nested-flow?))
+                                         #:size-step number?
+                                         #:size-init number?
+                                         #:size-min number?
+                                         ) 
                                         (or/c #f nested-flow?))]))
-(define (show-xexpr x #:transformers [t (make-hash '())])
+(define (show-xexpr x #:transformers [t (make-hash '())] #:size-step [step 0.93] #:size-init [size 1.0] #:size-min [smin 0.7])
   (define (not-whitespace? u) (or (not (string? u)) (regexp-match #px"[^[:space:]]" u)))
+  (define subsize (let ([u (* size step)])(if (> u smin) u smin)))
+  (define stl 
+    (make-style 
+     #f 
+     (list (make-attributes (list (cons 'style (format "font-size: ~a%;" (round (* 100 size)))))))))
   (displayln x)
   (cond
-    [(symbol? x) (nested (symbol->string x))]
+    [(symbol? x) (nested #:style stl (symbol->string x))]
     [(cons? x) 
      (define fn (let ([m (member (car x) (hash-keys t))]) 
                   (if m (hash-ref t (car m)) #f)))
      (if fn
          (fn x)
          (cond 
-          [(null? (cadr x)) (show-xexpr (cons (car x) (cddr x)) #:transformers t)]
+          [(null? (cadr x)) (show-xexpr (cons (car x) (cddr x)) 
+                                        #:transformers t
+                                        #:size-init subsize
+                                        #:size-step step
+                                        #:size-min smin)]
           [(the:xexpr? (cadr x))
-           (nested
+           (nested 
+            #:style stl
             (tbl 
              (list 
               (list (symbol->string (car x))
                     (tbl 
                      (for/list ([y (cdr x)] #:when (not-whitespace? y)) 
-                       (list (show-xexpr y #:transformers t))))))))]
+                       (list (show-xexpr y 
+                                         #:transformers t
+                                         #:size-init subsize
+                                         #:size-step step
+                                         #:size-min smin))))))))]
           [(and (list? (cadr x)) 
                 (for/and ([y (cadr x)]) (and (symbol? (car y)) (string? (cadr y)))))
            (nested
+            #:style stl
             (tbl
              (list 
               (list 
@@ -85,10 +103,14 @@ along with bystroTeX.  If not, see <http://www.gnu.org/licenses/>.
                (if (cons? (cddr x))
                    (tbl 
                     (for/list ([z (cddr x)] #:when (not-whitespace? z)) 
-                      (list (show-xexpr z #:transformers t))))
-                   (nested "---"))))))]))]
-    [(the:valid-char? x) (nested "ValidChar")]
-    [else (printf "x-->~a<--" x) (nested x)]
+                      (list (show-xexpr z 
+                                        #:transformers t
+                                        #:size-init subsize
+                                        #:size-step step
+                                        #:size-min smin))))
+                   (nested #:style stl "---"))))))]))]
+    [(the:valid-char? x) (nested #:style stl "ValidChar")]
+    [else (printf "x-->~a<--" x) (nested #:style stl x)]
     ))
                               
 

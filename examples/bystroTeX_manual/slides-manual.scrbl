@@ -120,7 +120,8 @@ After that, execute this command:
 @smaller{@tt{target/universal/stage/bin/latex2svg -Dhttp.port=9749 -Dhttp.address=127.0.0.1}}
 
 Now the server is running. Notice that we specified the option @smaller{@tt{-Dhttp.address=127.0.0.1}}. Therefore the server
-is only listening on a local interface (the ``loopback''); @bold{it is not possible to connect to it from the outside}.
+is only listening on a local interface (the ``loopback''); 
+@hyperlink["http://stackoverflow.com/questions/30658161/server-listens-on-127-0-0-1-do-i-need-firewall"]{it is not possible to connect to it from the outside}.
 
 }
 

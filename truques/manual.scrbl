@@ -119,6 +119,15 @@ Because sometimes we have: @tt|--{ <person>&amp;john</person> }--| (can we exclu
 
 In XML, to insert the newline use @tt{&#a;}, and to insert the space use @tt{&#a0;}.
 
+@defproc[
+(show-xexpr [x the:xexpr?] 
+            [#:transformers t (hash/c symbol? (-> the:xexpr? nested-flow?)) (make-hash '())]
+            [#:size-step step number? 0.93]
+            [#:size-init size number? 1.0]
+            [#:size-min smin number? 0.7])
+nested-flow?
+]{show XML data as a table}
+
 
 @section{SQLite tables}
 @defmodule[truques/sqlite]
