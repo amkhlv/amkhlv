@@ -1,6 +1,10 @@
 <root>
   <x>value-a</x>
-  <a href="http://www.google.com">Google</a>
+  <nested>
+    <subnested>
+    <a href="http://www.google.com">Google</a>
+    </subnested>
+  </nested>
   <address>
     First line&#xa;
     Second line&#xa;

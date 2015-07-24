@@ -55,7 +55,7 @@ along with bystroTeX.  If not, see <http://www.gnu.org/licenses/>.
 
 (provide (contract-out [show-xexpr (->* (the:xexpr?)  
                                         (#:transformers 
-                                         (hash/c symbol? (-> the:xexpr? nested-flow?))
+                                         (hash/c symbol? (-> the:xexpr? block?))
                                          #:size-step number?
                                          #:size-init number?
                                          #:size-min number?
@@ -115,7 +115,8 @@ along with bystroTeX.  If not, see <http://www.gnu.org/licenses/>.
                (tbl 
                 (list (list (symbol->string (car x))) 
                       (list (tbl #:orient 'hor 
-                                 (for/list ([y (cadr x)]) (list (symbol->string (car y)) (cadr y)))))))
+                                 (for/list ([y (cadr x)]) 
+                                   (list (symbol->string (car y)) (cadr y)))))))
                (if (cons? (cddr x))
                    (show-tail (cddr x))
                    (nested #:style stl "---"))))))]))]

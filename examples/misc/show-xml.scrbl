@@ -36,7 +36,9 @@
 
 @section{XML from file}
 
-@(let ([href (λ (x) (nested (hyperlink (se-path* '(a #:href) x) (se-path* '(a) x))))])
+@(let ([href 
+        (λ (x) 
+          (para (hyperlink (se-path* '(a #:href) x) (se-path* '(a) x))))])
    (show-xexpr 
     (file->xexpr "example.xml")
     #:transformers (hash 'a href)
