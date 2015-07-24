@@ -121,11 +121,11 @@ In XML, to insert the newline use @tt{&#a;}, and to insert the space use @tt{&#a
 
 @defproc[
 (show-xexpr [x the:xexpr?] 
-            [#:transformers t (hash/c symbol? (-> the:xexpr? nested-flow?)) (make-hash '())]
+            [#:transform-to-content t (hash/c symbol? (-> the:xexpr? content?)) (make-hash '())]
+            [#:transform-to-block tblock (hash/c symbol? (-> the:xexpr? block?)) (make-hash '())]
             [#:size-step step number? 0.93]
-            [#:size-init size number? 1.0]
-            [#:size-min smin number? 0.7])
-nested-flow?
+            [#:steps steps integer? 0.7])
+(or/c #f content? block?)
 ]{show XML data as a table}
 
 

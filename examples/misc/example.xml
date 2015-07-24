@@ -1,15 +1,25 @@
 <root>
   <x>value-a</x>
   <nested>
-    <subnested>
-    <a href="http://www.google.com">Google</a>
-    </subnested>
+    <all-contents>
+      Go to 
+      <a href="http://www.google.com">Google</a>
+    </all-contents>
+    <text-only>verbatim</text-only>
+    <text-and-more>
+      verbatim
+      <more>something</more>
+    </text-and-more>
   </nested>
   <address>
     First line&#xa;
     Second line&#xa;
     Third line
   </address>
+  <mixed>
+    string
+    <something>some</something>
+  </mixed>
   <streets>
     <street>45th</street>
     <street>34th</street>

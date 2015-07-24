@@ -54,50 +54,68 @@ along with bystroTeX.  If not, see <http://www.gnu.org/licenses/>.
       #f))
 
 (provide (contract-out [show-xexpr (->* (the:xexpr?)  
-                                        (#:transformers 
+                                        (#:transform-to-content
+                                         (hash/c symbol? (-> the:xexpr? content?))
+                                         #:transform-to-block
                                          (hash/c symbol? (-> the:xexpr? block?))
                                          #:size-step number?
-                                         #:size-init number?
-                                         #:size-min number?
+                                         #:steps integer?
                                          ) 
-                                        (or/c #f nested-flow?))]))
-(define (show-xexpr x #:transformers [t (make-hash '())] #:size-step [step 0.93] #:size-init [size 1.0] #:size-min [smin 0.7])
+                                        (or/c #f content? block?))]))
+(define (show-xexpr 
+         x 
+         #:transform-to-content [t (make-hash '())] 
+         #:transform-to-block   [tblock (make-hash '())]
+         #:size-step [step 0.93] 
+         #:steps [steps 4])
   (define (not-whitespace? u) (or (not (string? u)) (regexp-match #px"[^[:space:]]" u)))
-  (define subsize (let ([u (* size step)]) (if (> u smin) u smin)))
   (define stl 
     (make-style 
      #f 
-     (list (make-attributes (list (cons 'style (format "font-size: ~a%;" (round (* 100 size)))))))))
+     (if 
+      (> steps 0)
+      (list (make-attributes 
+             (list (cons 'style (format "font-size: ~a%;" (round (* 100 step)))))))
+      '())))
   (define (show-tail xs)
-    (let ([leafs? (for/and ([z xs]) (or (the:valid-char? z) (string? z)))])
-      (if leafs?
+    (let ([all-leafs? (for/and ([z xs]) (or (the:valid-char? z) (string? z)))]
+          [all-content? (for/and ([z xs]) (or 
+                                           (and (cons? z) (member (car z) (hash-keys t)))
+                                           (content? z)))]
+          [exist-leafs? (for/or ([z xs]) 
+                          (and (or (the:valid-char? z) (string? z)) (not-whitespace? z)))])
+      (when all-content? (displayln "ALL CONTENT"))
+      (if all-leafs?
           (verb 
            (apply 
-            string-append 
+            string-append
             (for/list ([i xs]) (unsanitize i))))
-          (nested-flow
+          ((if all-content? paragraph nested-flow)
            stl
            (for/list ([z xs] #:when (not-whitespace? z)) 
-             (show-xexpr z 
-                         #:transformers t
-                         #:size-init subsize
-                         #:size-step step
-                         #:size-min smin))))))
+             (let ([a (show-xexpr z 
+                                  #:transform-to-content t
+                                  #:transform-to-block tblock
+                                  #:size-step step
+                                  #:steps (- steps 1))])
+               (if (or all-content? (block? a)) a (para a))))))))
   (display "\nProcessing: ") (displayln x)
   (cond
     [(symbol? x) (nested #:style stl (symbol->string x))]
+    [(string? x) x]
     [(cons? x) 
-     (define fn (let ([m (member (car x) (hash-keys t))]) 
-                  (if m (hash-ref t (car m)) #f)))
+     (define fn (let ([m (member (car x) (hash-keys t))]
+                      [mblock (member (car x) (hash-keys tblock))]) 
+                  (if m (hash-ref t (car m)) (if mblock (hash-ref tblock (car m)) #f))))
      (if fn
          (fn x)
          (cond 
           [(null? (cadr x)) ; (a () smth ...)
            (show-xexpr (cons (car x) (cddr x)) ; (a smth ...)
-                       #:transformers t
-                       #:size-init size
+                       #:transform-to-content t
+                       #:transform-to-block tblock
                        #:size-step step
-                       #:size-min smin)]
+                       #:steps steps)]
           [(the:xexpr? (cadr x)) ; (a XEXPR ...)
            (nested 
             #:style stl
