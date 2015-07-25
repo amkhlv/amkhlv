@@ -84,7 +84,6 @@ along with bystroTeX.  If not, see <http://www.gnu.org/licenses/>.
                                            (content? z)))]
           [exist-leafs? (for/or ([z xs]) 
                           (and (or (the:valid-char? z) (string? z)) (not-whitespace? z)))])
-      (when all-content? (displayln "ALL CONTENT"))
       (if all-leafs?
           (verb 
            (apply 
@@ -99,14 +98,14 @@ along with bystroTeX.  If not, see <http://www.gnu.org/licenses/>.
                                   #:size-step step
                                   #:steps (- steps 1))])
                (if (or all-content? (block? a)) a (para a))))))))
-  (display "\nProcessing: ") (displayln x)
+  (display "Processing: ") (displayln x)
   (cond
     [(symbol? x) (nested #:style stl (symbol->string x))]
     [(string? x) x]
     [(cons? x) 
      (define fn (let ([m (member (car x) (hash-keys t))]
                       [mblock (member (car x) (hash-keys tblock))]) 
-                  (if m (hash-ref t (car m)) (if mblock (hash-ref tblock (car m)) #f))))
+                  (if m (hash-ref t (car m)) (if mblock (hash-ref tblock (car mblock)) #f))))
      (if fn
          (fn x)
          (cond 

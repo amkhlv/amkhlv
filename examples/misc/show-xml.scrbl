@@ -38,10 +38,14 @@
 
 @(let ([href 
         (λ (x) 
-          (hyperlink (se-path* '(a #:href) x) (se-path* '(a) x)))])
+          (hyperlink (se-path* '(a #:href) x) (se-path* '(a) x)))]
+       [vbs
+        (λ (x)
+          (verb (se-path* '(v) x)))])
    (show-xexpr 
     (file->xexpr "example.xml")
     #:transform-to-content (hash 'a href)
+    #:transform-to-block   (hash 'v vbs)
     #:size-step 0.9))
 
 

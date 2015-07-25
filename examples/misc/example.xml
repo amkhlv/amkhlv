@@ -5,9 +5,16 @@
       Go to 
       <a href="http://www.google.com">Google</a>
     </all-contents>
+    <text-and-block>
+      aaa bbb 
+      <v>fff</v>
+      <v>mmm</v>
+      mmm&#xa;
+      fff 
+    </text-and-block>
     <text-only>verbatim</text-only>
     <text-and-more>
-      verbatim
+      a few words
       <more>something</more>
     </text-and-more>
   </nested>
