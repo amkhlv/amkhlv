@@ -53,19 +53,35 @@ along with bystroTeX.  If not, see <http://www.gnu.org/licenses/>.
             xs))
       #f))
 
+
+(provide (contract-out [transform-to-content (parameter/c (hash/c symbol? (-> the:xexpr? content?) #:immutable #t))]))
+(provide (contract-out [transform-to-block (parameter/c (hash/c symbol? (-> the:xexpr? block?) #:immutable #t))]))
+(define transform-to-content 
+  (make-parameter 
+   (hash 'a (λ (x) (hyperlink (se-path* '(a #:href) x) (se-path* '(a) x)))
+         'b (λ (x) (bold (se-path* '(b) x)))
+         'it (λ (x) (italic (se-path* '(it) x)))
+         'nbsp (λ (x) ~)
+         )))
+(define transform-to-block
+  (make-parameter
+   (hash 'verbatim (λ (x) (verb (se-path* '(verbatim) x))))))
+
 (provide (contract-out [show-xexpr (->* (the:xexpr?)  
                                         (#:transform-to-content
                                          (hash/c symbol? (-> the:xexpr? content?))
                                          #:transform-to-block
                                          (hash/c symbol? (-> the:xexpr? block?))
+                                         #:show-root boolean?
                                          #:size-step number?
                                          #:steps integer?
                                          ) 
                                         (or/c #f content? block?))]))
 (define (show-xexpr 
          x 
-         #:transform-to-content [t (make-hash '())] 
-         #:transform-to-block   [tblock (make-hash '())]
+         #:transform-to-content [t (transform-to-content)] 
+         #:transform-to-block   [tblock (transform-to-block)]
+         #:show-root [sr #f]
          #:size-step [step 0.93] 
          #:steps [steps 4])
   (define (not-whitespace? u) (or (not (string? u)) (regexp-match #px"[^[:space:]]" u)))
@@ -96,6 +112,7 @@ along with bystroTeX.  If not, see <http://www.gnu.org/licenses/>.
                                   #:transform-to-content t
                                   #:transform-to-block tblock
                                   #:size-step step
+                                  #:show-root #t
                                   #:steps (- steps 1))])
                (if (or all-content? (block? a)) a (para a))))))))
   (display "Processing: ") (displayln x)
@@ -113,15 +130,18 @@ along with bystroTeX.  If not, see <http://www.gnu.org/licenses/>.
            (show-xexpr (cons (car x) (cddr x)) ; (a smth ...)
                        #:transform-to-content t
                        #:transform-to-block tblock
+                       #:show-root sr
                        #:size-step step
                        #:steps steps)]
           [(the:xexpr? (cadr x)) ; (a XEXPR ...)
            (nested 
             #:style stl
-            (tbl 
-             (list 
-              (list (symbol->string (car x)) ; a
-                    (show-tail (cdr x))))))]
+            (if sr
+                (tbl 
+                 (list 
+                  (list (symbol->string (car x)) ; a
+                        (show-tail (cdr x)))))
+                (show-tail (cdr x))))]
           [(and (list? (cadr x)) ; (a  ((b c) ...)  XEXPR  ...) 
                 (for/and ([y (cadr x)]) (and (symbol? (car y)) (string? (cadr y)))))
            (nested

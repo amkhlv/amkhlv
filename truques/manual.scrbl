@@ -123,11 +123,21 @@ In XML, to insert the newline use @tt{&#a;}, and to insert the space use @tt{&#a
 (show-xexpr [x the:xexpr?] 
             [#:transform-to-content t (hash/c symbol? (-> the:xexpr? content?)) (make-hash '())]
             [#:transform-to-block tblock (hash/c symbol? (-> the:xexpr? block?)) (make-hash '())]
+            [#:show-root sr boolean? #t]
             [#:size-step step number? 0.93]
             [#:steps steps integer? 0.7])
 (or/c #f content? block?)
 ]{show XML data as a table}
 
+@defparam[
+transform-to-content h (hash/c symbol? (-> the:xexpr? content?))]{
+A parameter that defines the currently default transformers to content argument in @racket[show-xexpr]
+}
+
+@defparam[
+transform-to-block h (hash/c symbol? (-> the:xexpr? block?))]{
+A parameter that defines the currently default transformers to block argument in @racket[show-xexpr]
+}
 
 @section{SQLite tables}
 @defmodule[truques/sqlite]

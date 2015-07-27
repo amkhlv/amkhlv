@@ -2,13 +2,12 @@
   <x>value-a</x>
   <nested>
     <all-contents>
-      Go to 
-      <a href="http://www.google.com">Google</a>
+      Go to <a href="http://www.google.com">Google</a><nbsp/><redword>now</redword> !
     </all-contents>
     <text-and-block>
       aaa bbb 
-      <v>fff</v>
-      <v>mmm</v>
+      <verbatim>fff</verbatim>
+      <verbatim>mmm</verbatim>
       mmm&#xa;
       fff 
     </text-and-block>
