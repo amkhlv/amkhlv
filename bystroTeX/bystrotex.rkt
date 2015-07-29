@@ -8,9 +8,7 @@
 (define default-sqlite-filename-in-dest-folder   "formulas.sqlite")
 (define default-sqlite-filename-in-curdir_suffix "_formulas.sqlite")
 
-                       (path->string (build-path dest "formulas.sqlite"))
-                       (if multipage? (build-path name "formulas.sqlite")
-                           (string-append name "_formulas.sqlite"))))])
+
 ;; command line parsing
 (define cleanup? (make-parameter #f))
 (define show? (make-parameter #f))
