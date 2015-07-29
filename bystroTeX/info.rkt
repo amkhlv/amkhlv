@@ -1,6 +1,6 @@
 #lang setup/infotab
 (define collection 'use-pkg-name)
-(define version "9.0")
+(define version "9.1")
 (define deps 
   '("base"
     "compatibility-lib"

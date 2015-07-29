@@ -62,6 +62,7 @@ along with bystroTeX.  If not, see <http://www.gnu.org/licenses/>.
          'b (λ (x) (bold (se-path* '(b) x)))
          'it (λ (x) (italic (se-path* '(it) x)))
          'nbsp (λ (x) ~)
+         'br (λ (x) (linebreak))
          )))
 (define transform-to-block
   (make-parameter
