@@ -1,7 +1,6 @@
 #lang scribble/base
 @(require racket scribble/core scribble/base scribble/html-properties)
-@(require "defs_for-syntax.rkt" (for-syntax bystroTeX/slides_for-syntax))
-@(require "defs.rkt" bystroTeX/common bystroTeX/slides)
+@(require "defs.rkt" bystroTeX/common bystroTeX/slides (for-syntax bystroTeX/slides_for-syntax))
 @; ---------------------------------------------------------------------------------------------------
 @; User definitions:
 @(bystro-set-css-dir (build-path 'same "css"))

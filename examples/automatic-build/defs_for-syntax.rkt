@@ -1,1 +1,0 @@
-../bystroTeX_manual/defs_for-syntax.rkt
