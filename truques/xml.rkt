@@ -116,7 +116,7 @@ along with bystroTeX.  If not, see <http://www.gnu.org/licenses/>.
                                   #:show-root #t
                                   #:steps (- steps 1))])
                (if (or all-content? (block? a)) a (para a))))))))
-  (display "Processing: ") (displayln x)
+  ;;(display "Processing: ") (displayln x)
   (cond
     [(symbol? x) (nested #:style stl (symbol->string x))]
     [(string? x) x]
@@ -127,6 +127,8 @@ along with bystroTeX.  If not, see <http://www.gnu.org/licenses/>.
      (if fn
          (fn x)
          (cond 
+          [(null? (cdr x)) ; (a)
+           (tbl (list (list (symbol->string (car x)))))]
           [(null? (cadr x)) ; (a () smth ...)
            (show-xexpr (cons (car x) (cddr x)) ; (a smth ...)
                        #:transform-to-content t
