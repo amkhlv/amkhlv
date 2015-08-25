@@ -50,6 +50,16 @@
      #:style (bystro-elemstyle 
               "border-left-style:solid;border-color:green;padding-left:12px;") 
      x))
-
+  (provide comment)
+  (define-syntax (comment stx)
+    (syntax-case stx ()
+      [(_ x ...)
+       #'(let ([a (bystro-bg 240 240 255)]
+               [b (nested 
+                   #:style (style "comment" 
+                             (list (make-attributes '((style . "background-color:rgb(240,240,255);")))))
+                   x ...)]
+               [c (bystro-bg 255 255 255)])
+           b)]))
 
   )

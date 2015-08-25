@@ -379,7 +379,7 @@ along with bystroTeX.  If not, see <http://www.gnu.org/licenses/>.
                          (map (lambda (y) 
                                 (if (block? y)
                                     y
-                                    (make-paragraph plain y)))
+                                    (if y (make-paragraph plain y) (make-paragraph plain ""))))
                               x) 
                          )
                        listofrows))))

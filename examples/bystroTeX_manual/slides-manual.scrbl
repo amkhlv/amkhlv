@@ -495,7 +495,7 @@ list of all your multiple pages, and this script will extract them and print the
                           (regexp (string-append ttl "_[0-9]+" ".html"))
                           (path->string f))))])
     (display (path->string fp))
-    (newline))))
+    (newline)))
 }--|
 
 
