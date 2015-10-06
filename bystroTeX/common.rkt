@@ -523,10 +523,9 @@ along with bystroTeX.  If not, see <http://www.gnu.org/licenses/>.
                             [htmls? (file-exists? (string-append bare "/index.html"))]
                             [html ; given notes.scrbl, where is the corresponding .html ?
                              (cond
+                              [htmls? (string-append bare "/index.html")]
                               [(file-exists? (string-append bare ".html")) 
                                (string-append bare ".html")] ; notes.html
-                              [(file-exists? (string-append bare "/index.html"))
-                               (string-append bare "/index.html")] ; notes/index.html
                               [else ; either dest/notes.html or not found
                                (for/first 
                                    ([dir (filter 

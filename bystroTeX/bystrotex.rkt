@@ -13,6 +13,7 @@
 (define cleanup? (make-parameter #f))
 (define show? (make-parameter #f))
 (define verbose? (make-parameter #f))
+(define locate-html? (make-parameter #f))
 (define names (make-parameter '()))
 
 (names
@@ -21,6 +22,7 @@
   ["-c" ("cleanup") (cleanup? #t)]
   ["-s" ("show configuration") (show? #t)]
   ["-v" ("verbose") (verbose? #t)]
+  ["-l" ("locate HTML file") (locate-html? #t)]
   #:args list-of-arguments
   list-of-arguments))
 
@@ -128,6 +130,7 @@
        (printf "SQL:  ~a\n" .sqlite)
        (displayln "")))))
 
+
 ;; If names are absent, build ALL:
 (unless (or (show?) (cleanup?) (cons? (names)))
   (names 
@@ -136,13 +139,12 @@
        (with-conf c '(name dest name.html name.scrbl formulas/ .sqlite multipage?) name)))))
 
 (for ([nm (names)])
-  (printf "Building ~a " nm)
   (let* ([nml (string-length nm)]
          [lastchar (string-ref nm (- nml 1))]
          [.scrbl   (and (> nml 6) (equal? (substring nm (- nml 6)) ".scrbl"))])
     (if (eqv? lastchar #\.) ; this is to facilitate TAB-completion
         (set! nm (substring nm 0 (- nml 1)))
-        (when .scrbl ; strib the extension .scrbl if it is present
+        (when .scrbl ; strip the extension .scrbl if it is present
           (set! nm (substring nm 0 (- nml 6))))))
   (let* ([confs (se-path*/list '(scribblings) config)]
          [confcons (filter   
@@ -154,15 +156,18 @@
                    (begin (error (string-append "ERROR: name --->" nm "<--- not found"))))])
     (with-conf 
      conf '(name dest name.html name.scrbl formulas/ .sqlite multipage?)
-     (if multipage?
-         (begin
-           (displayln "(multipage)")
-           (run-and-show-results `("scribble" "++arg" "--htmls" "--htmls" ,name.scrbl))
-           (run-and-show-results `("ln" "-s" "-v" ,(path->string (build-path name "index.html")) ,name.html)))
-         (begin
-           (displayln "(singlepage)")
-           (if dest
-               (begin
-                 (run-and-show-results `("scribble" "++arg" "--dest" "--dest" ,dest ,name.scrbl))
-                 (run-and-show-results `("ln" "-s" "-v" ,(path->string (build-path dest name.html)) "./")))
-               (run-and-show-results `("scribble" ,name.scrbl))))))))
+     (if (locate-html?)
+         (displayln name.html)
+         ;;otherwize BUILD:
+         (if multipage?
+             (begin
+               (printf "Building ~a (multipage)\n" nm)
+               (run-and-show-results `("scribble" "++arg" "--htmls" "--htmls" ,name.scrbl))
+               (run-and-show-results `("ln" "-s" "-v" ,(path->string (build-path name "index.html")) ,name.html)))
+             (begin
+               (printf "Building ~a (singlepage)\n" nm)
+               (if dest
+                   (begin
+                     (run-and-show-results `("scribble" "++arg" "--dest" "--dest" ,dest ,name.scrbl))
+                     (run-and-show-results `("ln" "-s" "-v" ,(path->string (build-path dest name.html)) "./")))
+                   (run-and-show-results `("scribble" ,name.scrbl)))))))))
