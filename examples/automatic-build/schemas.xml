@@ -1,1 +1,4 @@
-../bystroTeX_manual/schemas.xml
+<?xml version="1.0"?>
+<locatingRules xmlns="http://thaiopensource.com/ns/locating-rules/1.0">
+  <uri resource="bystrotex.xml" uri="schemas/bystrotex.rnc"/>
+</locatingRules>
