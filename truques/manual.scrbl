@@ -139,6 +139,13 @@ transform-to-block h (hash/c symbol? (-> the:xexpr? block?))]{
 A parameter that defines the currently default transformers to block argument in @racket[show-xexpr]
 }
 
+@defproc[
+($->_ [x string?]) 
+string?
+]{
+Replaces dollar sign with underscore. Useful for SQLITE queries.
+}
+
 @section{SQLite tables}
 @defmodule[truques/sqlite]
 

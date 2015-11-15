@@ -21,7 +21,7 @@ along with bystroTeX.  If not, see <http://www.gnu.org/licenses/>.
 (module sqlite racket
   
   (require db/base db/sqlite3)
-  (require racket/list racket/vector scribble/core scribble/base scribble/html-properties)
+  (require racket/list racket/vector scribble/core scribble/base scribble/html-properties racket/string)
   (require (planet amkhlv/bystroTeX/common))
 
   (provide (all-from-out db/base) (all-from-out db/sqlite3))
@@ -51,6 +51,12 @@ along with bystroTeX.  If not, see <http://www.gnu.org/licenses/>.
                              #:to-hide
                              (listof string?))
                             (listof block?))]))
+  (provide (contract-out
+            ; sanitize dollar sign
+            [$->_ (-> string? string?)]))
+
+
+
   (define (mysqli-tables
            conn
            #:column-titles column-titles
@@ -85,4 +91,5 @@ along with bystroTeX.  If not, see <http://www.gnu.org/licenses/>.
                        (list (make-css-addition 
                               (build-path  (string->path css-filename)))))
            formatted-table-rows)))))
+  (define ($->_ x) (string-replace x "$" "_"))
   )
