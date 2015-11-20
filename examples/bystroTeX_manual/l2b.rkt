@@ -20,11 +20,16 @@
 @lexabbr[eeq]{\end{equation}}
 @lexabbr[baln]{\begin{align}}
 @lexabbr[ealn]{\end{align}}
+@lexabbr[barr]{\begin{array}}
+@lexabbr[earr]{\end{array}}
 @lexabbr[lbl]{\label}
+@lexabbr[nonum]{\nonumber}
 
 ;; ---------------------------------------------------------------------------------------------------
 
-(define-empty-tokens delims (DOLLAR BEGEQ ENDEQ BALIGN EALIGN LBRACE RBRACE LABEL EOF))
+(define-empty-tokens 
+  delims 
+  (DOLLAR BEGEQ ENDEQ BALIGN EALIGN LBRACE RBRACE LABEL NONUM BARRAY EARRAY EOF))
 (define-tokens chrs (CHR))
 
 (define-lex-abbrevs
@@ -41,6 +46,9 @@
    (eeq (token-ENDEQ))
    (baln (token-BALIGN))
    (ealn (token-EALIGN))
+   (barr (token-BARRAY))
+   (earr (token-EARRAY))
+   (nonum (token-NONUM))
    ((eof) (token-EOF))
    ))
 
@@ -66,8 +74,13 @@
      ((align) (list $1))
      ((inl) (list $1)))
     (ws  ; this gives a string
+     ((NONUM ws) $2)
+     ((NONUM) "")
+     ((BARRAY ws EARRAY) (string-append "\\begin{array}" $2 "\\end{array}"))
+     ((BARRAY ws EARRAY ws) (string-append "\\begin{array}" $2 "\\end{array}" $4))
      ((CHR ws) (string-append $1 $2))
-     ((CHR) $1))
+     ((CHR) $1)
+     )
     (fml ; this gives an eq struct
      ((BEGEQ ws ENDEQ) (make-eq $2)))
     (align ; this gives an aln struct
