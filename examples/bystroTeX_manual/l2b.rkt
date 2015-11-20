@@ -1,3 +1,5 @@
+#!/usr/bin/env racket
+
 #lang at-exp racket
 
 (require parser-tools/lex
@@ -119,27 +121,35 @@
   (define lxss (map (lambda (v) (map labelled v)) xss))
   (define (has-label? lx) (if (text-with-lbl-label lx) #t #f))
   (define labels-detected? (if (ormap has-label? (flatten lxss)) #t #f))
-  (define alignment-string (if labels-detected? "r.l.n " "r.l "))
+  (define alignment-string "")
   (define (output-line lxs)
+    (set! alignment-string 
+          (if (cons? (cdr lxs))
+              (if labels-detected? "r.l.n " "r.l ")
+              (if labels-detected? "r.n " "l ")))
     (string-append 
      "@list[\n@f{"
      (string-trim #:repeat? #t (text-with-lbl-text (car lxs)))
-     "}@f{"
-     (string-trim #:repeat? #t (text-with-lbl-text (cadr lxs)))
-     "}"
+     (if (cons? (cdr lxs))
+         (string-append
+          "}@f{"
+          (string-trim #:repeat? #t (text-with-lbl-text (cadr lxs)))
+          "}")
+         "}")
      (if labels-detected?
          (if (has-label? (car lxs)) 
              (string-append "@label{" (text-with-lbl-label (car lxs)) "}")
-             (if (has-label? (cadr lxs))
+             (if (and (cons? (cdr lxs)) (has-label? (cadr lxs)))
                  (string-append "@label{" (text-with-lbl-label (cadr lxs)) "}")
                  "\"\""))
          "")
      "\n]"))
-  (string-append
-   "@align[" 
-   alignment-string 
-   (apply string-append (map output-line lxss))
-   "]"))
+  (let ([output-lines (map output-line lxss)])
+    (string-append
+     "@align[" 
+     alignment-string 
+     (apply string-append output-lines)
+     "]")))
 
 (define (text-to-str t)
   (apply
