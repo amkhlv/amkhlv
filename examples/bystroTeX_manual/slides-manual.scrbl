@@ -503,6 +503,9 @@ list of all your multiple pages, and this script will extract them and print the
 }
 
 @slide["Automated build" #:tag "AutomatedBuild" #:showtitle #t]{
+@table-of-contents[]
+
+@section{Program to automatically build @tt{.scrbl} files}
 If you have several @tt{.scrbl} files, executing the @tt{scribble} command could become tedious.
 To address this, I wrote a simple build script @tt{bystrotex.rkt}. The best way to use it is
 to compile first:
@@ -510,6 +513,7 @@ to compile first:
 This produces an executable file @tt{bystrotex}. Just put it somewhere on your @tt{PATH}
 (for example in @tt{/usr/local/bin/}). 
 
+@section{XML configuration file}
 Notice that the sample folder @tt{examples/bystroTeX_manual} contains the file @tt{bystrotex.xml},
 which describes the build configuration.
 In that sample folder, execute the command:
@@ -520,11 +524,52 @@ To cleanup, say:
 The syntax of @tt{bystrotex.xml} is described in @tt{schemas/bystrotex.rnc}
 Notice that @tt{<name>filename</name>} corresponds to the file @tt{filenames.scrbl}.
 
+@section[#:tag "AvoidingConflicts"]{Avoiding conflicts}
+A problem is likely to arise when you have more than one singlepage @tt{.scrbl} files in the same directory.
+For example, suppose that you have @tt{file1.scrbl} and @tt{file2.scrbl} which are both singlepage.
+The following example of @tt{bystrotex.xml}:
+@verb|{
+<scribbling>
+    <name>file1</name>
+</scribbling>
+<scribbling>
+    <name>file2</name>
+</scribbling>
+}|
+is @spn[attn]{very wrong}, for the following reason. Both of them will create the formula
+files, @italic{e.g.} @tt{1.svg} and @tt{2.svg} and this will result in confict!
+(The formulas will get mixed up)
+The correct configuration would be:
+@verb|{
+<scribbling>
+    <name>file1</name>
+    <dest>file1</dest>
+</scribbling>
+<scribbling>
+    <name>file2</name>
+    <dest>file2</dest>
+</scribbling>
+}|
+or:
+@verb|{
+<scribbling>
+    <name>file1</name>
+    <formulas-dir>file1_formulas</formulas-dir>
+</scribbling>
+<scribbling>
+    <name>file2</name>
+    <formulas-dir>file2_formulas</formulas-dir>
+</scribbling>
+}|
+
+@section{Building individual files}
+
 You can also build individual files. To build two files, say:
 @verb{bystrotex filename1 filename2}
 This is equivalent to:
 @verb{bystrotex filename1. filename2.scrbl}
 The trailing dot is stripped to facilitate the use of TAB completion.
+
 }
 
 @slide["Automatic LaTeX → BystroTeX conversion" #:tag "LaTeX2BystroTeX" #:showtitle #t]{
@@ -559,8 +604,9 @@ Java errors are dumped to @tt{server-error.txt}.
 @para{Check if the @tt{singlepage-mode} parameter is set up 
 correctly in the headers, as explained @seclink["SinglePage"]{here}.}
 ]@list[
-@para{Some formulas look ugly}
-@para{Use Sun Java as explained @seclink["Syntax"]{here}}
+@para{Formulas are mixed up}
+@para{Do you have to singlepage @tt{scribble} files in the same directory?
+See @seclink["AvoidingConflicts"]{Avoiding Conflicts}}
 ]@list[
 @para{Execution of the command ``@tt{scribble ...}'' freezes}
 @para{If your talk has many formulas, and this is the first time you are
