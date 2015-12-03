@@ -468,6 +468,19 @@ Inserts the output of a shell command. For example:
                     select capital,population from countries where continent like '%asia%'}|
 Note how we use the at-syntax instead of quotation marks in the SQL query
 }--|
+}
+
+@defproc[
+(bystro-get-cl-argument
+ [key string?]
+ )
+string?]{
+Extract the value of command line argument of the @tt{scribble} command. For example,
+if we invoke as follows:
+@verbatim|--{
+scribble ++arg --person ++arg Andrei filename.scrbl
+}--|
+then @racket{(bystro-get-cl-argument "person")} will return @racket{"Andrei"}.
 } 
 
 @section{Auxiliary functions}

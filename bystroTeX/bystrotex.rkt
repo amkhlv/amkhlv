@@ -2,7 +2,7 @@
 
 #lang racket
 
-(require racket/cmdline racket/string xml xml/path bystroTeX/utils)
+(require racket/cmdline racket/string racket/list xml xml/path bystroTeX/utils)
 
 ;; some default values
 (define default-sqlite-filename-in-dest-folder   "formulas.sqlite")
@@ -15,6 +15,7 @@
 (define verbose? (make-parameter #f))
 (define locate-html? (make-parameter #f))
 (define names (make-parameter '()))
+(define items (make-parameter '()))
 
 (names
  (command-line 
@@ -45,7 +46,7 @@
 
 (define-syntax (with-conf stx)
   (syntax-case stx ()
-    [(_ c '(name dest name.html name.scrbl formulas/ .sqlite multipage?) body ...)
+    [(_ c '(name dest name.html name.scrbl formulas/ .sqlite arglist multipage?) body ...)
      #'(let* ([name (let ([v (se-path* '(name) c)]) (if v (string-trim v) #f))]
               [dest (let ([v (se-path* '(dest) c)]) (if v (string-trim v) #f))]
               [formulas-dir (let ([v (se-path* '(formulas-dir) c)]) (if v (string-trim v) #f))]
@@ -53,6 +54,14 @@
               [name.html (string->path (string-append name ".html"))]
               [name.scrbl (string->path (string-append name ".scrbl"))]
               [formulas/ (or formulas-dir name)]
+              [arglist (flatten 
+                         (for/list ([a (se-path*/list '(args) c)] #:when (cons? a))
+                           (if (cons? (se-path*/list '(value) a))
+                               (list "++arg" 
+                                     (string-append "--" (se-path* '(value #:key) a)) 
+                                     "++arg" 
+                                     (se-path* '(value) a))
+                               (list "++arg" (string-append "--" (se-path* '(flag) a))))))]
               [multipage? (cons?    (filter   (λ  (x)  (equal? x '(multipage ())))   c))]
               [.sqlite  
                (or sqlite-file 
@@ -88,7 +97,7 @@
   (let* ([confs (se-path*/list '(scribblings) config)])
     (for ([c confs] #:when (cons? c))
       (with-conf 
-       c '(name dest name.html name.scrbl formulas/ .sqlite multipage?)
+       c '(name dest name.html name.scrbl formulas/ .sqlite arglist multipage?)
        (when (file-exists? .sqlite) 
          (when verbose? (printf "Deleting the sqlite file ---> ~a\n" .sqlite))
          (delete-file .sqlite))
@@ -122,7 +131,7 @@
     (for ([c confs] #:when (cons? c))
       (when (verbose?) (displayln c))
       (with-conf 
-       c '(name dest name.html name.scrbl formulas/ .sqlite multipage?)
+       c '(name dest name.html name.scrbl formulas/ .sqlite arglist multipage?)
        (when multipage? (displayln "multipage:"))
        (printf "Name: ~a\n" name)
        (when dest (printf "Dest: ~a\n" dest))
@@ -131,43 +140,48 @@
        (displayln "")))))
 
 
-;; If names are absent, build ALL:
-(unless (or (show?) (cleanup?) (cons? (names)))
-  (names 
-   (let* ([confs (se-path*/list '(scribblings) config)])
-     (for/list ([c confs] #:when (cons? c))
-       (with-conf c '(name dest name.html name.scrbl formulas/ .sqlite multipage?) name)))))
+(define (strip-ending x)
+  (let* ([len (string-length x)]
+         [lastchar (string-ref x (- len 1))]
+         [.scrbl? (and (> len 6) (equal? (substring x (- len 6)) ".scrbl"))]
+         [result (if (eqv? lastchar #\.)
+                 (substring x 0 (- len 1))
+                 (if .scrbl? ; strip the extension .scrbl if it is present
+                     (substring x 0 (- len 6))
+                     x))])
+    result))
 
-(for ([nm (names)])
-  (let* ([nml (string-length nm)]
-         [lastchar (string-ref nm (- nml 1))]
-         [.scrbl   (and (> nml 6) (equal? (substring nm (- nml 6)) ".scrbl"))])
-    (if (eqv? lastchar #\.) ; this is to facilitate TAB-completion
-        (set! nm (substring nm 0 (- nml 1)))
-        (when .scrbl ; strip the extension .scrbl if it is present
-          (set! nm (substring nm 0 (- nml 6))))))
-  (let* ([confs (se-path*/list '(scribblings) config)]
-         [confcons (filter   
-                    (λ  (x)  (let ([v (se-path* '(name) x)]) 
-                               (and v (equal? (string-trim v) nm))))   
-                    confs)]
-         [conf (if (cons? confcons) 
-                   (car confcons) 
-                   (begin (error (string-append "ERROR: name --->" nm "<--- not found"))))])
-    (with-conf 
-     conf '(name dest name.html name.scrbl formulas/ .sqlite multipage?)
-     (if (locate-html?)
-         (displayln name.html)
-         ;;otherwize BUILD:
-         (if multipage?
-             (begin
-               (printf "Building ~a (multipage)\n" nm)
-               (run-and-show-results `("scribble" "++arg" "--htmls" "--htmls" ,name.scrbl))
-               (run-and-show-results `("ln" "-s" "-v" ,(path->string (build-path name "index.html")) ,name.html)))
-             (begin
-               (printf "Building ~a (singlepage)\n" nm)
-               (if dest
-                   (begin
-                     (run-and-show-results `("scribble" "++arg" "--dest" "--dest" ,dest ,name.scrbl))
-                     (run-and-show-results `("ln" "-s" "-v" ,(path->string (build-path dest name.html)) "./")))
-                   (run-and-show-results `("scribble" ,name.scrbl)))))))))
+;; If names are absent, build ALL; otherwize, build those with matching names:
+(items 
+ (for/list ([c (se-path*/list '(scribblings) config)] 
+            #:when 
+            (and 
+             (cons? c)
+             (or 
+              (not (or (show?) (cleanup?) (cons? (names))))
+              (member 
+               (with-conf c '(name dest name.html name.scrbl formulas/ .sqlite arglist multipage?) name) 
+               (map strip-ending (names))))))
+   c))
+
+(for ([it (items)])
+  (with-conf 
+   it 
+   '(name dest name.html name.scrbl formulas/ .sqlite arglist multipage?)
+   (if (locate-html?)
+       (displayln name.html)
+       ;;otherwize BUILD:
+       (if multipage?
+           (begin
+             (printf "Building ~a (multipage)\n" name)
+             (run-and-show-results `("scribble" ,@arglist "++arg" "--htmls" "--htmls" ,name.scrbl))
+             (run-and-show-results `("ln" "-s" "-v" ,(path->string (build-path name "index.html")) ,name.html)))
+           (begin
+             (printf "Building ~a (singlepage)\n" name)
+             (if dest
+                 (begin
+                   (run-and-show-results `("scribble" ,@arglist "++arg" "--dest" "++arg" ,dest "--dest" ,dest ,name.scrbl))
+                   (run-and-show-results `("ln" "-s" "-v" ,(path->string (build-path dest name.html)) "./")))
+                 (run-and-show-results `("scribble" ,@arglist ,name.scrbl))))))))
+             
+

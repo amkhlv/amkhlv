@@ -584,4 +584,16 @@ along with bystroTeX.  If not, see <http://www.gnu.org/licenses/>.
      (verbatim 
       #:indent i 
       output-string
-      ))))
+      )))
+
+  (provide (contract-out 
+            ; get the value of the command line argument with key --k
+            [bystro-get-cl-argument (-> string? string?)]))
+  (define (bystro-get-cl-argument k)
+    (let v ([arglist (vector->list (current-command-line-arguments))])
+     (if (equal? (car arglist) (string-append "--" k) )
+         (cadr arglist)
+         (v (cdr arglist)))))
+
+
+)
