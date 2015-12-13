@@ -23,15 +23,6 @@
 
 @; AND HOPEFULLY SOME CONTENT:
 
-
-@; @(define to-whom
-@;    (let iter ([arglist (vector->list (current-command-line-arguments))])
-@;      (if (equal? (car arglist) "--to_whom") 
-@;          (cadr arglist)
-@;          (iter (cdr arglist)))))
-
-
-
 @title[#:style '(no-toc no-sidebar)]{Dear @(elem to-whom)! }
 
 please read the enclosed text presenting my idea about the interpretation of the Higgs boson as a wormhole in graphene-lattice.
