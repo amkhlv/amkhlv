@@ -1,0 +1,18 @@
+<config>
+  <scribblings>
+    <scribbling>
+      <name>letter</name>
+      <args>
+        <value key="to_whom">Professor A</value>
+      </args>
+      <dest>profA</dest>
+    </scribbling>
+    <scribbling>
+      <name>letter</name>
+      <args>
+        <value key="to_whom">Professor B</value>
+      </args>
+      <dest>profB</dest>
+    </scribbling>
+  </scribblings>
+</config>
