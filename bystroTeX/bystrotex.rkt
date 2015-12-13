@@ -2,12 +2,7 @@
 
 #lang racket
 
-(require racket/cmdline racket/string racket/list xml xml/path bystroTeX/utils)
-
-;; some default values
-(define default-sqlite-filename-in-dest-folder   "formulas.sqlite")
-(define default-sqlite-filename-in-curdir_suffix "_formulas.sqlite")
-
+(require racket/cmdline racket/string racket/list xml xml/path bystroTeX/utils bystroTeX/xmlconf)
 
 ;; command line parsing
 (define cleanup? (make-parameter #f))
@@ -27,10 +22,6 @@
   #:args list-of-arguments
   list-of-arguments))
 
-(define  (file->xexpr x)
-  (call-with-input-file x (λ (inport) (xml->xexpr (document-element (read-xml inport))))))
-
-(define config (file->xexpr "bystrotex.xml"))
 
 (define (delete-files-in-dir dir #:regex r #:depth [depth 1])
   (when (directory-exists? dir)
@@ -43,33 +34,6 @@
                       (regexp-match r (path->string (last ep))))))
                  dir)])
       (delete-file f))))
-
-(define-syntax (with-conf stx)
-  (syntax-case stx ()
-    [(_ c '(name dest name.html name.scrbl formulas/ .sqlite arglist multipage?) body ...)
-     #'(let* ([name (let ([v (se-path* '(name) c)]) (if v (string-trim v) #f))]
-              [dest (let ([v (se-path* '(dest) c)]) (if v (string-trim v) #f))]
-              [formulas-dir (let ([v (se-path* '(formulas-dir) c)]) (if v (string-trim v) #f))]
-              [sqlite-file  (let ([v (se-path* '(sqlite-file) c)]) (if v (string-trim v) #f))]
-              [name.html (string->path (string-append name ".html"))]
-              [name.scrbl (string->path (string-append name ".scrbl"))]
-              [formulas/ (or formulas-dir name)]
-              [arglist (flatten 
-                         (for/list ([a (se-path*/list '(args) c)] #:when (cons? a))
-                           (if (cons? (se-path*/list '(value) a))
-                               (list "++arg" 
-                                     (string-append "--" (se-path* '(value #:key) a)) 
-                                     "++arg" 
-                                     (se-path* '(value) a))
-                               (list "++arg" (string-append "--" (se-path* '(flag) a))))))]
-              [multipage? (cons?    (filter   (λ  (x)  (equal? x '(multipage ())))   c))]
-              [.sqlite  
-               (or sqlite-file 
-                   (if dest
-                       (path->string (build-path dest default-sqlite-filename-in-dest-folder))
-                       (if multipage? (build-path name default-sqlite-filename-in-dest-folder)
-                           (string-append name default-sqlite-filename-in-curdir_suffix))))])
-         body ...)]))
 
 (define (run-and-show-results cmdline)
   (with-external-command-as
@@ -94,10 +58,10 @@
 
 (when (cleanup?) 
   (displayln "Cleanup!")
-  (let* ([confs (se-path*/list '(scribblings) config)])
+  (let* ([confs (se-path*/list '(scribblings) bystroconf-xexpr)])
     (for ([c confs] #:when (cons? c))
-      (with-conf 
-       c '(name dest name.html name.scrbl formulas/ .sqlite arglist multipage?)
+      (with-bystroconf 
+       c (name dest name.html name.scrbl formulas/ .sqlite arglist multipage?)
        (when (file-exists? .sqlite) 
          (when verbose? (printf "Deleting the sqlite file ---> ~a\n" .sqlite))
          (delete-file .sqlite))
@@ -127,11 +91,11 @@
 (when (show?)
   (displayln "Configuration")
   (displayln "=============")
-  (let* ([confs (se-path*/list '(scribblings) config)])
+  (let* ([confs (se-path*/list '(scribblings) bystroconf-xexpr)])
     (for ([c confs] #:when (cons? c))
       (when (verbose?) (displayln c))
-      (with-conf 
-       c '(name dest name.html name.scrbl formulas/ .sqlite arglist multipage?)
+      (with-bystroconf 
+       c (name dest name.html name.scrbl formulas/ .sqlite arglist multipage?)
        (when multipage? (displayln "multipage:"))
        (printf "Name: ~a\n" name)
        (when dest (printf "Dest: ~a\n" dest))
@@ -153,21 +117,21 @@
 
 ;; If names are absent, build ALL; otherwize, build those with matching names:
 (items 
- (for/list ([c (se-path*/list '(scribblings) config)] 
+ (for/list ([c (se-path*/list '(scribblings) bystroconf-xexpr)] 
             #:when 
             (and 
              (cons? c)
              (or 
               (not (or (show?) (cleanup?) (cons? (names))))
               (member 
-               (with-conf c '(name dest name.html name.scrbl formulas/ .sqlite arglist multipage?) name) 
+               (with-bystroconf c (name dest name.html name.scrbl formulas/ .sqlite arglist multipage?) name) 
                (map strip-ending (names))))))
    c))
 
 (for ([it (items)])
-  (with-conf 
+  (with-bystroconf 
    it 
-   '(name dest name.html name.scrbl formulas/ .sqlite arglist multipage?)
+   (name dest name.html name.scrbl formulas/ .sqlite arglist multipage?)
    (if (locate-html?)
        (displayln name.html)
        ;;otherwize BUILD:
@@ -175,13 +139,15 @@
            (begin
              (printf "Building ~a (multipage)\n" name)
              (run-and-show-results `("scribble" ,@arglist "++arg" "--htmls" "--htmls" ,name.scrbl))
-             (run-and-show-results `("ln" "-s" "-v" ,(path->string (build-path name "index.html")) ,name.html)))
+             ;(run-and-show-results `("ln" "-s" "-v" ,(path->string (build-path name "index.html")) ,name.html))
+             )
            (begin
              (printf "Building ~a (singlepage)\n" name)
              (if dest
                  (begin
                    (run-and-show-results `("scribble" ,@arglist "++arg" "--dest" "++arg" ,dest "--dest" ,dest ,name.scrbl))
-                   (run-and-show-results `("ln" "-s" "-v" ,(path->string (build-path dest name.html)) "./")))
+                   ;(run-and-show-results `("ln" "-s" "-v" ,(path->string (build-path dest name.html)) "./"))
+                   )
                  (run-and-show-results `("scribble" ,@arglist ,name.scrbl))))))))
              
 

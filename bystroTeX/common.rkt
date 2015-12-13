@@ -24,6 +24,7 @@ along with bystroTeX.  If not, see <http://www.gnu.org/licenses/>.
   (require racket/list)
   (require racket/vector)
   (require racket/path)
+  (require "xmlconf.rkt" xml/path)
 
 ;; ---------------------------------------------------------------------------------------------------
   (define bystro-scrbl-filename "")
@@ -37,6 +38,11 @@ along with bystroTeX.  If not, see <http://www.gnu.org/licenses/>.
             ; Get the filename of the scribble file
             [get-bystro-scrbl-filename (-> string?)]))
   (define (get-bystro-scrbl-filename) bystro-scrbl-filename)
+  (provide (contract-out
+            ; Get the name without extention
+            [get-bystro-scrbl-name (-> string?)]))
+  (define (get-bystro-scrbl-name) 
+    (substring bystro-scrbl-filename 0 (max 0 (- (string-length bystro-scrbl-filename) 6))))
 ;; ---------------------------------------------------------------------------------------------------
   (provide (contract-out 
             ; Location of CSS files
@@ -510,55 +516,39 @@ along with bystroTeX.  If not, see <http://www.gnu.org/licenses/>.
 ;; ---------------------------------------------------------------------------------------------------
   (provide (contract-out 
                                         ; a nice ribbon with local scribblings
-            [bystro-ribbon (->* () () table?)]))
+            [bystro-ribbon (->* () () block?)]))
   (define (bystro-ribbon)
-     (apply (compose tbl list list elem)
-            (append 
-             (list)
-             (flatten
-              (map (lambda (u) 
-                     (let* ([s (path->string u)]
-                            [n (string-length s)]
-                            [bare (substring s 0 (- n 6))]
-                            [htmls? (file-exists? (string-append bare "/index.html"))]
-                            [html ; given notes.scrbl, where is the corresponding .html ?
-                             (cond
-                              [htmls? (string-append bare "/index.html")]
-                              [(file-exists? (string-append bare ".html")) 
-                               (string-append bare ".html")] ; notes.html
-                              [else ; either dest/notes.html or not found
-                               (for/first 
-                                   ([dir (filter 
-                                          directory-exists? 
-                                          (directory-list (current-directory)))]
-                                    #:when (file-exists? 
-                                            (build-path 
-                                             dir 
-                                             (string->path (string-append bare ".html")))) 
-                                    )
-                                 (string-append (path->string dir) "/" bare ".html"))])]
-                            [path-prefix ; we might need "../" if --htmls or --dest
-                             (let ((multipage (vector-member "--htmls" (current-command-line-arguments)))
-                                   (destination (vector-member "--dest" (current-command-line-arguments)))) 
-                               (cond
-                                [multipage "../"]
-                                [destination "../"] ; ugly: assume that destination is only a single dir down
-                                [else ""]))]
-                            )
-                       (list
-                        (if html
-                            (hyperlink 
-                             #:style (make-style 
-                                      "scrbllink" 
-                                      (list (make-css-addition (build-path 
-                                                                css-dir
-                                                                (string->path "misc.css")
-                                                                ))))
-                             (string-append path-prefix html)
-                             bare)
-                            bare)
-                        " ")))
-                   (bystro-list-scrbls "."))))))
+    (apply 
+     para
+     (for/list ([bc (if bystroconf-xexpr (se-path*/list '(scribblings) bystroconf-xexpr) '())]
+                #:when 
+                (and (cons? bc) 
+                     (not (equal? (se-path* '(name) bc) (get-bystro-scrbl-name)))))
+       (with-bystroconf 
+        (get-conf (get-bystro-scrbl-name))
+        (Cname Cdest Cname.html Cname.scrbl Cformulas/ C.sqlite Carglist Cmultipage?)
+        (with-bystroconf
+         bc
+         (name dest name.html name.scrbl formulas/ .sqlite arglist multipage?)
+         (let* ([link-rel-to-rt
+                 (if multipage?
+                     (string-append name "/index.html")
+                     (string-append (if dest (string-append dest "/") "") (path->string name.html)))]
+                [link (string-append (if (or Cmultipage? Cdest) "../" "") link-rel-to-rt)])
+           (elem 
+            (if (file-exists? link-rel-to-rt)
+                (hyperlink 
+                 #:style (make-style 
+                          "scrbllink" 
+                          (list (make-css-addition (build-path 
+                                                    css-dir
+                                                    (string->path "misc.css")
+                                                    ))))
+                 link
+                 name)
+                name)
+            (hspace 1))))))))
+
 ;; ---------------------------------------------------------------------------------------------------
   (provide (contract-out 
                                         ; dump the output of a shell command
