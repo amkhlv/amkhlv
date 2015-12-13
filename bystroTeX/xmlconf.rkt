@@ -24,7 +24,7 @@ along with bystroTeX.  If not, see <http://www.gnu.org/licenses/>.
   (define default-sqlite-filename-in-dest-folder   "formulas.sqlite")
   (define default-sqlite-filename-in-curdir_suffix "_formulas.sqlite")
 
-  (provide (contract-out [bystroconf-xexpr xexpr?]))
+  (provide (contract-out [bystroconf-xexpr (or/c xexpr? #f)]))
   (define bystroconf-xexpr
     (if (file-exists? "bystrotex.xml")
         (call-with-input-file "bystrotex.xml" (λ (inport) (xml->xexpr (document-element (read-xml inport)))))
