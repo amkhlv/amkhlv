@@ -581,9 +581,11 @@ along with bystroTeX.  If not, see <http://www.gnu.org/licenses/>.
             [bystro-get-cl-argument (-> string? string?)]))
   (define (bystro-get-cl-argument k)
     (let v ([arglist (vector->list (current-command-line-arguments))])
-     (if (equal? (car arglist) (string-append "--" k) )
-         (cadr arglist)
-         (v (cdr arglist)))))
+      (if (cons? arglist)
+          (if (equal? (car arglist) (string-append "--" k))
+              (cadr arglist)
+              (v (cdr arglist)))
+          (error 'bystro-get-cl-argument "argument ~a not found" k))))
 
 
 )

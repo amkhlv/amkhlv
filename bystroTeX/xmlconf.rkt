@@ -18,7 +18,7 @@ along with bystroTeX.  If not, see <http://www.gnu.org/licenses/>.
 |#
 
 (module xmlconf racket
-  (require xml xml/path (for-syntax racket/syntax))
+  (require xml xml/path racket/string (for-syntax racket/syntax))
   
   ;; some default values
   (define default-sqlite-filename-in-dest-folder   "formulas.sqlite")
@@ -30,6 +30,11 @@ along with bystroTeX.  If not, see <http://www.gnu.org/licenses/>.
         (call-with-input-file "bystrotex.xml" (λ (inport) (xml->xexpr (document-element (read-xml inport)))))
         #f))
 
+  (provide (contract-out [all-names (or/c (listof string?))]))
+  (define all-names
+    (for/list ([c (se-path*/list '(scribblings) bystroconf-xexpr)] #:when (cons? c))
+      (string-trim (se-path* '(name) c))))
+
   (provide (contract-out
             [get-conf (-> string? (or/c xexpr? #f))]))
   (define (get-conf x)
@@ -37,7 +42,7 @@ along with bystroTeX.  If not, see <http://www.gnu.org/licenses/>.
                 #:when
                 (and 
                  (cons? y)
-                 (equal? (se-path* '(name) y) x)))
+                 (equal? (string-trim (se-path* '(name) y)) x)))
       y))
         
   (provide with-bystroconf)
@@ -55,10 +60,10 @@ along with bystroTeX.  If not, see <http://www.gnu.org/licenses/>.
                              (for/list ([a (se-path*/list '(args) c)] #:when (cons? a))
                                (if (cons? (se-path*/list '(value) a))
                                    (list "++arg" 
-                                         (string-append "--" (se-path* '(value #:key) a)) 
+                                         (string-append "--" (string-trim (se-path* '(value #:key) a))) 
                                          "++arg" 
-                                         (se-path* '(value) a))
-                                   (list "++arg" (string-append "--" (se-path* '(flag) a))))))]
+                                         (string-trim (se-path* '(value) a)))
+                                   (list "++arg" (string-append "--" (string-trim (se-path* '(flag) a)))))))]
                 [Xmultipage? (cons?    (filter   (λ  (x)  (equal? x '(multipage ())))   c))]
                 [X.sqlite  
                  (or sqlite-file 

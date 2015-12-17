@@ -58,7 +58,7 @@ along with bystroTeX.  If not, see <http://www.gnu.org/licenses/>.
 (provide (contract-out [transform-to-block (parameter/c (hash/c symbol? (-> the:xexpr? block?) #:immutable #t))]))
 (define transform-to-content 
   (make-parameter 
-   (hash 'a (λ (x) (hyperlink (se-path* '(a #:href) x) (se-path* '(a) x)))
+   (hash 'a (λ (x) (hyperlink (string-trim (se-path* '(a #:href) x)) (se-path* '(a) x)))
          'b (λ (x) (bold (se-path* '(b) x)))
          'it (λ (x) (italic (se-path* '(it) x)))
          'nbsp (λ (x) ~)

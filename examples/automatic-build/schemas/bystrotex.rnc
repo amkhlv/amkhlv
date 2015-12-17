@@ -9,7 +9,7 @@ element config {
                attribute key { text },
                text
             }
-             | element flag { text })
+             | element flag { text })+
          }?,
          (element multipage { empty } 
           | (element dest { text }?))
