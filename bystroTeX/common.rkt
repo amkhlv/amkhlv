@@ -514,40 +514,50 @@ along with bystroTeX.  If not, see <http://www.gnu.org/licenses/>.
                                         ; as static content on a website
 
 ;; ---------------------------------------------------------------------------------------------------
+  (provide (contract-out
+                                        ; ribbon corresponding to some folder
+            [bystro-ribbon-for-location (->* (path?) (#:exclude-same-name boolean?) block?)]))
+  (define (bystro-ribbon-for-location p #:exclude-same-name [esn #f])
+    (let* ([bystrotex.xml (build-path p "bystrotex.xml")]
+           [bconf-xexpr (if (file-exists? bystrotex.xml)
+                            (xml-file->bystroconf-xexpr bystrotex.xml)
+                            #f)])
+      (apply 
+       para
+       (for/list ([bc (if bconf-xexpr (se-path*/list '(scribblings) bconf-xexpr) '())]
+                  #:when 
+                  (and (cons? bc) 
+                       (not (and esn (equal? (se-path* '(name) bc) (get-bystro-scrbl-name))))))
+         (with-bystroconf 
+          (get-bystroconf (get-bystro-scrbl-name))
+          (Cname Cdest Cname.html Cname.scrbl Cformulas/ C.sqlite Carglist Cmultipage?)
+          (with-bystroconf
+           bc
+           (name dest name.html name.scrbl formulas/ .sqlite arglist multipage?)
+           (let* ([link-rel-to-rt
+                   (if multipage?
+                       (build-path p name "index.html")
+                       (build-path p (if dest (string-append dest "/") 'same) (path->string name.html)))]
+                  [link (path->string (build-path (if (or Cmultipage? Cdest) "../" 'same) link-rel-to-rt))])
+             (elem 
+              (if (file-exists? link-rel-to-rt)
+                  (hyperlink 
+                   #:style (make-style 
+                            "scrbllink" 
+                            (list (make-css-addition (build-path 
+                                                      css-dir
+                                                      (string->path "misc.css")
+                                                      ))))
+                   link
+                   name)
+                  name)
+              (hspace 1)))))))))
+
+;; ---------------------------------------------------------------------------------------------------
   (provide (contract-out 
                                         ; a nice ribbon with local scribblings
             [bystro-ribbon (->* () () block?)]))
-  (define (bystro-ribbon)
-    (apply 
-     para
-     (for/list ([bc (if bystroconf-xexpr (se-path*/list '(scribblings) bystroconf-xexpr) '())]
-                #:when 
-                (and (cons? bc) 
-                     (not (equal? (se-path* '(name) bc) (get-bystro-scrbl-name)))))
-       (with-bystroconf 
-        (get-conf (get-bystro-scrbl-name))
-        (Cname Cdest Cname.html Cname.scrbl Cformulas/ C.sqlite Carglist Cmultipage?)
-        (with-bystroconf
-         bc
-         (name dest name.html name.scrbl formulas/ .sqlite arglist multipage?)
-         (let* ([link-rel-to-rt
-                 (if multipage?
-                     (string-append name "/index.html")
-                     (string-append (if dest (string-append dest "/") "") (path->string name.html)))]
-                [link (string-append (if (or Cmultipage? Cdest) "../" "") link-rel-to-rt)])
-           (elem 
-            (if (file-exists? link-rel-to-rt)
-                (hyperlink 
-                 #:style (make-style 
-                          "scrbllink" 
-                          (list (make-css-addition (build-path 
-                                                    css-dir
-                                                    (string->path "misc.css")
-                                                    ))))
-                 link
-                 name)
-                name)
-            (hspace 1))))))))
+  (define (bystro-ribbon) (bystro-ribbon-for-location (build-path 'same) #:exclude-same-name #t))
 
 ;; ---------------------------------------------------------------------------------------------------
   (provide (contract-out 

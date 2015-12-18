@@ -139,6 +139,18 @@ delayed-element?]{
 Like @literal|{\ref{...}}| in @tt{LaTeX}, reference to the label @racket[x].
 }
 
+@defproc[
+(bystro-bg [r exact-nonnegative-integer?] [g exact-nonnegative-integer?] [b exact-nonnegative-integer?])
+void?]{
+Set the background color for formulas
+}
+
+@defproc[
+(bystro-fg [r exact-nonnegative-integer?] [g exact-nonnegative-integer?] [b exact-nonnegative-integer?])
+void?]{
+Set the foreground color for formulas
+}
+
 @; @defproc[
 @; (bystro-command-to-typeset-formula 
 @;  [comm path-string?]
@@ -194,6 +206,7 @@ Insert the list of slides. This is for use on the title-slide.
 
 
 @section{Miscellaneous functions}
+
 
 @defmodule[bystroTeX/common]
 
@@ -347,17 +360,6 @@ table?
 The content is padded from the right, therefore gets shifted to the left.
 }
 
-@defproc[
-(bystro-bg [r exact-nonnegative-integer?] [g exact-nonnegative-integer?] [b exact-nonnegative-integer?])
-void?]{
-Set the background color for formulas
-}
-
-@defproc[
-(bystro-fg [r exact-nonnegative-integer?] [g exact-nonnegative-integer?] [b exact-nonnegative-integer?])
-void?]{
-Set the foreground color for formulas
-}
 
 @defproc[
 (verb  [x string?] [#:indent i exact-nonnegative-integer?] [#:rest xs (listof string?)])
@@ -448,9 +450,18 @@ A nicely formatted list of links to scribble files in the folder @racket[p]
 (bystro-ribbon)
 table?
 ]{
-This is for putting pages on my website.
-Formatted list of all the @tt{.scrbl} files in the current directory, 
-with the URL of my website prepended.
+Formatted list of all the @tt{.scrbl} files (more precisely, the links to the corresponding @tt{.html} files) 
+in the current directory.
+}
+
+@defproc[
+(bystro-ribbon-for-location 
+ [p path?]
+ [#:exclude-same-name esn boolean? #f]
+ )
+block?
+]{
+Same as @racket[bystro-ribbon] but for some other directory (instead of the current directory).
 }
 
 @defproc[
@@ -482,6 +493,55 @@ scribble ++arg --person ++arg Andrei filename.scrbl
 }--|
 then @racket{(bystro-get-cl-argument "person")} will return @racket{"Andrei"}.
 } 
+
+
+@section{Functions for reading the configuration file}
+@defmodule[bystroTeX/xmlconf]
+
+The configuration file is usually called @tt{bystrotex.xml}
+
+@defproc[
+(xml-file->bystroconf-xexpr
+ [xf path-string?]
+ )
+xexpr?
+]{
+Reads configuration an XML file
+}
+
+@defthing[bystroconf-xexpr (or/c xexpr? #f)]{
+Configuration read from the file @tt{bystrotex.xml} in the current directory.
+(If there is no such file, returns @racket[#f]
+}
+
+@defthing[all-names (listof string?)]{
+List of all scribbling names in the current directory
+}
+
+@defproc[
+(get-bystroconf 
+ [name string?]
+ )
+(or/c xexpr? #f)
+]{
+Returns the configuration for @racket[name]
+}
+
+@defform[
+(with-bystroconf 
+  bc 
+  (name dest name.html name.scrbl formulas/ .sqlite arglist multipage?) 
+  body ...)
+]{
+Here @racket[bc] is a configuration for a scribbling (typically a result of @racket[get-bystroconf]).
+In the body, @racket[name] (@racket[string?]) gets bound to @tt{name}, @racket[dest] (@racket[string?]) to @tt{dest},
+@racket[name.html] (@racket[path?]) to just @tt{name.html}, @racket[name.scrbl] (@racket[path?]) to just @tt{name.scrbl},
+@racket[formulas/] (@racket[string?]) to the directory where SVG files of formulas will be stored, 
+@racket[.sqlite] (@racket[string?]) to the path to SQLite file.
+(You can provide your own set of identifiers.)
+}
+
+
 
 @section{Auxiliary functions}
 
