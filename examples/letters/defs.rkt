@@ -1,6 +1,6 @@
 (module defs racket
 
-  (require (for-syntax racket/base bystroTeX/slides_for-syntax))
+  (require (for-syntax racket/base bystroTeX/slides_for-syntax racket/syntax))
   (require racket scribble/core scribble/base scribble/html-properties)
   (require bystroTeX/common bystroTeX/slides)
 
@@ -54,10 +54,24 @@
   (define-syntax (comment stx)
     (syntax-case stx ()
       [(_ x ...)
-       #'(let ([a (bystro-bg 240 240 255)]
+       (with-syntax ([bc (format-id stx "bystro-conf")])
+         #'(let ([a (bystro-bg 240 240 255)]
+                 [s1 (set-bystro-formula-size! bc (- (bystro-formula-size bc) 3))]
+                 [b (nested 
+                     #:style (style "comment" 
+                               (list (make-attributes '((style . "background-color:rgb(240,240,255);")))))
+                     x ...)]
+                 [s2 (set-bystro-formula-size! bc (+ (bystro-formula-size bc) 3))]
+                 [c (bystro-bg 255 255 255)])
+             b))]))
+  (provide short-intro)
+  (define-syntax (short-intro stx)
+    (syntax-case stx ()
+      [(_ x ...)
+       #'(let ([a (bystro-bg 240 255 240)]
                [b (nested 
-                   #:style (style "comment" 
-                             (list (make-attributes '((style . "background-color:rgb(240,240,255);")))))
+                   #:style (style "greenbox" 
+                             (list (make-attributes '((style . "background-color:rgb(240,255,240);")))))
                    x ...)]
                [c (bystro-bg 255 255 255)])
            b)]))
