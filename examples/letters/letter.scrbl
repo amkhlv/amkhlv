@@ -4,8 +4,13 @@
 @; ---------------------------------------------------------------------------------------------------
 @; User definitions:
 @(bystro-set-css-dir (build-path 'same "css"))
+
+@; HERE:
 @(define dst (bystro-get-cl-argument "dest"))
 @(define to-whom (bystro-get-cl-argument "to_whom"))
+@(define address (bystro-get-cl-argument "address"))
+@; ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
 @(define bystro-conf 
    (bystro (bystro-connect-to-server #f "127.0.0.1" 9749 "svg") ;(find-executable-path "amkhlv-java-formula.sh")
            "formulas.sqlite"  ; name for the database
@@ -23,7 +28,23 @@
 
 @; AND HOPEFULLY SOME CONTENT:
 
-@title[#:style '(no-toc no-sidebar)]{Dear @(elem to-whom)! }
+
+@tg[table #:attrs ([border "0"] [width "100%"])
+@tg[tr 
+    @tg[td #:attrs ([style "text-align:left;"]) 
+        @tg[table 
+            (for/list ([x (string-split address "\n")]) 
+              (tg tr (tg td x)))]
+       ]
+    @tg[td #:attrs ([style "text-align:right;"])
+        @hyperlink["http://www.example.com/"]{Independent Researcher}
+        @linebreak[]
+        "Remote University"
+        @linebreak[]
+        @hyperlink["mailto:example@example.com"]|{example@example.com}|
+        ]]]
+
+@larger{Dear @(elem to-whom)! }
 
 please read the enclosed text presenting my idea about the interpretation of the Higgs boson as a wormhole in graphene-lattice.
 

@@ -4,6 +4,11 @@
       <name>letter</name>
       <args>
         <value key="to_whom">Professor A</value>
+        <value key="address">
+          Professor A
+          Princeton University
+          Physics Department
+        </value>
       </args>
       <dest>profA</dest>
     </scribbling>
@@ -11,6 +16,11 @@
       <name>letter</name>
       <args>
         <value key="to_whom">Professor B</value>
+        <value key="address">
+          Professor B
+          Stanford University
+          Physics Department
+        </value>
       </args>
       <dest>profB</dest>
     </scribbling>
