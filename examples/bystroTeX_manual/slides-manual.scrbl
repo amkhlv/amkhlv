@@ -448,7 +448,12 @@ Some more staff in @tt{.emacs}, if you wish:
 @slide["Sections in slide" #:tag "Sections" #:showtitle #t]{
 @table-of-contents[]
 @section{Introduction}
-A slide can contain sections
+A slide can contain sections.
+@div[redbox]{Restriction: the name of the section should not coincide with the tag of a slide. For example, 
+suppose that you have a slide with  @tt|{#:tag "Happiness"}|; then, if you must have also @tt|{@section{Happiness}}|
+then you must give it a tag, for example: @tt|{@section[#:tag "sectionHappiness"]{Happiness}}|
+}
+
 @section{Disadvantages}
 Obviously, this is a bad idea when giving a talk:
 @subsection{First disadvantage}

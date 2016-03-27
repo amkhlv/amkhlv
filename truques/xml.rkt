@@ -74,6 +74,7 @@ along with bystroTeX.  If not, see <http://www.gnu.org/licenses/>.
                                          #:transform-to-block
                                          (hash/c symbol? (-> the:xexpr? block?))
                                          #:show-root boolean?
+                                         #:size (or/c integer? #f)
                                          #:size-step number?
                                          #:steps integer?
                                          ) 
@@ -83,7 +84,28 @@ along with bystroTeX.  If not, see <http://www.gnu.org/licenses/>.
          #:transform-to-content [t (transform-to-content)] 
          #:transform-to-block   [tblock (transform-to-block)]
          #:show-root [sr #f]
+         #:size [size #f]
          #:size-step [step 0.93] 
+         #:steps [steps 4])
+  (let ([result (show-xexpr0 
+                 x 
+                 #:transform-to-content t
+                 #:transform-to-block   tblock
+                 #:show-root sr 
+                 #:size-step step
+                 #:steps steps)])
+    (if size 
+        (nested-flow 
+         (make-style #f (list (make-attributes (list (cons 'style (format "font-size: ~a%;" size))))))
+         (list (if (block? result) result (para result))))
+        result)))
+
+(define (show-xexpr0
+         x 
+         #:transform-to-content [t (transform-to-content)] 
+         #:transform-to-block   [tblock (transform-to-block)]
+         #:show-root [sr #f]
+         #:size-step [step 0.93]
          #:steps [steps 4])
   (define (not-whitespace? u) (or (not (string? u)) (regexp-match #px"[^[:space:]]" u)))
   (define stl 
@@ -109,12 +131,12 @@ along with bystroTeX.  If not, see <http://www.gnu.org/licenses/>.
           ((if all-content? paragraph nested-flow)
            stl
            (for/list ([z xs] #:when (not-whitespace? z)) 
-             (let ([a (show-xexpr z 
-                                  #:transform-to-content t
-                                  #:transform-to-block tblock
-                                  #:size-step step
-                                  #:show-root #t
-                                  #:steps (- steps 1))])
+             (let ([a (show-xexpr0 z 
+                                   #:transform-to-content t
+                                   #:transform-to-block tblock
+                                   #:size-step step
+                                   #:show-root #t
+                                   #:steps (- steps 1))])
                (if (or all-content? (block? a)) a (para a))))))))
   ;;(display "Processing: ") (displayln x)
   (cond
@@ -130,12 +152,12 @@ along with bystroTeX.  If not, see <http://www.gnu.org/licenses/>.
           [(null? (cdr x)) ; (a)
            (tbl (list (list (symbol->string (car x)))))]
           [(null? (cadr x)) ; (a () smth ...)
-           (show-xexpr (cons (car x) (cddr x)) ; (a smth ...)
-                       #:transform-to-content t
-                       #:transform-to-block tblock
-                       #:show-root sr
-                       #:size-step step
-                       #:steps steps)]
+           (show-xexpr0 (cons (car x) (cddr x)) ; (a smth ...)
+                        #:transform-to-content t
+                        #:transform-to-block tblock
+                        #:show-root sr
+                        #:size-step step
+                        #:steps steps)]
           [(the:xexpr? (cadr x)) ; (a XEXPR ...)
            (nested 
             #:style stl

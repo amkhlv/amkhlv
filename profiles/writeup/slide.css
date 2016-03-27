@@ -8,6 +8,10 @@
   font-size: 16pt; 
 }
 
+.main > h4,h5 {
+   color: maroon;
+}
+
 .maincolumn {
   font-size: 20pt;
   width: 45em;

@@ -140,7 +140,8 @@ along with bystroTeX.  If not, see <http://www.gnu.org/licenses/>.
           )
         (begin
           (bystro-css-element-from-file "misc.css")
-          (bystro-css-element-from-file "slide-title.css"))
+          (bystro-css-element-from-file "slide-title.css")
+          )
         )
     )
 ;; ---------------------------------------------------------------------------------------------------

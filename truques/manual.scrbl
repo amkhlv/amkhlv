@@ -123,11 +123,15 @@ In XML, to insert the newline use @tt{&#a;}, and to insert the space use @tt{&#a
 (show-xexpr [x the:xexpr?] 
             [#:transform-to-content t (hash/c symbol? (-> the:xexpr? content?)) (make-hash '())]
             [#:transform-to-block tblock (hash/c symbol? (-> the:xexpr? block?)) (make-hash '())]
-            [#:show-root sr boolean? #t]
+            [#:show-root sr boolean? #f]
+            [#:size size (or/c integer? boolean?) #f]
             [#:size-step step number? 0.93]
-            [#:steps steps integer? 0.7])
+            [#:steps steps integer? 4])
 (or/c #f content? block?)
-]{show XML data as a table}
+]{
+Show XML data as a table. Here @racket[size] is the size of the root, and 
+@racket[steps] is the  number of size-decreasing steps before size stabilization.
+}
 
 @defparam[
 transform-to-content h (hash/c symbol? (-> the:xexpr? content?))]{
