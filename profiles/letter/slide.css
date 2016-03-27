@@ -91,28 +91,4 @@ table, th, td
   font-family: "DejaVu Sans";
 }
 
-/* and for my table: */
-.amktablecell {
-    border-right: 1px solid green;
-    border-bottom: 1px solid green;
-    padding: 2px 5px 2px 5px
-}
 
-.amktabletopleftcell {
-    border: 1px solid green;
-    padding: 2px 5px 2px 5px
-}
-
-.amktabletopcell {
-    border-top: 1px solid green;
-    border-right: 1px solid green;
-    border-bottom: 1px solid green;
-    padding: 2px 5px 2px 5px
-}
-
-.amktableleftcell {
-    border-left:  1px solid green;
-    border-right: 1px solid green;
-    border-bottom: 1px solid green;
-    padding: 2px 5px 2px 5px
-}

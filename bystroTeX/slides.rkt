@@ -122,10 +122,11 @@ along with bystroTeX.  If not, see <http://www.gnu.org/licenses/>.
 ;; ---------------------------------------------------------------------------------------------------
   (define to-hide (list 'non-toc 'no-toc 'unnumbered 'hidden 'hidden-number 'quiet))
 ;; ---------------------------------------------------------------------------------------------------
-  (define (bystro-css-element-from-file filename)
+  (define (bystro-css-element-from-files . filenames)
     (make-element 
      (make-style #f 
-                 (list (make-css-addition (path->string (build-path css-dir_slides filename))))) 
+                 (for/list ([fn filenames]) 
+                  (make-css-addition (path->string (build-path css-dir_slides fn)))))
      '()))
 ;; ---------------------------------------------------------------------------------------------------
   (provide (contract-out 
@@ -135,12 +136,10 @@ along with bystroTeX.  If not, see <http://www.gnu.org/licenses/>.
     (if spm
         (begin 
           (set-current-singlepage-mode! state #t)
-          (bystro-css-element-from-file "misc.css")
-          (bystro-css-element-from-file "slide.css")
+          (bystro-css-element-from-files "misc.css" "slide.css")
           )
         (begin
-          (bystro-css-element-from-file "misc.css")
-          (bystro-css-element-from-file "slide-title.css")
+          (bystro-css-element-from-files "misc.css" "slide-title.css")
           )
         )
     )
@@ -216,8 +215,7 @@ along with bystroTeX.  If not, see <http://www.gnu.org/licenses/>.
                   stitle)
                  (linebreak)
                  (if sttl (para (clr "blue" (larger stitle)) (linebreak)) "")
-                 (bystro-css-element-from-file "misc.css")
-                 (bystro-css-element-from-file "slide.css")
+                 (bystro-css-element-from-files "misc.css" "slide.css")
                  (collect-element 
                   (make-style #f '()) 
                   "" 
@@ -238,8 +236,7 @@ along with bystroTeX.  If not, see <http://www.gnu.org/licenses/>.
             ;;  (style #f to-hide)
             ;;  stitle)
             (if sttl (para (clr "blue" (larger stitle)) (linebreak)) "")
-            (bystro-css-element-from-file "misc.css")
-            (bystro-css-element-from-file "slide.css")
+            (bystro-css-element-from-files "misc.css" "slide.css")
             (collect-element 
              (make-style #f '()) 
              "" 
