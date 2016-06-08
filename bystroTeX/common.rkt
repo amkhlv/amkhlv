@@ -502,7 +502,7 @@ along with bystroTeX.  If not, see <http://www.gnu.org/licenses/>.
                                                     ))))
                  (bystro-path-to-link (string-append s "/" h))  
                  bare) 
-                " ")))
+                " \n")))
            (bystro-list-scrbls s #:exclude-same-name #f)))))
 ;; ---------------------------------------------------------------------------------------------------
   (provide (contract-out [boldred (->* () #:rest (listof pre-content?) element?)]))
@@ -551,7 +551,8 @@ along with bystroTeX.  If not, see <http://www.gnu.org/licenses/>.
                    link
                    name)
                   name)
-              (hspace 1)))))))))
+              (hspace 1)
+              "\n"))))))))
 
 ;; ---------------------------------------------------------------------------------------------------
   (provide (contract-out 

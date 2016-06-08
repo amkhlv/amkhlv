@@ -1,10 +1,11 @@
+
 .sourcelink {
   font-size:x-small;
   background-color:#FFFDD0;
 }
 
 .scrbllink {
-  font-size:x-small;
+  font-size:small;
 }
 
 /* This one below is for homepage link table: */
@@ -145,3 +146,4 @@ font-size:x-small;
     border:1px solid green;
     background-color: #F0FFF0;
 }
+
