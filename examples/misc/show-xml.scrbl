@@ -5,7 +5,7 @@
 @; User definitions:
 @(bystro-set-css-dir (build-path 'same "css"))
 @(define bystro-conf 
-   (bystro (bystro-connect-to-server #f "127.0.0.1" 9749 "svg") ;(find-executable-path "amkhlv-java-formula.sh")
+   (bystro (bystro-connect-to-server (build-path 'same "serverconf.xml")) 
            "show-xml/formulas.sqlite"  ; name for the database
            "show-xml" ; directory where to store the image files of formulas
            25  ; formula size

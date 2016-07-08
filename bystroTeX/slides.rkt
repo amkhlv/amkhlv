@@ -52,11 +52,12 @@ along with bystroTeX.  If not, see <http://www.gnu.org/licenses/>.
                   manual-base-alignment
                   [extension #:auto]
                   )
-          #:auto-value "png"
+          #:auto-value "svg"
           #:mutable)
   (provide (struct-out bystro-server))
   (struct bystro-server (
                          connection
+                         token
                          user
                          host
                          port
@@ -65,9 +66,16 @@ along with bystroTeX.  If not, see <http://www.gnu.org/licenses/>.
           #:mutable)
   (provide (contract-out
                                         ; opens the server connection and returns the corresponding struct
-            [bystro-connect-to-server (-> (or/c false/c string?) string? exact-nonnegative-integer? string? bystro-server?)]))
-  (define (bystro-connect-to-server user host port path)
-    (bystro-server (net:http-conn-open host #:port port) user host port path))
+            [bystro-connect-to-server (-> path? bystro-server?)]))
+  (define (bystro-connect-to-server xmlconf-file)
+    (let* ([server-conf (call-with-input-file xmlconf-file
+                          (lambda (inport) (xml:xml->xexpr (xml:document-element (xml:read-xml inport)))))]
+           [host (xml:se-path* '(host) server-conf)]
+           [port (string->number (xml:se-path* '(port) server-conf))]
+           [path (xml:se-path* '(path) server-conf)]
+           [token (xml:se-path* '(token) server-conf)]
+           )
+      (bystro-server (net:http-conn-open host #:port port) token #f host port path)))
   (provide (contract-out
             [bystro-close-connection (-> bystro? void?)]))
   (define (bystro-close-connection bconf)
@@ -316,10 +324,12 @@ along with bystroTeX.  If not, see <http://www.gnu.org/licenses/>.
              (bystro-server-port bserv)      ;port
              #t                              ;path-absolute?
              (list (net:path/param "svg" '()))   ;path
-             (list (cons 'latex texstring)
-                   (cons 'size (number->string size))
-                   (cons 'bg (rgb-list->string bg-color))
-                   (cons 'fg (rgb-list->string fg-color))) ;query
+             (list 
+              (cons 'token (bystro-server-token bserv))
+              (cons 'latex texstring)
+              (cons 'size (number->string size))
+              (cons 'bg (rgb-list->string bg-color))
+              (cons 'fg (rgb-list->string fg-color))) ;query
              #f ;fragment
              ))]
       [(status headers inport)

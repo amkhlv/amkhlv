@@ -1,0 +1,6 @@
+<server>
+  <host>127.0.0.1</host>
+  <port>9749</port>
+  <path>svg</path>
+  <token>someRandomStringForCSRFToken</token>
+</server>

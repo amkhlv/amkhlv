@@ -5,7 +5,7 @@
 @; User definitions:
 @(bystro-set-css-dir (build-path 'same "css"))
 @(define bystro-conf 
-   (bystro (bystro-connect-to-server #f "127.0.0.1" 9749 "svg") ;(find-executable-path "amkhlv-java-formula.sh")
+   (bystro (bystro-connect-to-server (build-path 'same "serverconf.xml")) 
            "formulas.sqlite"  ; name for the database
            "slides-manual" ; directory where to store the image files of formulas
            25  ; formula size
@@ -14,7 +14,6 @@
            2   ; automatic alignment adjustment
            0   ; manual alignment adjustment
            ))
-@(set-bystro-extension! bystro-conf "svg")
 @; This controls the single page mode:
 @(define singlepage-mode #f)
 @(bystro-def-formula "formula-enormula-humongula!")
@@ -116,12 +115,15 @@ After you have them installed, execute the following commands:
 This will take some time, as various libraries will have to be downloaded (and saved in @tt{~/.ivy2} and @tt{~/.sbt}).
 After that, execute this command:
 
-@smaller{@tt{target/universal/stage/bin/latex2svg -Dhttp.port=9749 -Dhttp.address=127.0.0.1}}
+@smaller{@tt{target/universal/stage/bin/latex2svg -Dtoken=someRandomStringForCSRFToken  -Dhttp.port=9749 -Dhttp.address=127.0.0.1}}
 
 Now the server is running. Notice that we specified the option @smaller{@tt{-Dhttp.address=127.0.0.1}}. Therefore the server
 is only listening on a local interface (the ``loopback''); 
 @hyperlink["http://stackoverflow.com/questions/30658161/server-listens-on-127-0-0-1-do-i-need-firewall"]{it is not possible to connect to it from the outside}.
 
+Also notice that we need a reasonably long random string ``@tt{someRandomStringForCSRFToken}''. You should replace it
+with your own. It should be the same as will be @seclink["SamplePresentation"]{entered later} in @tt{serverconf.xml}.
+This is to secure against possible cross-site scripting.
 }
 
 @slide["Installation Part II" #:tag "Installation2" #:showtitle #t]{
@@ -165,11 +167,14 @@ You should find that the sample folder contains (at least) the following files:
 @tbl[#:orient 'hor @list[@list[@larger["Filename"] @larger["purpose"]]
 @list[@tt{slides-manual.scrbl} "main source file"]
 @list[@tt{defs.rkt} "additional definitions"]
-@list[@tt{defs_for-syntax.rkt} "syntax preferences"]
 @list[@tt{slide.css} "style of the regular slide"]
 @list[@tt{slide-title.css} "style of the title slide"]
 @list[@tt{misc.css} "various elements of style"]
+@list[@tt{serverconf.xml} "server configuration"]
 ]]
+
+The file @tt{serverconf.xml} includes a @tt{token} which should be identical to
+the one @seclink["Installation"]{you have chosen earlier}.
 
 The command to actually ``build'' the slideshow is:
 @verb|{
