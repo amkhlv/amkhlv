@@ -337,6 +337,7 @@ along with bystroTeX.  If not, see <http://www.gnu.org/licenses/>.
         (bystro-server-connection bserv)
         (net:url->string u)
         #:method #"POST"
+        #:headers '("BystroTeX:yes")
         )]
       [(result) (values (port->string inport))]
       [(error-type) (values
