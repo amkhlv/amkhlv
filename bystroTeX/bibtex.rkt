@@ -1,0 +1,50 @@
+(module bibtex racket
+
+  (require racket scribble/core scribble/base)
+  (require bystroTeX/common bystroTeX/slides)
+
+  (provide cite)
+  (provide bibliography)
+  
+  (define (cite x)
+    (let ([xh (get-bib-from-server x)])
+      (set! items (cons (cons x xh) items))
+      (elemref x x )))
+  (define items '())
+  (define (prepend-comma x) (if (cons? x) (cons ", " x) x))
+  (define (prepend-hspace x) (if (cons? x) (cons (hspace 1) x) x))
+  (define (format-title x) (italic (string-trim x #px"\\{|\\}|\\s+" #:repeat? #t)))
+  (define (format-journal bh)
+    (if (hash-ref bh "journal" #f)
+        `(,@(let ([j (hash-ref bh "journal" #f)]) (if j `(,j) '()))
+          ,@(let ([v (hash-ref bh "volume" #f)])  (prepend-hspace (if v `(,(bold v)) '())))
+          ,@(let ([y (hash-ref bh "year" #f)])    (prepend-hspace (if y `(,(string-append "(" y ")")) '())))
+          ,@(let ([p (hash-ref bh "pages" #f)])   (prepend-hspace (if p `(,(string-append "p." p)) '())))
+          )
+        '()))
+  (define (format-eprint bh)
+    `(,@(let ([p (hash-ref bh "archiveprefix" #f)]) (if p `(,(bold p ":")) '()))
+      ,@(let ([x (hash-ref bh "eprint" #f)])        (if x `(,x) '()))))
+  (define (format-doi bh)
+    `(,@(let ([doi (hash-ref bh "doi" #f)]) (if doi `(,(bold "doi:") ,doi) '()))))
+  (define (format-bibitem bh)
+    (apply 
+     elem
+     `(,@(let ([a (hash-ref bh "author" #f)]) (if a `(,a ", ") '()))
+       ,@(let ([t (hash-ref bh "title" #f)])  (if t `(,(format-title t)) '()))
+       ,@(prepend-comma (format-journal bh))
+       ,@(prepend-comma (format-eprint bh))
+       ,@(prepend-comma (format-doi bh))
+       )))
+  (define (bibliography)
+    (make-table 
+     (make-style 
+      #f
+      `(,(make-table-columns `(,(make-style "bystro-bib-key-cell" '()) 
+                               ,(make-style #f '()) 
+                               ,(make-style "bystro-bib-value-cell" '())))))
+     (for/list ([i (reverse items)])
+       (list (para (elemtag (car i) (string-append "[" (car i) "]"))) 
+             (para (hspace 1))
+             (para (format-bibitem (cdr i)))))))
+  )

@@ -95,3 +95,13 @@ table, th, td
   font-family: "DejaVu Sans";
 }
 
+.bystro-bib-key-cell {
+    text-align: right;
+    vertical-align: top;
+    padding: 5px;
+}
+
+.bystro-bib-value-cell {
+    text-align: left;
+    padding: 5px;
+}

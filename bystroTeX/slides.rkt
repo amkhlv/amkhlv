@@ -31,7 +31,7 @@ along with bystroTeX.  If not, see <http://www.gnu.org/licenses/>.
 
   (require racket/provide-syntax)
   
-  (require (prefix-in xml: xml) (prefix-in xml: xml/path))
+  (require (prefix-in xml: xml) (prefix-in xml: xml/path) (prefix-in xml: xml/xexpr))
   (require (prefix-in net: net/http-client))
   (require (prefix-in net: net/url))
   (require (prefix-in net: net/url-structs))
@@ -346,6 +346,7 @@ along with bystroTeX.  If not, see <http://www.gnu.org/licenses/>.
                                                      (car (string-split (bytes->string/utf-8 h)))))
                        (cadr (string-split (bytes->string/utf-8 h)))))]                
       )
+     (close-input-port inport)
      (if error-type
          (begin 
            (display (string-append "\n\n --- ERROR of the type: <<"
@@ -363,6 +364,58 @@ along with bystroTeX.  If not, see <http://www.gnu.org/licenses/>.
                                (cadr (string-split (bytes->string/utf-8 h))))])
            (with-output-to-file #:exists 'replace filename (lambda () (display result)))
            depth-string))))
+  ;; ---------------------------------------------------------------------------------------------------
+  (provide (contract-out  
+                                        ; enumerate a formula
+   [get-bib-from-server (-> string? hash?)]))
+  (define (get-bib-from-server k)
+    (let*-values
+     ([(bserv) (values (bystro-formula-processor configuration))]
+      [(u) (values
+            (net:url
+             "http"                          ;scheme
+             (bystro-server-user bserv)      ;user
+             (bystro-server-host bserv)      ;host 
+             (bystro-server-port bserv)      ;port
+             #t                              ;path-absolute?
+             (list (net:path/param "bibtex" '()))   ;path
+             (list 
+              (cons 'token (bystro-server-token bserv))
+              (cons 'k k))
+             #f ;fragment
+             ))]
+      [(status headers inport)
+       (net:http-conn-sendrecv!
+        (bystro-server-connection bserv)
+        (net:url->string u)
+        #:method #"POST"
+        #:headers '("BystroTeX:yes")
+        )]
+      [(error-type) (values
+                     (for/first ([h headers] #:when (equal?
+                                                     "BystroTeX-error:"
+                                                     (car (string-split (bytes->string/utf-8 h)))))
+                       (cadr (string-split (bytes->string/utf-8 h)))))]                
+      )
+     (if error-type
+         (begin 
+           (display (string-append "\n\n --- ERROR of the type: <<"
+                                   error-type
+                                   ">>, while processing the BibTeX entry:\n"
+                                   k
+                                   "\n\n --- The error message was:\n"
+                                   (port->string inport)))
+           (close-input-port inport)
+           (error "*** please make corrections and run again ***")
+           )
+         (let* ([bibxexpr (xml:xml->xexpr (xml:document-element (xml:read-xml inport)))]
+                [xs (xml:se-path*/list '(bibentry) bibxexpr)]
+                )
+           (close-input-port inport)
+           (make-hash 
+            (for/list ([x xs] #:when (cons? x)) 
+              (cons (string-downcase (xml:se-path* '(v #:key) x)) (xml:se-path* '(v) x)))))
+         )))
   ;; ---------------------------------------------------------------------------------------------------
   (define (bystro-command-to-typeset-formula shell-command-path texstring size bg-color fg-color filename)
                                         ; The procedure returns an integer representing the vertical offset.
