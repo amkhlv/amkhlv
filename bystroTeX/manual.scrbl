@@ -205,6 +205,12 @@ Insert the list of slides. This is for use on the title-slide.
 }
 
 
+@defproc[
+(get-bib-from-server [key string?])
+hash?]{
+Get the @tt{BibTeX} entry from the server.
+}
+
 @section{Miscellaneous functions}
 
 

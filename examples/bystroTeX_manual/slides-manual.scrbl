@@ -117,6 +117,10 @@ After that, execute this command:
 
 @smaller{@tt{target/universal/stage/bin/latex2svg -Dtoken=someRandomStringForCSRFToken  -Dhttp.port=9749 -Dhttp.address=127.0.0.1}}
 
+@comment{
+If you want to use @tt{BibTeX}, add the option @tt{-Dbibfile=/path/to/your/file.bib}
+}
+
 Now the server is running. Notice that we specified the option @smaller{@tt{-Dhttp.address=127.0.0.1}}. Therefore the server
 is only listening on a local interface (the ``loopback''); 
 @hyperlink["http://stackoverflow.com/questions/30658161/server-listens-on-127-0-0-1-do-i-need-firewall"]{it is not possible to connect to it from the outside}.
@@ -129,6 +133,10 @@ This is to secure against possible cross-site scripting.
 @slide["Installation Part II" #:tag "Installation2" #:showtitle #t]{
 Now comes the frontend.
 
+@table-of-contents[]
+
+@section{Installing Racket}
+
 You should start with installing @hyperlink["http://racket-lang.org/"]{@tt{Racket}} on your computer.
 For example, on @tt{Debian} you should issue this command @bold{@clr["red"]{as root:}}
 @verb{
@@ -137,12 +145,11 @@ aptitude install racket
 This command will install the @tt{Racket} environment on your computer. Now we are ready to
 install @tt{bystroTeX}.
 
-
 @itemlist[
-@item{@bold{For Windows users}:@smaller{You will have to manually install the @tt{dll} for the @tt{sqlite3}, please consult the Google}}
+@item{@bold{For Windows users}: @smaller{You will have to manually install the @tt{dll} for the @tt{sqlite3}, please consult the Google}}
 ]
 
-
+@section{Installing the BystroTeX library}
 
 @bold{@clr["red"]{As a normal user}} (i.e. @bold{@clr["red"]{not}} root), exectute:
 
@@ -152,11 +159,26 @@ cd amkhlv
 raco pkg install --link bystroTeX/
 }|
 
+@comment{
+Now you should be able to read the documentation manual in @tt{bystroTeX/doc/manual/index.html}, but it is not very useful. It is better to just follow examples.
+}
+
+@section[#:tag "sec:installing-the-executable"]{Installing the BystroTeX executable}
+
+@verb|{
+cd bystroTeX/
+raco exe bystrotex.rkt
+}|
+
+This should create the executable file called @tt{bystrotex}. You should copy it to some location on your executable path (maybe @tt{/usr/local/bin/}).
+
+@section{Building sample slides}
+
 Now @spn[attn]{Now go to the sample folder}:
 
-@verb{cd examples/bystroTeX_manual}
+@verb{cd ../examples/bystroTeX_manual}
 
-
+and proceed to the @seclink["SamplePresentation"]{next slide}...
 }
 
 
@@ -171,15 +193,18 @@ You should find that the sample folder contains (at least) the following files:
 @list[@tt{slide-title.css} "style of the title slide"]
 @list[@tt{misc.css} "various elements of style"]
 @list[@tt{serverconf.xml} "server configuration"]
+@list[@tt{bystrotex.xml} @elem{@seclink["sec:xml-build-conf"]{build configuration} for this folder, basically a list of @tt{.scrbl} files and what to do with them}]
 ]]
 
 The file @tt{serverconf.xml} includes a @tt{token} which should be identical to
 the one @seclink["Installation"]{you have chosen earlier}.
 
-The command to actually ``build'' the slideshow is:
+To actually ``build'' the slideshow, just say:
 @verb|{
-scribble --htmls slides-manual.scrbl 
+bystrotex
 }|
+(remember @seclink["sec:installing-the-executable"]{you have put @tt{bystrotex}} on your executable path!)
+
 This command may take some time when you run it for the first time. There are two possible
 outcomes:
 @itemlist[#:style 'ordered
@@ -523,7 +548,7 @@ to compile first:
 This produces an executable file @tt{bystrotex}. Just put it somewhere on your @tt{PATH}
 (for example in @tt{/usr/local/bin/}). 
 
-@section{XML configuration file}
+@section[#:tag "sec:xml-build-conf"]{XML configuration file}
 Notice that the sample folder @tt{examples/bystroTeX_manual} contains the file @tt{bystrotex.xml},
 which describes the build configuration.
 In that sample folder, execute the command:
@@ -637,41 +662,21 @@ This may happen on slow machines. Do the following:
 ]]
 }
 
-@slide["Alternative backends" #:tag "AlternativeBackend" #:showtitle #t]{
-We think that it is best to @seclink["Installation"]{use our HTTP server} as a backend.
+@slide["Using BibTeX" #:tag "BibTeX" #:showtitle #t]{
+You should then @seclink["Installation"]{have started @tt{latex2svg}} with @tt{-Dbibfile=/path/to/your/file.bib}.
+Also, you should add in the headers of your @tt{.scrbl} file:
 
-But it is also possible, instead of connecting to a server, just call a program of
-your choice. That program should satisfy the following properties:
+@verb{(require bystroTeX/bibtex)}
+
+Then you get the commands @tt|-{@cite{...}}-| and @tt|-{@bibliography[]}-|. They work as usual, except for:
 @itemlist[#:style 'ordered
-@item{It should wait on @tt{stdin} for a text string of the form:
-@verb|{
-<formula size="25" bg="255:255:255" fg="0:0:0" filename="formulas/3.png"> \sum_{n&gt;0} {x^n\over n} </formula>
-}|
-(this is @hyperlink["http://en.wikipedia.org/wiki/XML"]{XML})
-}
-@item{Upon the receipt of such a text string, it should do two things:
-@itemlist[
-@item{Write the picture of the formula in the @tt{png} format to @tt{formulas/3.png}}
-@item{Print on @tt{stdout} the text like this:
-@verb|{
-<report><depth>7</depth></report>
-}|
-which reports the depth (@italic{i.e.} vertical offset) of the formula}
-]}
+@item{you should explicitly put square bracket, @italic{e.g.}: @tt|-{[@cite{AuthorA:1989}]}-|}
+@item{if you need several citations together, use: @tt|-{[@cite{AuthorA:1989},@cite{AuthorB:1990}]}-|}
 ]
-The name of such a program (here it is @tt{amkhlv-java-formula.sh}) should be
-specified (among other things) at the top of the slides header in these lines:
-@verb|{
-@(define bystro-conf 
-   (bystro (find-executable-path "amkhlv-java-formula.sh")
-           "formulas.sqlite"  ; name for the database
-           "formulas" ; directory where to store .png files of formulas
-           25  ; formula size
-           2   ; automatic alignment adjustment
-           0   ; manual alignment adjustment
-           ))
-}|
+This is slightly experimental.
+
 }
+
 
 @slide["Why not Beamer?" #:tag "Beamer" #:showtitle #t]{
 There is an excellent tool called @hyperlink["http://en.wikipedia.org/wiki/Beamer_(LaTeX)"]{Beamer},

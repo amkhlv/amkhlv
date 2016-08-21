@@ -17,4 +17,5 @@ Additional cleanup script
 =========================
 
 The configuration for the singlepage `sample-plain.scrbl` misses the destination.
-Therefore it is built in this dir. To cleanup, use the additional script `cleanup.sh`
+Therefore it is built in this dir. In this case, it is @spn[attn]{important}
+that the `sqlite` file is called `sample-plain_formulas.sqlite` (see the headers of `sample-plain.scrbl`).
