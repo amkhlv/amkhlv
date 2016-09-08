@@ -290,7 +290,7 @@ along with bystroTeX.  If not, see <http://www.gnu.org/licenses/>.
     (set-current-formula-ref-dict! 
      state
      (if (dict-has-key? (current-formula-ref-dict state) lbl) 
-         (error "ERROR: same label used twice, refusing to proceed...")
+         (error (string-append "ERROR: same label used twice:\n" lbl "\n-- refusing to proceed..."))
          ;(current-formula-ref-dict state) ;; do nothing if already registered such label
          (cons (cons lbl (current-formulanumber state)) (current-formula-ref-dict state))))
     (collect-element 
