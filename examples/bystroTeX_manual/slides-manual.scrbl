@@ -5,7 +5,7 @@
 @; User definitions:
 @(bystro-set-css-dir (build-path 'same "css"))
 @(define bystro-conf 
-   (bystro (bystro-connect-to-server (build-path 'same "serverconf.xml")) 
+   (bystro (bystro-connect-to-server (build-path 'up "bystroConf.xml"))
            "formulas.sqlite"  ; name for the database
            "slides-manual" ; directory where to store the image files of formulas
            25  ; formula size
@@ -89,6 +89,10 @@ BystroTeX consists of the frontend (Racket) and backend (Java). The Java part wo
 like a server. It is actually an HTTP server. It listens on some port on the @tt{localhost}.
 We will start with @bold{setting up this server}.
 
+@table-of-contents[]
+
+@section{Install Java and Git}
+
 First of all, you need to have installed @bold{Java 7 or 8} (because Java 6 will not work), including the JDK.
 OpenJDK is OK. To verify that you have Java installed, type the commands:
 @verb{
@@ -97,37 +101,71 @@ javac -version
 }
 They should say something like ``java version 1.7....'' and ``javac 1.7....''.
 
-To install the server, you will need to install two things on your computer: 
+To install the server, you will need to install the following things on your computer: 
 
 @itemlist[#:style 'ordered 
-@item[@tt{git}]
-@item{@hyperlink["https://en.wikipedia.org/wiki/SBT_(software)"]{sbt} --- please use the @hyperlink["https://dl.bintray.com/sbt/debian/"]{latest version!}}
+@item{@hyperlink["https://en.wikipedia.org/wiki/Git"]{git}}
+@item{@hyperlink["https://en.wikipedia.org/wiki/Apache_Ant"]{ant} and @hyperlink["https://en.wikipedia.org/wiki/SBT_(software)"]{sbt}}
 ]
 
-After you have them installed, execute the following commands:
+@section{Build things}
+
+Now execute the following commands:
 
 @smaller{@tt{git clone https://github.com/amkhlv/latex2svg}}
 
 @smaller{@tt{cd latex2svg}}
 
+@smaller{@tt{git submodule init}}
+
+@smaller{@tt{git submodule update}}
+
+@smaller{@tt{cd jlatexmath}}
+
+@smaller{@tt{ant}}
+
+@smaller{@tt{cd ..}}
+
 @smaller{@tt{sbt stage}}
 
 This will take some time, as various libraries will have to be downloaded (and saved in @tt{~/.ivy2} and @tt{~/.sbt}).
-After that, execute this command:
 
-@smaller{@tt{target/universal/stage/bin/latex2svg -Dtoken=someRandomStringForCSRFToken  -Dhttp.port=9749 -Dhttp.address=127.0.0.1}}
+@section{Run}
+Our Java server will communicate to the Racket frontend some initial settings 
+(including the anti-@hyperlink["https://www.owasp.org/index.php/Cross-Site_Request_Forgery_(CSRF)"]{CSRF} token) 
+by writing them into an @tt{XML} file. You have to decide how it should name this file and where to put it.
+Suppose that you decided to call it @tt{bystroConf.xml}, and choosen some directory where it will be:
+
+@smaller{@tt{/path/to/bystroConf.xml}}
+
+@comment{remember this location; you will need need it @seclink["SamplePresentation"]{in the following steps}}
+
+Under this assumption, start the server by typing the following command:
+
+@smaller{@tt{target/universal/stage/bin/latex2svg -DbystroFile=/path/to/bystroConf.xml -Dhttp.port=9749 -Dhttp.address=127.0.0.1}}
 
 @comment{
 If you want to use @tt{BibTeX}, add the option @tt{-Dbibfile=/path/to/your/file.bib}
 }
 
-Now the server is running. Notice that we specified the option @smaller{@tt{-Dhttp.address=127.0.0.1}}. Therefore the server
+@comment{
+The port number @tt{9749} is also up to you to choose. The frontend will know it because it will be written (among other things) to @tt{/path/to/bystroConf.xml}
+}
+
+Now the server is running. 
+
+@comment{
+Notice that we specified the option @smaller{@tt{-Dhttp.address=127.0.0.1}}. Therefore the server
 is only listening on a local interface (the ``loopback''); 
 @hyperlink["http://stackoverflow.com/questions/30658161/server-listens-on-127-0-0-1-do-i-need-firewall"]{it is not possible to connect to it from the outside}.
-
-Also notice that we need a reasonably long random string ``@tt{someRandomStringForCSRFToken}''. You should replace it
-with your own. It should be the same as will be @seclink["SamplePresentation"]{entered later} in @tt{serverconf.xml}.
-This is to secure against possible cross-site scripting.
+However, it would be still 
+@hyperlink["https://blog.jetbrains.com/blog/2016/05/11/security-update-for-intellij-based-ides-v2016-1-and-older-versions/"]{possible to attack it} 
+from a running browser by 
+@hyperlink["https://www.owasp.org/index.php/Cross-Site_Request_Forgery_(CSRF)"]{CSRF}.
+Our defense is token and custom header. Should CSRF somehow succeed in spite of these measures, 
+actually exploiting it would require a vulnerability in 
+@hyperlink["https://github.com/opencollab/jlatexmath"]{JLaTeXMath}.
+}
 }
 
 @slide["Installation Part II" #:tag "Installation2" #:showtitle #t]{
@@ -176,7 +214,15 @@ This should create the executable file called @tt{bystrotex}. You should copy it
 
 Now @spn[attn]{Now go to the sample folder}:
 
-@verb{cd ../examples/bystroTeX_manual}
+@verb{cd ../examples}
+
+Remember your @tt{/path/to/bystroConf.xml} ? For sample slides to build, you need to symlink it to here:
+
+@verb{ln -s /path/to/bystroConf.xml ./}
+
+Now let us go to the sample slides directory:
+
+@verb{cd bystroTeX_manual}
 
 and proceed to the @seclink["SamplePresentation"]{next slide}...
 }
@@ -192,13 +238,8 @@ You should find that the sample folder contains (at least) the following files:
 @list[@tt{slide.css} "style of the regular slide"]
 @list[@tt{slide-title.css} "style of the title slide"]
 @list[@tt{misc.css} "various elements of style"]
-@list[@tt{serverconf.xml} "server configuration"]
 @list[@tt{bystrotex.xml} @elem{@seclink["sec:xml-build-conf"]{build configuration} for this folder, basically a list of @tt{.scrbl} files and what to do with them}]
 ]]
-
-The file @tt{serverconf.xml} includes a @tt{token} which should be identical to
-the one @seclink["Installation"]{you have chosen earlier}.
-
 To actually ``build'' the slideshow, just say:
 @verb|{
 bystrotex

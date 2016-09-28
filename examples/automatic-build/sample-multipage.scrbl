@@ -5,7 +5,7 @@
 @; User definitions:
 @(bystro-set-css-dir (build-path 'same "css"))
 @(define bystro-conf   
-   (bystro (bystro-connect-to-server (build-path 'same "serverconf.xml")) 
+   (bystro (bystro-connect-to-server (build-path 'up "bystroConf.xml")) 
            "sample-multipage/formulas.sqlite"  ; name for the database
            "sample-multipage" ; directory where to store .png files of formulas
            25  ; formula size
