@@ -83,7 +83,9 @@ along with bystroTeX.  If not, see <http://www.gnu.org/licenses/>.
                 (map
                  (λ (x) 
                    `(,(car x) 
-                     ,(if (not (member (car x) rows-to-hl)) (verb (cadr x)) (bold (cadr x)))))
+                     ,(let* ([xc (cadr x)]
+                             [y (if (sql-null? xc) "" xc)])
+                        (if (not (member (car x) rows-to-hl)) (verb y) (bold y)))))
                  rows-to-show)])
           (tabular 
            #:style 
