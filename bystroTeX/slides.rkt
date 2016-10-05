@@ -115,10 +115,11 @@ along with bystroTeX.  If not, see <http://www.gnu.org/licenses/>.
                    formula-ref-dict
                    singlepage-mode
                    running-database
+                   just-dump-LaTeX
                    )
           #:mutable)
   (define state 
-    (current 0 0 "SLIDE" '() 0 '() #f #f)) ; this is the global state
+    (current 0 0 "SLIDE" '() 0 '() #f #f #f)) ; this is the global state
   (provide display-state)
   (define  (display-state s)
     (display (string-append "\n==========" s "=========\n"))
@@ -127,6 +128,14 @@ along with bystroTeX.  If not, see <http://www.gnu.org/licenses/>.
     (display (current-singlepage-mode state))
     (display (string-append "\n^^^^^^^^^^^^" s "^^^^^^^^\n"))
     )
+  (provide (contract-out 
+            [bystro-dump-LaTeX (-> boolean? void?)]))
+  (define (bystro-dump-LaTeX b) (begin
+                                  (set-current-just-dump-LaTeX! state b)
+                                  (bystro-common-dump-LaTeX #t)))
+  (provide (contract-out 
+            [bystro-dump-LaTeX? (-> boolean?)]))
+  (define (bystro-dump-LaTeX?) (current-just-dump-LaTeX state))
 ;; ---------------------------------------------------------------------------------------------------
   (define to-hide (list 'non-toc 'no-toc 'unnumbered 'hidden 'hidden-number 'quiet))
 ;; ---------------------------------------------------------------------------------------------------
@@ -212,7 +221,6 @@ along with bystroTeX.  If not, see <http://www.gnu.org/licenses/>.
     (set-current-slidename! state (if tg 
                                       tg 
                                       (regexp-replace #px"\\s" stitle "_")))
-    ;(display-state "in slide")
     (if (current-singlepage-mode state)
         (decode (list
                  (title-decl 
@@ -233,16 +241,9 @@ along with bystroTeX.  If not, see <http://www.gnu.org/licenses/>.
                    (current-slide-number state)))
                  init-content))
         (begin
-          ;(display "multipage\n")
           (set-current-content!
            state
-           (list 
-            ;; (title-decl 
-            ;;  #f 
-            ;;  (if tg (list (list 'part tg)) (list))
-            ;;  #f 
-            ;;  (style #f to-hide)
-            ;;  stitle)
+           (list
             (if sttl (para (clr "blue" (larger stitle)) (linebreak)) "")
             (bystro-css-element-from-files "misc.css" "slide.css")
             (collect-element 
@@ -253,7 +254,6 @@ along with bystroTeX.  If not, see <http://www.gnu.org/licenses/>.
               stitle 
               (current-slide-number state)))
             init-content))
-          ;(display-state "before calling afterpause")
           (after-pause  #:tag tg))))
 ;; ---------------------------------------------------------------------------------------------------
   (provide (contract-out  
@@ -279,38 +279,45 @@ along with bystroTeX.  If not, see <http://www.gnu.org/licenses/>.
 ;; ---------------------------------------------------------------------------------------------------
   (provide (contract-out  
                                         ; enumerate a formula
-   [number-for-formula (-> string? collect-element?)]))
+   [number-for-formula (-> string? (or/c string? collect-element?))]))
   (define (fn-to-collect-formula-number lbl n)
     (lambda (ci) void)
     ;; (lambda (ci) 
     ;;   (collect-put! ci `(amkhlv-formula-number ,lbl ,n) #f))
     )
   (define (number-for-formula lbl)
-    (set-current-formulanumber! state (+ 1 (current-formulanumber state)))
-    (set-current-formula-ref-dict! 
-     state
-     (if (dict-has-key? (current-formula-ref-dict state) lbl) 
-         (error (string-append "ERROR: same label used twice:\n" lbl "\n-- refusing to proceed..."))
-         ;(current-formula-ref-dict state) ;; do nothing if already registered such label
-         (cons (cons lbl (current-formulanumber state)) (current-formula-ref-dict state))))
-    (collect-element 
-     (make-style #f '()) 
-     (string-append "(" (number->string (current-formulanumber state)) ")")
-     (fn-to-collect-formula-number lbl (current-formulanumber state))
-    ))
+    (if (current-just-dump-LaTeX state) 
+        lbl
+        (begin
+          (set-current-formulanumber! state (+ 1 (current-formulanumber state)))
+          (set-current-formula-ref-dict! 
+           state
+           (if (dict-has-key? (current-formula-ref-dict state) lbl) 
+               (error (string-append "ERROR: same label used twice -->" 
+                                     lbl 
+                                     "<-- refusing to proceed..."))
+                                        ;(current-formula-ref-dict state) ;; do nothing if already registered such label
+               (cons (cons lbl (current-formulanumber state)) (current-formula-ref-dict state))))
+          (collect-element 
+           (make-style #f '()) 
+           (string-append "(" (number->string (current-formulanumber state)) ")")
+           (fn-to-collect-formula-number lbl (current-formulanumber state))
+           ))))
 ;; ---------------------------------------------------------------------------------------------------
   (provide (contract-out 
                                         ; reference a formula
-   [ref-formula (-> string? delayed-element?)]))
+   [ref-formula (-> string? (or/c element? delayed-element?))]))
   (define (ref-formula lbl)
+    (if (current-just-dump-LaTeX state)
+        (tt "\\ref{" lbl "}")
         (make-delayed-element
          (lambda (renderer pt ri) 
            (if (dict-has-key? (current-formula-ref-dict state) lbl)
                (number->string (dict-ref (current-formula-ref-dict state) lbl))
-               (error (string-append "Formula reference" lbl " is not found"))))
+               (error (string-append "Formula reference -->" lbl "<-- is not found"))))
          (lambda () "100") ; TODO: what is this?
          (lambda () "")    ; TODO: what is this?
-         ))
+         )))
   ;; ---------------------------------------------------------------------------------------------------
   (define (get-svg-from-server texstring size bg-color fg-color filename)
                                         ; The procedure returns an integer representing the vertical offset.
@@ -468,17 +475,18 @@ along with bystroTeX.  If not, see <http://www.gnu.org/licenses/>.
            #:label [l #f] 
            #:bg-color [bgcol (bystro-formula-bg-color configuration)] 
            #:fg-color [fgcol (bystro-formula-fg-color configuration)])
-    (if l
-        (table-with-alignment 
-         "c.n" 
-         (list (list 
-                (keyword-apply bystro-formula '() '() x #:size n #:bg-color bgcol #:fg-color fgcol #:align #f #:use-depth #t)
-                (elemtag l (number-for-formula l)))))
-        (table-with-alignment
-         "c.n" 
-         (list (list 
-                (keyword-apply bystro-formula '() '() x #:size n #:bg-color bgcol #:fg-color fgcol #:align #f #:use-depth #t)
-                "" )))))
+    (parameterize ([bystro-dump-LaTeX-with-$ #f])
+      (let* ([frml1 (keyword-apply bystro-formula '() '() x #:size n #:bg-color bgcol #:fg-color fgcol #:align #f #:use-depth #t)]
+             [frml (if (current-just-dump-LaTeX state) 
+                       (elem (tt "\\begin{equation}" (if l (string-append "\\label{" l "}\n") "\n"))
+                             frml1
+                             (tt "\n\\end{equation}"))
+                       frml1)])
+        (if l
+            (table-with-alignment "c.n" (list (list frml (if (current-just-dump-LaTeX state)
+                                                             (string-append "\\label{" l "}")
+                                                             (elemtag l (number-for-formula l))))))
+            (table-with-alignment "c.n" (list (list frml "" )))))))
 ;; ---------------------------------------------------------------------------------------------------
   (define (aligned-formula-image manual-adj use-depth depth aa-adj filepath sz)
     (element 
@@ -518,72 +526,74 @@ along with bystroTeX.  If not, see <http://www.gnu.org/licenses/>.
                                  #:rest (listof string?) 
                                  element? )]))
   (define (bystro-formula 
-           #:shell-command [shell-command-path (bystro-formula-processor configuration)]
-           #:database [mydb (current-running-database state)]
-           #:formulas-in-dir [formdir (bystro-formula-dir-name configuration)]
-           #:size [bsz (bystro-formula-size configuration)] 
-           #:bg-color [bg-color (bystro-formula-bg-color configuration)]
-           #:fg-color [fg-color (bystro-formula-fg-color configuration)]
-           #:align [align #f] 
-           #:use-depth [use-depth #f] 
-           #:aa-adjust [aa-adj (bystro-autoalign-adjust configuration)] 
-           . tex)
-    (let* ([lookup (prepare 
-                    mydb
-                    "select filename,depth  from formulas where scale = ? and tex = ? and bg = ? and fg = ?")]
-           [rows  (query-rows mydb (bind-prepared-statement
-                                    lookup
-                                    (list 
-                                     bsz 
-                                     (apply string-append (cons preamble tex))
-                                     (rgb-list->string bg-color) 
-                                     (rgb-list->string fg-color))))]
-           [row (if (cons? rows) (car rows) #f)]
-           [totalnumber (query-value mydb "select count(*) from formulas")]
-           )
-      (if row
-          (aligned-formula-image 
-           align 
-           use-depth 
-           (string->number (vector-ref row 1)) 
-           aa-adj 
-           (build-path formdir (string-append (vector-ref row 0) "." (bystro-extension configuration))) 
-           bsz)
-          (let* 
-              ([formnum (totalnumber . + . 1)]
-               [filename (string-append formdir "/" (number->string formnum) "." (bystro-extension configuration))]
-               [insert-stmt (prepare mydb "insert into formulas values (?,?,?,?,?,?,?)")]
+         #:shell-command [shell-command-path (bystro-formula-processor configuration)]
+         #:database [mydb (current-running-database state)]
+         #:formulas-in-dir [formdir (bystro-formula-dir-name configuration)]
+         #:size [bsz (bystro-formula-size configuration)] 
+         #:bg-color [bg-color (bystro-formula-bg-color configuration)]
+         #:fg-color [fg-color (bystro-formula-fg-color configuration)]
+         #:align [align #f] 
+         #:use-depth [use-depth #f] 
+         #:aa-adjust [aa-adj (bystro-autoalign-adjust configuration)] 
+         . tex)
+    (if (current-just-dump-LaTeX state)
+        (if (bystro-dump-LaTeX-with-$) (elem (tt "$") (apply tt tex) (tt "$")) (apply tt tex)) 
+        (let* ([lookup (prepare 
+                        mydb
+                        "select filename,depth  from formulas where scale = ? and tex = ? and bg = ? and fg = ?")]
+               [rows  (query-rows mydb (bind-prepared-statement
+                                        lookup
+                                        (list 
+                                         bsz 
+                                         (apply string-append (cons preamble tex))
+                                         (rgb-list->string bg-color) 
+                                         (rgb-list->string fg-color))))]
+               [row (if (cons? rows) (car rows) #f)]
+               [totalnumber (query-value mydb "select count(*) from formulas")]
+               )
+          (if row
+              (aligned-formula-image 
+               align 
+               use-depth 
+               (string->number (vector-ref row 1)) 
+               aa-adj 
+               (build-path formdir (string-append (vector-ref row 0) "." (bystro-extension configuration))) 
+               bsz)
+              (let* 
+                  ([formnum (totalnumber . + . 1)]
+                   [filename (string-append formdir "/" (number->string formnum) "." (bystro-extension configuration))]
+                   [insert-stmt (prepare mydb "insert into formulas values (?,?,?,?,?,?,?)")]
                                         ;(tex, scale, bg, fg, filename, depth, tags)
-               [procedure-to-typeset-formula
-                (if (bystro-server? (bystro-formula-processor configuration))
-                    get-svg-from-server
-                    (curry bystro-command-to-typeset-formula (bystro-formula-processor configuration)))]
-               [dpth-str (procedure-to-typeset-formula
-                          (apply string-append (cons preamble tex))
-                          bsz 
-                          bg-color
-                          fg-color
-                          filename)])
-            (unless (string? dpth-str) (error "ERROR: procedure to typeset formulas did not return the depth string"))
-            (query
-             mydb
-             (bind-prepared-statement
-              insert-stmt 
-              (list (apply string-append (cons preamble tex))
-                    bsz 
-                    (rgb-list->string bg-color) 
-                    (rgb-list->string fg-color) 
-                    (number->string formnum) 
-                    dpth-str 
-                    "")))
-            (commit-transaction mydb)
-            (aligned-formula-image 
-             align 
-             use-depth 
-             (string->number dpth-str) 
-             aa-adj 
-             (build-path filename) 
-             bsz)))))
+                   [procedure-to-typeset-formula
+                    (if (bystro-server? (bystro-formula-processor configuration))
+                        get-svg-from-server
+                        (curry bystro-command-to-typeset-formula (bystro-formula-processor configuration)))]
+                   [dpth-str (procedure-to-typeset-formula
+                              (apply string-append (cons preamble tex))
+                              bsz 
+                              bg-color
+                              fg-color
+                              filename)])
+                (unless (string? dpth-str) (error "ERROR: procedure to typeset formulas did not return the depth string"))
+                (query
+                 mydb
+                 (bind-prepared-statement
+                  insert-stmt 
+                  (list (apply string-append (cons preamble tex))
+                        bsz 
+                        (rgb-list->string bg-color) 
+                        (rgb-list->string fg-color) 
+                        (number->string formnum) 
+                        dpth-str 
+                        "")))
+                (commit-transaction mydb)
+                (aligned-formula-image 
+                 align 
+                 use-depth 
+                 (string->number dpth-str) 
+                 aa-adj 
+                 (build-path filename) 
+                 bsz))))))
 ;; ---------------------------------------------------------------------------------------------------
   (provide (contract-out 
                                         ; change the background color for the formulas
