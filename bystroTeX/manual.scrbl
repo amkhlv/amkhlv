@@ -211,6 +211,13 @@ hash?]{
 Get the @tt{BibTeX} entry from the server.
 }
 
+@defproc[
+(bystro-dump-LaTeX [b boolean?])
+void?]{
+This triggers dumping LaTeX formulas instead of insertion of their pictures.
+Useful for translating BystroTeX documents into LaTeX.
+}
+
 @section{Miscellaneous functions}
 
 

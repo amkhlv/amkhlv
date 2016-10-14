@@ -210,6 +210,11 @@ along with bystroTeX.  If not, see <http://www.gnu.org/licenses/>.
            [numbered? 
             (char=? #\n (string-ref alignment-str (- (string-length alignment-str) 1)))]
            )
+      (define (sanitize x) 
+        (if (pre-content? x) 
+            x 
+            (let ([o (open-output-string)]) (write x o) (get-output-string o))))
+            
       (para
        (tt "\\begin{align}")
        (linebreak)
@@ -218,15 +223,18 @@ along with bystroTeX.  If not, see <http://www.gnu.org/licenses/>.
                     (let ([formulas (if numbered? (drop-right ln 1) ln)])
                       (apply 
                        tt
-                       `(,@(let interleave& ([xs formulas])
-                             (if (cons? xs) 
-                                 (if (cons? (cdr xs)) 
-                                     (cons (car xs) (cons " & " (interleave& (cdr xs)))) 
-                                     xs)
-                                 '()))
-                         ,(if (and numbered? ((string-length (last ln)) . > . 0))  
-                              (string-append "\\label{" (last ln) "}") 
-                              "")))))])
+                       (map 
+                        sanitize
+                        `(,@(let interleave& ([xs formulas])
+                              (if (cons? xs) 
+                                  (if (cons? (cdr xs)) 
+                                      (cons (car xs) (cons " & " (interleave& (cdr xs)))) 
+                                      xs)
+                                  '()))
+                          ,(if (and numbered? ((string-length (last ln)) . > . 0))  
+                               (string-append "\\label{" (last ln) "}") 
+                               "")
+                          )))))])
          (if (cons? rows) 
              (if (cons? (cdr rows)) 
                  (cons (car rows) `(,(linebreak) ,(tt "\\\\") ,(linebreak) ,@(interleaveNL (cdr rows))))
@@ -317,7 +325,7 @@ along with bystroTeX.  If not, see <http://www.gnu.org/licenses/>.
         xs))
   (provide (contract-out
                                         ; padded on the left
-            [h+ (->* (integer?) () #:rest (listof pre-content?) (or/c (listof element?) table?))]))
+            [h+ (->* (integer?) () #:rest (listof pre-content?) (or/c (listof content?) table?))]))
   (define  (h+ n . xs)
     (if dumping-LaTeX?
         xs
@@ -336,7 +344,7 @@ along with bystroTeX.  If not, see <http://www.gnu.org/licenses/>.
 ;; ---------------------------------------------------------------------------------------------------
   (provide (contract-out
                                         ; padded on the top
-            [h- (->* (integer?) () #:rest (listof pre-content?) (or/c (listof element?) table?))]))
+            [h- (->* (integer?) () #:rest (listof pre-content?) (or/c (listof content?) table?))]))
   (define  (h- n . xs)
     (if dumping-LaTeX? 
         xs
@@ -356,7 +364,7 @@ along with bystroTeX.  If not, see <http://www.gnu.org/licenses/>.
 ;; ---------------------------------------------------------------------------------------------------
   (provide (contract-out
                                         ; padded on the top
-            [v- (->* (integer?) () #:rest (listof pre-content?) (or/c (listof element?) table?))]))
+            [v- (->* (integer?) () #:rest (listof pre-content?) (or/c (listof content?) table?))]))
   (define  (v- n . xs)
     (if dumping-LaTeX? 
         xs
@@ -375,7 +383,7 @@ along with bystroTeX.  If not, see <http://www.gnu.org/licenses/>.
 ;; ---------------------------------------------------------------------------------------------------
   (provide (contract-out
                                         ; padded on the top
-            [v+ (->* (integer?) () #:rest (listof pre-content?) (or/c (listof element?) table?))]))
+            [v+ (->* (integer?) () #:rest (listof pre-content?) (or/c (listof content?) table?))]))
   (define  (v+ n . xs)
     (if dumping-LaTeX? 
         xs
