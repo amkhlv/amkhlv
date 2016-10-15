@@ -309,7 +309,7 @@ along with bystroTeX.  If not, see <http://www.gnu.org/licenses/>.
    [ref-formula (-> string? (or/c element? delayed-element?))]))
   (define (ref-formula lbl)
     (if (current-just-dump-LaTeX state)
-        (tt "\\ref{" lbl "}")
+        (literal "\\ref{" lbl "}")
         (make-delayed-element
          (lambda (renderer pt ri) 
            (if (dict-has-key? (current-formula-ref-dict state) lbl)
@@ -475,18 +475,18 @@ along with bystroTeX.  If not, see <http://www.gnu.org/licenses/>.
            #:label [l #f] 
            #:bg-color [bgcol (bystro-formula-bg-color configuration)] 
            #:fg-color [fgcol (bystro-formula-fg-color configuration)])
-    (parameterize ([bystro-dump-LaTeX-with-$ #f])
-      (let* ([frml1 (keyword-apply bystro-formula '() '() x #:size n #:bg-color bgcol #:fg-color fgcol #:align #f #:use-depth #t)]
-             [frml (if (current-just-dump-LaTeX state) 
-                       (elem (tt "\\begin{equation}" (if l (string-append "\\label{" l "}\n") "\n"))
-                             frml1
-                             (tt "\n\\end{equation}"))
-                       frml1)])
-        (if l
-            (table-with-alignment "c.n" (list (list frml (if (current-just-dump-LaTeX state)
-                                                             (string-append "\\label{" l "}")
-                                                             (elemtag l (number-for-formula l))))))
-            (table-with-alignment "c.n" (list (list frml "" )))))))
+    (let* ([frml1 (keyword-apply bystro-formula '() '() x #:size n #:bg-color bgcol #:fg-color fgcol #:align #f #:use-depth #t)]
+           [frml (if (current-just-dump-LaTeX state) 
+                     (deep-literal `("\\begin{equation}" 
+                                     ,(if l (string-append "\\label{" l "}\n") "\n")
+                                     ,@x
+                                     "\n\\end{equation}"))
+                     frml1)])
+      (if l
+          (table-with-alignment "c.n" (list (list frml (if (current-just-dump-LaTeX state)
+                                                           (string-append "\\label{" l "}")
+                                                           (elemtag l (number-for-formula l))))))
+          (table-with-alignment "c.n" (list (list frml "" ))))))
 ;; ---------------------------------------------------------------------------------------------------
   (define (aligned-formula-image manual-adj use-depth depth aa-adj filepath sz)
     (element 
@@ -537,7 +537,7 @@ along with bystroTeX.  If not, see <http://www.gnu.org/licenses/>.
          #:aa-adjust [aa-adj (bystro-autoalign-adjust configuration)] 
          . tex)
     (if (current-just-dump-LaTeX state)
-        (if (bystro-dump-LaTeX-with-$) (elem (tt "$") (apply tt tex) (tt "$")) (apply tt tex)) 
+        (if (bystro-dump-LaTeX-with-$) (deep-literal `("$" ,@tex "$")) (deep-literal tex)) 
         (let* ([lookup (prepare 
                         mydb
                         "select filename,depth  from formulas where scale = ? and tex = ? and bg = ? and fg = ?")]

@@ -121,6 +121,17 @@ along with bystroTeX.  If not, see <http://www.gnu.org/licenses/>.
            (list content ...)))
       ))
 ;; ---------------------------------------------------------------------------------------------------
+  (provide (contract-out
+                                        ; deep literal
+            [deep-literal (-> content? element?)]))
+  (define (deep-literal x)
+    (if (string? x)
+        (literal x)
+        (if (element? x) 
+            (deep-literal (element-content x))
+            (if (list? x)
+                (apply elem (map deep-literal x))
+                (literal "-- ERROR in applying literal --")))))
   (define (parse-alignment-string x)
     (if (= (string-length x) 0) 
         '()
@@ -216,13 +227,12 @@ along with bystroTeX.  If not, see <http://www.gnu.org/licenses/>.
             (let ([o (open-output-string)]) (write x o) (get-output-string o))))
             
       (para
-       (tt "\\begin{align}")
+       (literal "\\begin{align}")
        (linebreak)
        (let interleaveNL 
            ([rows (for/list ([ln lines])
                     (let ([formulas (if numbered? (drop-right ln 1) ln)])
-                      (apply 
-                       tt
+                      (deep-literal
                        (map 
                         sanitize
                         `(,@(let interleave& ([xs formulas])
@@ -237,11 +247,11 @@ along with bystroTeX.  If not, see <http://www.gnu.org/licenses/>.
                           )))))])
          (if (cons? rows) 
              (if (cons? (cdr rows)) 
-                 (cons (car rows) `(,(linebreak) ,(tt "\\\\") ,(linebreak) ,@(interleaveNL (cdr rows))))
+                 (cons (car rows) `(,(linebreak) ,(literal "\\\\") ,(linebreak) ,@(interleaveNL (cdr rows))))
                  rows)
              '()))
        (linebreak)
-       (tt "\\end{align}"))))
+       (literal "\\end{align}"))))
   (provide align)
   (define-syntax (align stx)
     (syntax-case stx ()
