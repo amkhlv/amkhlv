@@ -65,6 +65,12 @@ a namespace anchor, for example:
 ]{
 Inserts link to the current dir 
 }
+
+@defproc[
+(mailto [#:rest ems (listof string?)])
+element?
+]{Inserts the @tt{mailto:} link}
+
 @section{Text}
 @subsection{Nested styles}
 @verb|---{

@@ -18,7 +18,7 @@ along with bystroTeX.  If not, see <http://www.gnu.org/licenses/>.
 |#
 
 (module truques racket
-  (require scribble/core scribble/base scribble/html-properties scribble/decode scriblib/render-cond)
+  (require scribble/core scribble/base scribble/html-properties scribble/decode scriblib/render-cond racket/string)
   (require (planet amkhlv/bystroTeX/common))
 
 
@@ -37,4 +37,17 @@ along with bystroTeX.  If not, see <http://www.gnu.org/licenses/>.
                         "sourcelink" 
                         (list (make-css-addition "misc.css"))) 
                "*dir*"))
+  (provide (contract-out [mailto (->* () () #:rest (listof string?) element?)]))
+  (define (mailto . x)
+    (let* ([xx (map 
+                (λ (u) (string-trim u #px"\\<|\\>")) 
+                (filter 
+                 ((curry regexp-match?) #rx"@") 
+                 (apply append (map string-split x))))]
+           [z (apply 
+               ((curry string-append) "mailto:")
+               (add-between xx ","))])
+      (hyperlink z (add-between (filter (compose not ((curry regexp-match?) #px"^\\s*$")) x) " ⋄ "))))
+           
+
   )
