@@ -119,20 +119,6 @@ Because sometimes we have: @tt|--{ <person>&amp;john</person> }--| (can we exclu
 
 In XML, to insert the newline use @tt{&#a;}, and to insert the space use @tt{&#a0;}.
 
-@defproc[
-(show-xexpr [x the:xexpr?] 
-            [#:transform-to-content t (hash/c symbol? (-> the:xexpr? content?)) (make-hash '())]
-            [#:transform-to-block tblock (hash/c symbol? (-> the:xexpr? block?)) (make-hash '())]
-            [#:show-root sr boolean? #f]
-            [#:size size (or/c integer? boolean?) #f]
-            [#:size-step step number? 0.93]
-            [#:steps steps integer? 4])
-(or/c #f content? block?)
-]{
-Show XML data as a table. Here @racket[size] is the size of the root, and 
-@racket[steps] is the  number of size-decreasing steps before size stabilization.
-}
-
 @defparam[
 transform-to-content h (hash/c symbol? (-> the:xexpr? content?))]{
 A parameter that defines the currently default transformers to content argument in @racket[show-xexpr]
@@ -142,6 +128,36 @@ A parameter that defines the currently default transformers to content argument 
 transform-to-block h (hash/c symbol? (-> the:xexpr? block?))]{
 A parameter that defines the currently default transformers to block argument in @racket[show-xexpr]
 }
+
+@defproc[
+(show-xexpr [x the:xexpr?] 
+            [#:transform-to-content t (hash/c symbol? (-> the:xexpr? content?)) (transform-to-content)]
+            [#:transform-to-block tblock (hash/c symbol? (-> the:xexpr? block?)) (transform-to-block)]
+            [#:show-root sr boolean? #f]
+            [#:size size (or/c integer? boolean?) #f]
+            [#:size-step step number? 0.93]
+            [#:steps steps integer? 4])
+(or/c #f content? block?)
+]{
+Show XML data as a table. Here @racket[size] is the size of the root, and 
+@racket[steps] is the  number of size-decreasing steps before size stabilization.
+
+Example:
+@verb|--{
+@(define (f-transformer e) (f+0-2 (se-path* '(f) e)))
+@(define (e-transformer email) 
+   (hyperlink 
+    (string-append "mailto:" (se-path* '(email) email)) 
+    (se-path* '(email) email)))
+@(parameterize
+     ([transform-to-content 
+       (hash-set* (transform-to-content) 
+                  'f f-transformer 
+                  'email e-transformer)])
+   (show-xexpr some-xexpr))
+}--|
+}
+
 
 @defproc[
 ($->_ [x string?]) 
