@@ -40,7 +40,16 @@ along with bystroTeX.  If not, see <http://www.gnu.org/licenses/>.
 
 ;; ---------------------------------------------------------------------------------------------------
                                         ; Global variables
-  (provide (struct-out bystro))
+  (provide bystroserver)
+  (define-struct/contract bystroserver 
+    ([connection net:http-conn?] 
+     [token string?]
+     [user (or/c #f string?)]
+     [host string?]
+     [port number?]
+     [path string?]
+     )
+    #:mutable)
   (struct bystro (
                   formula-processor
                   formula-database-name
@@ -54,16 +63,8 @@ along with bystroTeX.  If not, see <http://www.gnu.org/licenses/>.
                   )
           #:auto-value "svg"
           #:mutable)
-  (provide bystroserver)
-  (define-struct/contract bystroserver 
-    ([connection net:http-conn?] 
-     [token string?]
-     [user (or/c #f string?)]
-     [host string?]
-     [port number?]
-     [path string?]
-     )
-    #:mutable)
+  ;; contracts do not seem to work on structs with an auto value
+  (provide (struct-out bystro))
   (provide (contract-out
                                         ; opens the server connection and returns the corresponding struct
             [bystro-connect-to-server (-> (or/c #f path?) (or/c 'running-without-LaTeX-server bystroserver?))]))
@@ -83,7 +84,7 @@ along with bystroTeX.  If not, see <http://www.gnu.org/licenses/>.
   (define (bystro-close-connection bconf)
     (unless (eq? 'running-without-LaTeX-server (bystro-formula-processor bconf))
       (net:http-conn-close! (bystroserver-connection (bystro-formula-processor bconf)))))
-  (define configuration (bystro (find-executable-path "amkhlv-java-formula.sh")
+  (define configuration (bystro 'running-without-LaTeX-server
                                 "formulas.sqlite"
                                 "formulas"
                                 25

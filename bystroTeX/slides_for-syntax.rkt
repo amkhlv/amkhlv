@@ -116,8 +116,6 @@ along with bystroTeX.  If not, see <http://www.gnu.org/licenses/>.
            [set-css-dir '(define (bystro-set-css-dir x) 
                            (bystro-set-css-dir_common x) 
                            (bystro-set-css-dir_slides x))]
-           [rangelist  (build-list 11 [lambda (x) (+ x 1)])]
-           [rangelist0 (build-list 12 values)]
            [def-list+ (for/list ([i (build-list (+ 1 max-vert-adjust) values)]) (l+ i))]
            [def-list- (for/list ([i (build-list (+ 1 max-vert-adjust) values)]) (l- i))]
            [def-list++ (apply append (for/list ([i (build-list (+ 1 max-vert-adjust) values)]) 
@@ -151,8 +149,12 @@ along with bystroTeX.  If not, see <http://www.gnu.org/licenses/>.
                          ttp-init
                          set-css-dir
                          ) 
-                        def-list+ def-list-
-                        def-list++ def-list+- def-list-+ def-list--
+                        def-list+ 
+                        def-list-
+                        def-list++ 
+                        def-list+- 
+                        def-list-+ 
+                        def-list--
                         )
                 #'x #'x #'x)])
       )
