@@ -54,32 +54,35 @@ along with bystroTeX.  If not, see <http://www.gnu.org/licenses/>.
                   )
           #:auto-value "svg"
           #:mutable)
-  (provide (struct-out bystro-server))
-  (struct bystro-server (
-                         connection
-                         token
-                         user
-                         host
-                         port
-                         path
-                         )
-          #:mutable)
+  (provide bystroserver)
+  (define-struct/contract bystroserver 
+    ([connection net:http-conn?] 
+     [token string?]
+     [user (or/c #f string?)]
+     [host string?]
+     [port number?]
+     [path string?]
+     )
+    #:mutable)
   (provide (contract-out
                                         ; opens the server connection and returns the corresponding struct
-            [bystro-connect-to-server (-> path? bystro-server?)]))
+            [bystro-connect-to-server (-> (or/c #f path?) (or/c 'running-without-LaTeX-server bystroserver?))]))
   (define (bystro-connect-to-server xmlconf-file)
-    (let* ([server-conf (call-with-input-file xmlconf-file
-                          (lambda (inport) (xml:xml->xexpr (xml:document-element (xml:read-xml inport)))))]
-           [host (xml:se-path* '(host) server-conf)]
-           [port (string->number (xml:se-path* '(port) server-conf))]
-           [path (xml:se-path* '(path) server-conf)]
-           [token (xml:se-path* '(token) server-conf)]
-           )
-      (bystro-server (net:http-conn-open host #:port port) token #f host port path)))
+    (if xmlconf-file
+        (let* ([server-conf (call-with-input-file xmlconf-file
+                              (lambda (inport) (xml:xml->xexpr (xml:document-element (xml:read-xml inport)))))]
+               [host (xml:se-path* '(host) server-conf)]
+               [port (string->number (xml:se-path* '(port) server-conf))]
+               [path (xml:se-path* '(path) server-conf)]
+               [token (xml:se-path* '(token) server-conf)]
+               )
+          (bystroserver (net:http-conn-open host #:port port) token #f host port path))
+        'running-without-LaTeX-server))
   (provide (contract-out
             [bystro-close-connection (-> bystro? void?)]))
   (define (bystro-close-connection bconf)
-    (net:http-conn-close! (bystro-server-connection (bystro-formula-processor bconf))))
+    (unless (eq? 'running-without-LaTeX-server (bystro-formula-processor bconf))
+      (net:http-conn-close! (bystroserver-connection (bystro-formula-processor bconf)))))
   (define configuration (bystro (find-executable-path "amkhlv-java-formula.sh")
                                 "formulas.sqlite"
                                 "formulas"
@@ -326,13 +329,13 @@ along with bystroTeX.  If not, see <http://www.gnu.org/licenses/>.
       [(u) (values
             (net:url
              "http"                          ;scheme
-             (bystro-server-user bserv)      ;user
-             (bystro-server-host bserv)      ;host 
-             (bystro-server-port bserv)      ;port
+             (bystroserver-user bserv)      ;user
+             (bystroserver-host bserv)      ;host 
+             (bystroserver-port bserv)      ;port
              #t                              ;path-absolute?
              (list (net:path/param "svg" '()))   ;path
              (list 
-              (cons 'token (bystro-server-token bserv))
+              (cons 'token (bystroserver-token bserv))
               (cons 'latex texstring)
               (cons 'size (number->string size))
               (cons 'bg (rgb-list->string bg-color))
@@ -341,7 +344,7 @@ along with bystroTeX.  If not, see <http://www.gnu.org/licenses/>.
              ))]
       [(status headers inport)
        (net:http-conn-sendrecv!
-        (bystro-server-connection bserv)
+        (bystroserver-connection bserv)
         (net:url->string u)
         #:method #"POST"
         #:headers '("BystroTeX:yes")
@@ -381,19 +384,19 @@ along with bystroTeX.  If not, see <http://www.gnu.org/licenses/>.
       [(u) (values
             (net:url
              "http"                          ;scheme
-             (bystro-server-user bserv)      ;user
-             (bystro-server-host bserv)      ;host 
-             (bystro-server-port bserv)      ;port
+             (bystroserver-user bserv)      ;user
+             (bystroserver-host bserv)      ;host 
+             (bystroserver-port bserv)      ;port
              #t                              ;path-absolute?
              (list (net:path/param "bibtex" '()))   ;path
              (list 
-              (cons 'token (bystro-server-token bserv))
+              (cons 'token (bystroserver-token bserv))
               (cons 'k k))
              #f ;fragment
              ))]
       [(status headers inport)
        (net:http-conn-sendrecv!
-        (bystro-server-connection bserv)
+        (bystroserver-connection bserv)
         (net:url->string u)
         #:method #"POST"
         #:headers '("BystroTeX:yes")
@@ -565,7 +568,7 @@ along with bystroTeX.  If not, see <http://www.gnu.org/licenses/>.
                    [insert-stmt (prepare mydb "insert into formulas values (?,?,?,?,?,?,?)")]
                                         ;(tex, scale, bg, fg, filename, depth, tags)
                    [procedure-to-typeset-formula
-                    (if (bystro-server? (bystro-formula-processor configuration))
+                    (if (bystroserver? (bystro-formula-processor configuration))
                         get-svg-from-server
                         (curry bystro-command-to-typeset-formula (bystro-formula-processor configuration)))]
                    [dpth-str (procedure-to-typeset-formula

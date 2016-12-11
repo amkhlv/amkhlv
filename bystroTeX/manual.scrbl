@@ -27,6 +27,7 @@ along with bystroTeX.  If not, see <http://www.gnu.org/licenses/>.
                      scribble/html-properties 
                      scribble/decode
                      scriblib/render-cond 
+                     net/http-client
                      "common.rkt" 
                      "slides.rkt"))
 
@@ -45,6 +46,28 @@ As a general rule, those functions whose name starts with @tt{bystro-}, are eith
 for internal use or for use in the header. They are not meant to be used in slides by themselves,
 or at least not to be used frequently. (But this rule is not very strict.)
 
+
+
+@section{Functions used in headers}
+@defmodule[bystroTeX/slides]
+@defstruct[bystroserver  (
+                          [connection http-conn?]
+                          [token string?]
+                          [user (or/c #f string?)]
+                          [host string?]
+                          [port integer?]
+                          [path string?]
+                         )
+]{Configuration of the LaTeX server}
+
+@defproc[
+(bystro-connect-to-server 
+ [xmlconf-file (or/c #f path?)]
+ )
+(or/c 'running-without-LaTeX-server bystroserver?)
+]{
+Configures the location of the file containing the parameters of the LaTeX server (port number @italic{etc.})
+}
 @section{Some general tricks}
 To load a stylesheet from a file @tt{filename.css}:
 
@@ -63,7 +86,6 @@ This is some text which I want to be show verbatim
 
 @section{Functions for manipulating slides}
 @defmodule[bystroTeX/slides]
-
 @defstruct[bystro ([formula-processor path?]
                    [formula-database-name string?]
                    [formula-dir-name string?]
@@ -110,12 +132,6 @@ Removes the most recently shown part of the slide
 }
 
 @defproc[
-(bystro-initialize-formula-collection)
-db?]{
-This is to initialize the formula collection. 
-}
-
-@defproc[
 (use-LaTeX-preamble 
  [#:rest xs string?]
  )
@@ -150,23 +166,6 @@ Set the background color for formulas
 void?]{
 Set the foreground color for formulas
 }
-
-@; @defproc[
-@; (bystro-command-to-typeset-formula 
-@;  [comm path-string?]
-@;  [tex  string?]
-@;  [n    number?]
-@;  [fn   string?]
-@;  )
-@; string?]{
-@; This should not be directly called by the user. Just for reference, @racket[comm] is
-@; the path to an executable, which has the following properties. That executable should
-@; take  3 arguments: a @tt{LaTeX} string @racket[tex] representing a formula, 
-@; a number @racket[n] which is the intended fontsize of the formula, and 
-@; a string @racket[fn] which is the filename, which should have extension @tt{.png}.
-@; The executable, upon success, should return a number representing the vertical offset.
-@; (Because e.g. letters x and y have different vertical offset.)
-@; }
 
 @defproc[
 (bystro-formula 
@@ -594,7 +593,7 @@ Runs the pipeline and returns the @racket[input-port] from its @tt{stdout}.
 
 @section{Legal}
 
-Copyright 2012,2013,2014 Andrei Mikhailov
+Copyright 2012-2016 Andrei Mikhailov
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
