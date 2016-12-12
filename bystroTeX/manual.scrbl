@@ -68,6 +68,19 @@ or at least not to be used frequently. (But this rule is not very strict.)
 ]{
 Configures the location of the file containing the parameters of the LaTeX server (port number @italic{etc.})
 }
+
+@defstruct[bystro (
+                   [formula-processor (or/c 'running-without-LaTeX-server bystroserver?)]
+                   [formula-database-name path-string?]
+                   [formula-dir-name path-string?]
+                   [formula-size integer?]
+                   [formula-bg-color (list/c (integer-in 0 254) (integer-in 0 254) (integer-in 0 254))]
+                   [formula-fg-color (list/c (integer-in 0 254) (integer-in 0 254) (integer-in 0 254))]
+                   [autoalign-adjust integer?]
+                   [manual-base-alignment integer?]
+                  )
+]{Basic configuration}
+
 @section{Some general tricks}
 To load a stylesheet from a file @tt{filename.css}:
 
