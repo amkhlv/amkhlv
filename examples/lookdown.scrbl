@@ -5,7 +5,7 @@
 @; User definitions:
 @(bystro-set-css-dir (build-path (find-system-path 'home-dir) "a" "git" "amkhlv" "profiles" "writeup"))
 @(define bystro-conf   
-   (bystro (bystro-connect-to-server (string->path "bystroConf.xml"))
+   (bystro (bystro-connect-to-server #f)
            "lookdown/formulas.sqlite"  ; name for the database
            "lookdown" ; directory where to store .png files of formulas
            25  ; formula size
@@ -57,7 +57,8 @@
        '()
        (make-style "LookdownPart" '(unnumbered))
        '()
-       `(,(tbl #:orient 'hor
+       `(,(bystro-ribbon)
+         ,(tbl #:orient 'hor
                (for/list ([bystrotex.xml bystrotex-xml-files])
                  (list
                   (let ([lookdown.html (get-lookdown.html bystrotex.xml)])
