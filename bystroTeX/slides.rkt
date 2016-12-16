@@ -50,6 +50,15 @@ along with bystroTeX.  If not, see <http://www.gnu.org/licenses/>.
      [path string?]
      )
     #:mutable)
+  (provide (contract-out [struct bystro
+                           ([formula-processor (or/c 'running-without-LaTeX-server bystroserver?)]
+                            [formula-database-name path-string?]
+                            [formula-dir-name path-string?]
+                            [formula-size integer?]
+                            [formula-bg-color (list/c (integer-in 0 255) (integer-in 0 255) (integer-in 0 255))]
+                            [formula-fg-color (list/c (integer-in 0 255) (integer-in 0 255) (integer-in 0 255))]
+                            [autoalign-adjust integer?]
+                            [manual-base-alignment integer?])]))
   (struct bystro (
                   formula-processor
                   formula-database-name
@@ -59,12 +68,11 @@ along with bystroTeX.  If not, see <http://www.gnu.org/licenses/>.
                   formula-fg-color
                   autoalign-adjust
                   manual-base-alignment
-                  [extension #:auto]
                   )
-          #:auto-value "svg"
           #:mutable)
-  ;; contracts do not seem to work on structs with an auto value
-  (provide (struct-out bystro))
+  (provide (contract-out [set-bystro-extension! (-> bystro? string? void?)]))
+  (define (set-bystro-extension! b x)
+    (unless (equal? "svg" x) (error "Extensional other than svg are not supported any more, at least for now")))
   (provide (contract-out
                                         ; opens the server connection and returns the corresponding struct
             [bystro-connect-to-server (-> (or/c #f path?) (or/c 'running-without-LaTeX-server bystroserver?))]))
@@ -561,11 +569,11 @@ along with bystroTeX.  If not, see <http://www.gnu.org/licenses/>.
                use-depth 
                (string->number (vector-ref row 1)) 
                aa-adj 
-               (build-path formdir (string-append (vector-ref row 0) "." (bystro-extension configuration))) 
+               (build-path formdir (string-append (vector-ref row 0) ".svg")) 
                bsz)
               (let* 
                   ([formnum (totalnumber . + . 1)]
-                   [filename (string-append formdir "/" (number->string formnum) "." (bystro-extension configuration))]
+                   [filename (string-append formdir "/" (number->string formnum) ".svg")]
                    [insert-stmt (prepare mydb "insert into formulas values (?,?,?,?,?,?,?)")]
                                         ;(tex, scale, bg, fg, filename, depth, tags)
                    [procedure-to-typeset-formula

@@ -74,8 +74,8 @@ Configures the location of the file containing the parameters of the LaTeX serve
                    [formula-database-name path-string?]
                    [formula-dir-name path-string?]
                    [formula-size integer?]
-                   [formula-bg-color (list/c (integer-in 0 254) (integer-in 0 254) (integer-in 0 254))]
-                   [formula-fg-color (list/c (integer-in 0 254) (integer-in 0 254) (integer-in 0 254))]
+                   [formula-bg-color (list/c (integer-in 0 255) (integer-in 0 255) (integer-in 0 255))]
+                   [formula-fg-color (list/c (integer-in 0 255) (integer-in 0 255) (integer-in 0 255))]
                    [autoalign-adjust integer?]
                    [manual-base-alignment integer?]
                   )
