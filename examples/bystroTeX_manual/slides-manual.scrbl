@@ -449,46 +449,26 @@ Scrolling is easier on the audience than jumping from page to page.
 
 @slide["Writing html in scribble" #:tag "InsertingHTML" #:showtitle #t]{
 
-What if we want to insert, for example, a remote animated gif
-from  @hyperlink["http://www.123gifs.eu/free-gifs"]{123gifs.eu} ?
-
-As far as I understand, there is no way to directly insert a raw @tt{html} code in scribble. 
-Instead, we have to rewrite our @tt{html} 
-the @hyperlink["http://docs.racket-lang.org/scribble/index.html"]{scribble way}. For example, @bold{this HTML}:
-
-@(element 
-     (make-style #f (list
-                     (alt-tag "img")
-                     (attributes 
-                      (list
-                       (cons 'style "border:0;")
-                       (cons 'src "http://www.123gifs.eu/free-gifs/flags/flagge-0544.gif")
-                       (cons 'alt "flagge-0544.gif from 123gifs.eu")
-                       ))))
-   "Flag of Brazil"
-   )
-
+This @tt{HTML}:
+@(tg img 
+     #:attrs ([style "border:0;"]
+              [src "http://www.123gifs.eu/free-gifs/flags/flagge-0544.gif"]
+              [alt "flagge-0544.gif from 123gifs.eu"])
+     "Flag of Brazil")
 
 @verb[#:style @(make-style "comment" '())]|{
 <img style="border:0;" src="http://www.123gifs.eu/free-gifs/flags/flagge-0544.gif" alt="flagge-0544.gif from 123gifs.eu">
 Flag of Brazil
 </img>
 }|
-
-@bold{will become:}
-
+should be inserted @hyperlink["http://docs.racket-lang.org/manual@bystroTeX/index.html#%28form._%28%28lib._bystro.Te.X%2Fcommon..rkt%29._tg%29%29"]{as follows}:
 @verb[#:style @(make-style "comment" '())]|--{
-@(element 
-     (make-style #f (list
-                     (alt-tag "img")
-                     (attributes 
-                      (list
-                       (cons 'style "border:0;")
-                       (cons 'src "http://www.123gifs.eu/free-gifs/flags/flagge-0544.gif")
-                       (cons 'alt "flagge-0544.gif from 123gifs.eu")
-                       ))))
-   "Flag of Brazil"
-   )
+@(tg img 
+     #:attrs ([style "border:0;"]
+              [src "http://www.123gifs.eu/free-gifs/flags/flagge-0544.gif"]
+              [alt "flagge-0544.gif from 123gifs.eu"])
+     "Flag of Brazil")
+
 }--|
 
 }

@@ -7,15 +7,13 @@
 @(define bystro-conf   
    (bystro (bystro-connect-to-server (build-path 'up "bystroConf.xml")) 
            "sample-multipage/formulas.sqlite"  ; name for the database
-           "sample-multipage" ; directory where to store .png files of formulas
+           "sample-multipage" ; directory where to store image files of formulas
            25  ; formula size
            (list 255 255 255) ; formula background color
            (list 0 0 0) ; formula foreground color
            2   ; automatic alignment adjustment
            0   ; manual alignment adjustment
            ))
-@(set-bystro-extension! bystro-conf "svg")
-@; This controls the single page mode:
 @(define singlepage-mode #f)
 @(bystro-def-formula "formula-enormula-humongula!")
 

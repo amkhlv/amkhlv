@@ -21,8 +21,6 @@
            2   ; automatic alignment adjustment
            0   ; manual alignment adjustment
            ))
-@(set-bystro-extension! bystro-conf "svg")
-@; This controls the single page mode:
 @(define singlepage-mode #t)
 @(bystro-def-formula "formula-enormula-humongula!")
 
