@@ -1,3 +1,6 @@
+.amkpagebreak {
+  page-break-after:always;
+}
 .sourcelink {
   font-size:x-small;
   background-color:#FFFDD0;

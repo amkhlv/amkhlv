@@ -33,9 +33,7 @@ along with bystroTeX.  If not, see <http://www.gnu.org/licenses/>.
   (provide bystro-dump-LaTeX-with-$)
   (define bystro-dump-LaTeX-with-$ (make-parameter #t))
   (define bystro-scrbl-filename "")
-  (provide (contract-out
-                                        ; Set the path to the folder containing the .css files
-            [register-path-to-scribble-file (-> path? void?)]))
+  (provide (contract-out [register-path-to-scribble-file (-> path? void?)]))
   (define (register-path-to-scribble-file s)
     (set! bystro-scrbl-filename (path->string (file-name-from-path s))))
 ;; ---------------------------------------------------------------------------------------------------
@@ -63,8 +61,7 @@ along with bystroTeX.  If not, see <http://www.gnu.org/licenses/>.
     (let ((style (make-style 
                   #f
                   (map
-                   (lambda (fn)
-                     (make-css-addition (build-path css-dir (string->path fn))))
+                   (λ (fn) (make-css-addition (build-path css-dir (string->path fn))))
                    css-file-names))))
       (make-element style '())))
 ;; ---------------------------------------------------------------------------------------------------
@@ -75,21 +72,6 @@ along with bystroTeX.  If not, see <http://www.gnu.org/licenses/>.
   (define bystro-path-to-link
     (lambda (relpath)
       (string-append "file://" (path->string (path->complete-path (expand-user-path relpath))))))
-;; ---------------------------------------------------------------------------------------------------
-  (provide (contract-out
-                                        ; javascript injection
-   [bystro-js (->* () () #:rest (listof string?) element?)]))
-  (define (bystro-js . body)
-    (make-element 
-     (make-style #f (list (make-script-property "text/javascript" body)))
-     '()
-     ))
-;; ---------------------------------------------------------------------------------------------------
-  (provide (contract-out
-                                        ; javascript from URL
-   [bystro-js-url (-> string? element?)]))
-  (define (bystro-js-url url)
-    (bystro-js "document.write(\"<script src='"  url  "'/><\\/script>\");"))
 ;; ---------------------------------------------------------------------------------------------------
   (provide spn)
   (define-syntax (spn stx)

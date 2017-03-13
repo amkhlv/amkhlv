@@ -132,14 +132,6 @@ along with bystroTeX.  If not, see <http://www.gnu.org/licenses/>.
           #:mutable)
   (define state 
     (current 0 0 "SLIDE" '() 0 '() #f #f #f)) ; this is the global state
-  (provide display-state)
-  (define  (display-state s)
-    (display (string-append "\n==========" s "=========\n"))
-    (display (current-slidename state))
-    (display (current-content state))
-    (display (current-singlepage-mode state))
-    (display (string-append "\n^^^^^^^^^^^^" s "^^^^^^^^\n"))
-    )
   (provide (contract-out 
             [bystro-dump-LaTeX (-> boolean? void?)]))
   (define (bystro-dump-LaTeX b) (begin
@@ -161,17 +153,13 @@ along with bystroTeX.  If not, see <http://www.gnu.org/licenses/>.
   (provide (contract-out 
                                         ; Titlepage initialization
    [bystro-titlepage-init (->* () (#:singlepage-mode boolean?) element?)]))
-  (define (bystro-titlepage-init #:singlepage-mode [spm #f])
-    (if spm
+  (define (bystro-titlepage-init #:singlepage-mode [spmode #f])
+    (if spmode
         (begin 
           (set-current-singlepage-mode! state #t)
           (bystro-css-element-from-files "misc.css" "slide.css")
           )
-        (begin
-          (bystro-css-element-from-files "misc.css" "slide-title.css")
-          )
-        )
-    )
+        (bystro-css-element-from-files "misc.css" "slide-title.css")))
 ;; ---------------------------------------------------------------------------------------------------
   (provide (contract-out 
                                         ; Slide continuation after pause
@@ -198,16 +186,8 @@ along with bystroTeX.  If not, see <http://www.gnu.org/licenses/>.
                         (number->string (current-slide-part-number state)))))]     
           [tgs (if tg (list (list 'part tg)) (list))])
       (if (current-singlepage-mode state)
-          (begin
-                                        ;(display-state "inside after-pause, singlepage")
-            (decode (list (title-decl #f tgs #f (style #f (cons 'toc-hidden to-hide)) "") 
-                          more-content)))
-          (begin
-                                        ;(display-state "inside after-pause, multipage")
-            (decode 
-             (cons (title-decl #f tgs #f (style #f stl) nm)
-                   (current-content state))
-             )))))
+          (decode `(,(title-decl #f tgs #f (style #f (cons 'toc-hidden to-hide)) "") ,more-content))
+          (decode `(,(title-decl #f tgs #f (style #f stl) nm) ,@(current-content state))))))
 ;; ---------------------------------------------------------------------------------------------------
   (provide (contract-out  
                                         ; removes the most recent after-pause
@@ -414,7 +394,7 @@ along with bystroTeX.  If not, see <http://www.gnu.org/licenses/>.
                      (for/first ([h headers] #:when (equal?
                                                      "BystroTeX-error:"
                                                      (car (string-split (bytes->string/utf-8 h)))))
-                       (cadr (string-split (bytes->string/utf-8 h)))))]                
+                       (apply string-append (add-between (cdr (string-split (bytes->string/utf-8 h))) " "))))]                
       )
      (if error-type
          (begin 
