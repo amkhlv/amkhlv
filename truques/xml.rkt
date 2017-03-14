@@ -53,6 +53,18 @@ along with bystroTeX.  If not, see <http://www.gnu.org/licenses/>.
             xs))
       #f))
 
+(provide (contract-out [show-xexpr-size (parameter/c (or/c integer? #f))]))
+(provide (contract-out [show-xexpr-size-step (parameter/c number?)]))
+(provide (contract-out [show-xexpr-steps (parameter/c integer?)]))
+(define show-xexpr-size (make-parameter #f))
+(define show-xexpr-size-step (make-parameter 0.93))
+(define show-xexpr-steps (make-parameter 4))
+
+(define (recurse-element html-tag)
+  (λ (x)
+    (element
+        (make-style (se-path* `(,html-tag #:class) x) (list (alt-tag (symbol->string html-tag))))
+      (for/list ([a (cddr x)]) (if (the:xexpr? a) (show-xexpr a) (element a))))))
 
 (provide (contract-out [transform-to-content (parameter/c (hash/c symbol? (-> the:xexpr? content?) #:immutable #t))]))
 (provide (contract-out [transform-to-block (parameter/c (hash/c symbol? (-> the:xexpr? block?) #:immutable #t))]))
@@ -63,10 +75,14 @@ along with bystroTeX.  If not, see <http://www.gnu.org/licenses/>.
          'it (λ (x) (italic (se-path* '(it) x)))
          'nbsp (λ (x) ~)
          'br (λ (x) (linebreak))
+         'span (recurse-element 'span)
+         'div  (recurse-element 'div)
+         'p    (recurse-element 'p)
          )))
 (define transform-to-block
   (make-parameter
-   (hash 'verbatim (λ (x) (verb (se-path* '(verbatim) x))))))
+   (hash 'verbatim (λ (x) (verb (se-path* '(verbatim) x)))
+         )))
 
 (provide (contract-out [show-xexpr (->* (the:xexpr?)  
                                         (#:transform-to-content
@@ -84,9 +100,9 @@ along with bystroTeX.  If not, see <http://www.gnu.org/licenses/>.
          #:transform-to-content [t (transform-to-content)] 
          #:transform-to-block   [tblock (transform-to-block)]
          #:show-root [sr #f]
-         #:size [size #f]
-         #:size-step [step 0.93] 
-         #:steps [steps 4])
+         #:size [size (show-xexpr-size)]
+         #:size-step [step (show-xexpr-size-step)] 
+         #:steps [steps (show-xexpr-steps)])
   (let ([result (show-xexpr0 
                  x 
                  #:transform-to-content t
@@ -105,8 +121,8 @@ along with bystroTeX.  If not, see <http://www.gnu.org/licenses/>.
          #:transform-to-content [t (transform-to-content)] 
          #:transform-to-block   [tblock (transform-to-block)]
          #:show-root [sr #f]
-         #:size-step [step 0.93]
-         #:steps [steps 4])
+         #:size-step [step (show-xexpr-size-step)]
+         #:steps [steps (show-xexpr-steps)])
   (define (not-whitespace? u) (or (not (string? u)) (regexp-match #px"[^[:space:]]" u)))
   (define stl 
     (make-style 
@@ -147,7 +163,7 @@ along with bystroTeX.  If not, see <http://www.gnu.org/licenses/>.
                       [mblock (member (car x) (hash-keys tblock))]) 
                   (if m (hash-ref t (car m)) (if mblock (hash-ref tblock (car mblock)) #f))))
      (if fn
-         (fn x)
+         (parameterize ([show-xexpr-size-step step] [show-xexpr-steps steps]) (fn x))
          (cond 
           [(null? (cdr x)) ; (a)
            (tbl (list (list (symbol->string (car x)))))]

@@ -18,7 +18,7 @@
 
 /* Serif: */
 .main, .refcontent, .tocview, .tocsub, .sroman, i {
-  font-family: serif;
+  font-family: "Arial, Helvetica, sans-serif";
 }
 
 /* Sans-serif: */
@@ -73,13 +73,13 @@ table td {
 }
 
 .maincolumn {
-  width: 43em;
-  margin-right: -40em;
-  margin-left: 15em;
+  max-width: 590pt;
+  width: 95%;
 }
 
 .main {
-  width: 43em;
+  max-width: 590pt;
+  width: 95%;
   text-align: left;
 }
 

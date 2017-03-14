@@ -7,9 +7,9 @@
   (provide bibliography)
   
   (define (cite x)
-    (let ([xh (get-bib-from-server x)])
-      (set! items (cons (cons x xh) items))
-      (elemref x x )))
+    (when (empty? (for/list ([y items] #:when (eq? x (car y))) #t))
+      (let ([xh (get-bib-from-server x)]) (set! items (cons (cons x xh) items))))
+    (elemref x x ))
   (define items '())
   (define (prepend-comma x) (if (cons? x) (cons ", " x) x))
   (define (prepend-hspace x) (if (cons? x) (cons (hspace 1) x) x))
