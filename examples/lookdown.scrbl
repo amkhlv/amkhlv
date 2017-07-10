@@ -17,12 +17,11 @@
 @(define singlepage-mode #t)
 @(bystro-def-formula "formula-enormula-humongula!")
 
-@(define bystrotex-xml-files
-   (with-external-command-as
-    finder
-    #:cmdline
-    '("find" "." "-type" "f" "-name" "bystrotex.xml")
-    (port->lines finder-stdout)))
+@(define bystrotex.xml-dirs
+   (let* ([inp (run-pipeline #f #f ("find" "." "-type" "f" "-name" "bystrotex.xml") ("sort"))]
+          [lns (port->lines (run-pipeline #f #f ("find" "." "-type" "f" "-name" "bystrotex.xml" "-exec" "dirname" "{}" ";") ("sort")))])
+     (close-input-port inp)
+     lns))
    
 @(define (dirname x)
    (with-external-command-as
@@ -32,8 +31,7 @@
     (read-line dirname-stdout)))
 
 @(define (get-lookdown.html x)
-   (let* ([xdir (dirname x)]
-          [lookdown.html (build-path xdir "lookdown/lookdown.html")])
+   (let ([lookdown.html (build-path x "lookdown/lookdown.html")])
      (if (file-exists? lookdown.html)
          lookdown.html
          #f)))
@@ -57,22 +55,22 @@
        '()
        `(,(bystro-ribbon)
          ,(tbl #:orient 'hor
-               (for/list ([bystrotex.xml bystrotex-xml-files])
+               (for/list ([bystrotex-dir bystrotex.xml-dirs])
                  (list
-                  (let ([lookdown.html (get-lookdown.html bystrotex.xml)])
-                    (if lookdown.html (hyperlink lookdown.html "lookdown") ""))
-                  (seclink (dirname bystrotex.xml))))))
+                  (let ([lookdown.html (get-lookdown.html bystrotex-dir)])
+                    (if lookdown.html (hyperlink lookdown.html bystrotex-dir) ""))
+                  (seclink bystrotex-dir)))))
        '())
-     ,@(for/list ([bystrotex.xml bystrotex-xml-files])
+     ,@(for/list ([bystrotex-dir bystrotex.xml-dirs])
          (part 
           #f 
-          (list (list 'part (dirname bystrotex.xml))) 
-          `(,(dirname bystrotex.xml)) 
+          (list (list 'part bystrotex-dir))
+          `(,bystrotex-dir) 
           (make-style "LookdownPartFolder" '(unnumbered))
           '()
           (begin
                                         ;(displayln bystrotex.xml)
-            (list (bystro-ribbon-for-location (string->path (dirname bystrotex.xml)))))
+            (list (bystro-ribbon-for-location (string->path bystrotex-dir) #:exclude-same-name #t)))
           '())))))
 
 @; ---------------------------------------------------------------------------------------------------
