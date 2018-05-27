@@ -304,9 +304,8 @@ perhaps in the @tt|--{@fsize[]}--| function.
 
 @slide["Basic syntax" #:tag "Syntax" #:showtitle #t]{
 You might want to read @hyperlink["http://docs.racket-lang.org/scribble/reader.html"]{basic Scribble documentation},
-but it should not be necessary. Just look at the source file and proceed by analogy. 
-Also have a look at the ``docs'' link @hyperlink["http://planet.racket-lang.org/display.ss?package=bystroTeX.plt&owner=amkhlv"]{on PLaneT}.
-More examples can be found @hyperlink["https://github.com/amkhlv/dgcm"]{here}.
+But it should not be necessary, because the syntax should be clear from the source file of these pages. 
+More examples can be found @hyperlink["https://github.com/amkhlv/BV"]{here}.
 
 @table-of-contents[]
 @section{Simple formulas}
@@ -629,24 +628,12 @@ The trailing dot is stripped to facilitate the use of TAB completion.
 }
 
 @slide["Automatic LaTeX → BystroTeX conversion" #:tag "LaTeX2BystroTeX" #:showtitle #t]{
-I have tried to write a program which converts a LaTeX document into BystroTeX, for example
-replaces every @tt{$x$} with @tt|--{@f{x}}--|. This is very difficult to do correctly,
-because LaTeX is extremely difficult to parse. What I did is a very naive zeroth approximation.
-
-The resulting script is @tt{l2b.rkt} which is in the sample directory. It accepts LaTeX on @tt{stdin}
-and outputs BystroTeX to @tt{stdout}. 
-To compile it, execute the following command:
-@verb{raco exe l2b.rkt}
-This will create the executable called @tt{l2b}. Example of use:
-@verb{echo 'example: $1$' | ./l2b}
-The output should be:
-@verb|-{example: @f{1}}-|
-
-The problem is, every person writes LaTeX in their own way.
+I have tried to write 
+@hyperlink["https://github.com/amkhlv/l2b2l"]{a program which converts a LaTeX document into BystroTeX}, 
+for example replaces every @tt{$x$} with @tt|--{@f{x}}--|. This only covers a very limited subset of @tt{LaTeX}.
+The problem is, every person writes @tt{LaTeX} in their own way.
 For example, some people write @tt|{\beq}| instead of @tt|{\begin{equation}}|.
-So, if you want to use a converter like this, you would probably have to modify it to fit your 
-own LaTeX style.
-
+Then, the converter would have to be customized (by editing its source code).
 }
 
 
@@ -699,40 +686,6 @@ This is slightly experimental.
 }
 
 
-@slide["Why not Beamer?" #:tag "Beamer" #:showtitle #t]{
-There is an excellent tool called @hyperlink["http://en.wikipedia.org/wiki/Beamer_(LaTeX)"]{Beamer},
-which is based on @tt{LaTeX} and can be used with @hyperlink["http://www.gnu.org/s/auctex/"]{AUCTeX}. 
-The problem is, I don't like @tt{TeX} and @tt{LaTeX}. This is, of course, a matter of personal preference.
-
-Also, Scribble produces @tt{.html} files. I find @tt{.html} format more convenient for giving presentations
-than the @tt{Beamer}'s format @tt{.pdf}. 
-
-@elem[#:style @bystro-elemstyle["text-decoration:blink;"]]{Most importantly: Beamer won't give you blinking text.}
-
-@div[comment]{It turns out, that Firefox @hyperlink["https://bugzilla.mozilla.org/show_bug.cgi?id=857820"]{disabled blink-effect},
-what a pity!}
-}
-
-@slide["From TeX to HTML?" #:tag "FromTeXtoHTML" #:showtitle #t]{
-I think that we should @bold{switch from TeX to HTML}:
-
-@itemlist[
-@item{TeX is optimized for the quality of typesetting. This is not very important for us.}
-@item{HTML is all about @spn[attn]{creating links}. This is exactly what we need. 
-After all, scientific publishing is for @spn[attn]{linking ideas.}}
-@item{TeX+PDF has a serious disadvantage: the document gets split, in an arbitrary way, 
-into @bold{pages} of fixed size. This is just harmful.}
-@item{TeX does not have a convincing support for internationalization; in its basic form,
-it is essentially English only. Exist various extensions allowing to overcome this, but they are 
-confusing and unstable}
-@item{Practically, TeX is very hard to learn, and hard to use properly.
-With the right markup tools (perhaps this project?) HTML should be easier.}
-@item{Learning Lisp/Scheme/@hyperlink["http://racket-lang.org/"]{Racket}
-is a rewarding intellectual experience.
-}
-]
-
-}
 
 @; ---------------------------------------------------------------------------------------------------
 @disconnect[formula-database]

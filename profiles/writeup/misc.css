@@ -107,6 +107,15 @@ font-size:x-small;
     background-color: green;
 }
 
+.amkgreen {
+    color: darkgreen;
+    background-color: #ffdddd;
+}
+
+.amksand {
+    background-color: #ffffc0;
+}
+
 .amkyell {
     background-color: yellow;
 }
