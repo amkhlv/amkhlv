@@ -79,7 +79,7 @@ element?
 
 @subsection{Align to right}
 @(define-namespace-anchor b)
-@show-and-go[b]|--{
+@verb|--{
 (tg table #:attrs ([border "0"] [width "100%"])
     (tg tr (tg td #:attrs ([style "text-align:right;"])
                "First line"
@@ -87,6 +87,12 @@ element?
                "Second line"
                )))
 }--|
+@(tg table #:attrs ([border "0"] [width "100%"])
+    (tg tr (tg td #:attrs ([style "text-align:right;"])
+               "First line"
+               (linebreak)
+               "Second line"
+               )))
 
 
 @section{Format}
