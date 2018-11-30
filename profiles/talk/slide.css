@@ -5,16 +5,18 @@
 
 .main {
   font-family: "Arial, Helvetica, sans-serif";
-  font-size: 14pt; 
-  width: initial;
-  text-align: left;
+  font-size: 16pt; 
+}
+
+.main > h3,h4,h5 {
+   color: maroon;
 }
 
 .maincolumn {
-  width: initial;
-  margin-right: 1in;
-  margin-left: 1in;
-  margin-top: 1in;
+  font-size: 20pt;
+  width: 970px;
+/*  margin-right: -40em; */
+  margin-left: 5pt;
 }
 
 .SubFlow {
@@ -74,7 +76,7 @@
   white-space: nowrap;
 }
 .navright {
-  font-size: 12pt;
+  font-size: 15pt;
   margin-right: 1ex;
   position: relative;
   float: right;
@@ -92,7 +94,6 @@ table, th, td
 {
   font-family: "DejaVu Sans";
 }
-
 
 .bystro-bib-key-cell {
     text-align: right;
