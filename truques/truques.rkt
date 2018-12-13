@@ -49,6 +49,35 @@ along with bystroTeX.  If not, see <http://www.gnu.org/licenses/>.
                ((curry string-append) "mailto:")
                (add-between xx ","))])
       (hyperlink z (add-between (filter (compose not ((curry regexp-match?) #px"^\\s*$")) x) " ⋄ "))))
-           
 
+  (provide (contract-out [copy-to-clipboard (->* () () #:rest (listof string?) element?)]))
+  (define (copy-to-clipboard . xs)
+    (set! copy-tag-num (+ 1 copy-tag-num))
+    (element
+     (style #f '())
+     (list
+      (tg
+       textarea
+       #:attrs ([id (string-append "amkhlv-bystro-copy-id-" (number->string copy-tag-num))]
+                [readonly "1"])
+       (apply string-append xs)
+       )
+      (tg
+       button
+       #:attrs ([onclick (string-append "amkhlvBystroCopyFn" (number->string copy-tag-num) "()")])
+       "COPY")
+      (tg
+       script
+       (string-append
+        "function amkhlvBystroCopyFn"
+        (number->string copy-tag-num)
+        "() {var copyText = document.getElementById(\""
+        "amkhlv-bystro-copy-id-"
+        (number->string copy-tag-num)
+        "\") ; copyText.select(); document.execCommand(\"copy\"); }"
+        )
+       )
+      )
+     )
+    )
   )
