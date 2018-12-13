@@ -21,7 +21,7 @@ along with bystroTeX.  If not, see <http://www.gnu.org/licenses/>.
 
 
 (require (prefix-in the: xml) xml/path racket/format)
-(require (planet amkhlv/bystroTeX/common))
+(require bystroTeX/common)
 (require scribble/core scribble/base scribble/html-properties scribble/decode)
 (require racket/date)
 

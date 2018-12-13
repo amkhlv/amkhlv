@@ -19,8 +19,9 @@ along with bystroTeX.  If not, see <http://www.gnu.org/licenses/>.
 
 (module truques racket
   (require scribble/core scribble/base scribble/html-properties scribble/decode scriblib/render-cond racket/string)
-  (require (planet amkhlv/bystroTeX/common))
+  (require bystroTeX/common)
 
+  (define copy-tag-num 0)
 
   (provide (contract-out [show-and-go (->* (namespace-anchor?) () #:rest (listof string?) block?)]))
   (define (show-and-go a . x)

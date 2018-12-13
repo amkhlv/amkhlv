@@ -18,7 +18,7 @@ along with bystroTeX.  If not, see <http://www.gnu.org/licenses/>.
 |#
 
 (module common racket
-  (require (planet amkhlv/bystroTeX/utils))
+  (require bystroTeX/utils)
 
   (provide stty-minus-f-arg-string)
   (define stty-minus-f-arg-string

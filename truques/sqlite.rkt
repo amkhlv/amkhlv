@@ -22,7 +22,7 @@ along with bystroTeX.  If not, see <http://www.gnu.org/licenses/>.
   
   (require db/base db/sqlite3)
   (require racket/list racket/vector scribble/core scribble/base scribble/html-properties racket/string)
-  (require (planet amkhlv/bystroTeX/common))
+  (require bystroTeX/common)
 
   (provide (all-from-out db/base) (all-from-out db/sqlite3))
 
