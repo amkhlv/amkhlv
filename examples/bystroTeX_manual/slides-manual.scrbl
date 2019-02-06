@@ -105,7 +105,7 @@ To install the server, you will need to install the following things on your com
 
 @itemlist[#:style 'ordered 
 @item{@hyperlink["https://en.wikipedia.org/wiki/Git"]{git}}
-@item{@hyperlink["https://en.wikipedia.org/wiki/Apache_Ant"]{ant} and @hyperlink["https://en.wikipedia.org/wiki/SBT_(software)"]{sbt}}
+@item{@hyperlink["https://en.wikipedia.org/wiki/Apache_Maven"]{mvn} and @hyperlink["https://en.wikipedia.org/wiki/SBT_(software)"]{sbt}}
 ]
 
 @section{Build things}
@@ -122,7 +122,7 @@ Now execute the following commands:
 
 @smaller{@tt{cd jlatexmath}}
 
-@smaller{@tt{ant}}
+@smaller{@tt{mvn clean install}}
 
 @smaller{@tt{cd ..}}
 
