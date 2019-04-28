@@ -161,6 +161,38 @@ along with bystroTeX.  If not, see <http://www.gnu.org/licenses/>.
           )
         (bystro-css-element-from-files "misc.css" "slide-title.css")))
 ;; ---------------------------------------------------------------------------------------------------
+  (provide (contract-out
+            ; Page
+            [page (->* (content?) 
+                       (#:tag (or/c symbol? string? #f) #:showtitle boolean?) 
+                       pre-part?)]))
+  (define (page stitle #:tag [tg #f] #:showtitle [sttl #f])
+    (set-current-slide-number! state (+ 1 (current-slide-number state)))
+    (set-current-slidename! state (if tg tg (regexp-replace #px"\\s" stitle "_")))
+    (append
+     `(,(part-start 0 #f (if tg `((part ,tg)) '()) (style #f to-hide) (current-slidename state)))
+     (if sttl `(,(element (make-style "pagetitle" '()) (list stitle))) '())
+     `(,(bystro-css-element-from-files "misc.css" "slide.css")
+       ,(collect-element 
+         (make-style #f '()) 
+         "" 
+         (fn-to-collect-slide-link
+          (current-slidename state)
+          stitle 
+          (current-slide-number state))))))
+
+  (provide (contract-out
+            ; Subsection in page
+            [subpage (->*
+                      (integer? content?) 
+                      (#:tag (or/c symbol? string? #f) #:showtitle boolean?) 
+                      pre-part?)]))
+  (define (subpage depth stitle #:tag [tg #f] #:showtitle [sttl #f])
+    (append
+     `(,(part-start depth #f (if tg `((part ,tg)) '()) (style #f to-hide) stitle))
+     (if sttl `(,(element (make-style (string-append "pagetitle-" (number->string depth)) '()) (list stitle))) '())))
+      
+;; ---------------------------------------------------------------------------------------------------
   (provide (contract-out 
                                         ; Slide continuation after pause
    [after-pause (->* () 
@@ -202,11 +234,11 @@ along with bystroTeX.  If not, see <http://www.gnu.org/licenses/>.
       (collect-put! ci `(amkhlv-slide ,slide-shortname ,slide-num) slide-title)))
 ;; ---------------------------------------------------------------------------------------------------
   (provide (contract-out 
-                                        ; slide
+            ; slide
             [slide (->* (content?) 
-                               (#:tag (or/c symbol? string? #f) #:showtitle boolean?) 
-                               #:rest (listof (or/c pre-flow? part-start?) )
-                               (or/c part? nested-flow?))]))  
+                        (#:tag (or/c symbol? string? #f) #:showtitle boolean?) 
+                        #:rest (listof (or/c pre-flow? part-start?) )
+                        (or/c part? nested-flow?))]))  
   (define (slide stitle #:tag [tg #f] #:showtitle [sttl #f] . init-content)
     (set-current-slide-number! state (+ 1 (current-slide-number state)))
     (set-current-slide-part-number! state 0)

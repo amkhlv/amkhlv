@@ -644,14 +644,23 @@ along with bystroTeX.  If not, see <http://www.gnu.org/licenses/>.
 
   (provide (contract-out 
             ; get the value of the command line argument with key --k
-            [bystro-get-cl-argument (-> string? string?)]))
+            [bystro-get-cl-argument (-> string? (or/c string? #f))]))
   (define (bystro-get-cl-argument k)
     (let v ([arglist (vector->list (current-command-line-arguments))])
       (if (cons? arglist)
           (if (equal? (car arglist) (string-append "--" k))
               (cadr arglist)
               (v (cdr arglist)))
-          (error 'bystro-get-cl-argument "argument ~a not found" k))))
-
+          #f)))
+  (provide (contract-out
+            ; get the path to the .scrbl file
+            [bystro-source (-> element?)]))
+  (define (bystro-source)
+    (with-bystroconf 
+      (get-bystroconf (get-bystro-scrbl-name))
+      (Cname Cdest Cname.html Cname.scrbl Cformulas/ C.sqlite Carglist Cmultipage?)
+      (if (or Cmultipage? Cdest)
+          (hyperlink (path->string (build-path "../" Cname.scrbl)) (path->string Cname.scrbl))
+          (hyperlink Cname.scrbl Cname.scrbl))))
 
 )

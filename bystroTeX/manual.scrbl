@@ -145,6 +145,50 @@ Removes the most recently shown part of the slide
 }
 
 @defproc[
+(page
+ [x content?]
+ [#:tag tg (or/c symbol? string? #f) #f] 
+ [#:showtitle sttl boolean? #f]
+ )
+pre-part?
+]{
+This works similar to @racket[slide]. The differences are:
+@itemlist[#:style 'ordered
+         @item{
+               Do not put curved brackets {} around the content.
+               The content just goes after @tt|{@page[...]}|, 
+               until the next @tt|{@page[...]}|
+               }
+         @item{
+               No way to do @racket[after-pause]
+               }
+         @item{
+               Inside the content,
+               use @racket[subpage]
+               instead of @racket[section] / @racket[subsection] / @racket[subsubsection]
+               }]
+The intent is that @racket[page] should be more general-webpage-oriented,
+while @racket[slide] more slideshow-oriented.
+
+The CSS style is called @tt{pagetitle}
+}
+
+@defproc[
+(subpage
+ [level integer?]
+ [x content?]
+ [#:tag tg (or/c symbol? string? #f) #f] 
+ [#:showtitle sttl boolean? #f]
+ )
+pre-part?
+]{Like  @racket[section] / @racket[subsection] / @racket[subsubsection] , but
+inside @racket[page] (and not @racket[slide])
+
+The CSS styles are @tt{pagetitle-N} where @tt{N} is @racket[level]
+}
+
+
+@defproc[
 (use-LaTeX-preamble 
  [#:rest xs string?]
  )
