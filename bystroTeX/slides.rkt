@@ -254,8 +254,8 @@ along with bystroTeX.  If not, see <http://www.gnu.org/licenses/>.
                   (style #f to-hide)
                   stitle)
                  (linebreak)
-                 (if sttl (para (clr "blue" (larger stitle)) (linebreak)) "")
                  (bystro-css-element-from-files "misc.css" "slide.css")
+                 (if sttl (element (make-style #f `(,(alt-tag "h2"))) `(,stitle ,(linebreak))) "")
                  (collect-element 
                   (make-style #f '()) 
                   "" 
@@ -268,8 +268,8 @@ along with bystroTeX.  If not, see <http://www.gnu.org/licenses/>.
           (set-current-content!
            state
            (list
-            (if sttl (para (clr "blue" (larger stitle)) (linebreak)) "")
             (bystro-css-element-from-files "misc.css" "slide.css")
+            (if sttl (element (make-style #f `(,(alt-tag "h2"))) `(,stitle ,(linebreak))) "")
             (collect-element 
              (make-style #f '()) 
              "" 
