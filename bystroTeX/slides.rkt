@@ -185,12 +185,12 @@ along with bystroTeX.  If not, see <http://www.gnu.org/licenses/>.
             ; Subsection in page
             [subpage (->*
                       (integer? content?) 
-                      (#:tag (or/c symbol? string? #f) #:showtitle boolean?) 
+                      (#:tag (or/c symbol? string? #f)) 
                       pre-part?)]))
-  (define (subpage depth stitle #:tag [tg #f] #:showtitle [sttl #f])
+  (define (subpage depth stitle #:tag [tg #f])
     (append
      `(,(part-start depth #f (if tg `((part ,tg)) '()) (style #f to-hide) stitle))
-     (if sttl `(,(element (make-style (string-append "pagetitle-" (number->string depth)) '()) (list stitle))) '())))
+     `(,(element (make-style (string-append "pagetitle-" (number->string depth)) '()) (list stitle)))))
       
 ;; ---------------------------------------------------------------------------------------------------
   (provide (contract-out 

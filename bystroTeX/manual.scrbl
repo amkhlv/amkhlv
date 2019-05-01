@@ -178,7 +178,6 @@ The CSS style is called @tt{pagetitle}
  [level integer?]
  [x content?]
  [#:tag tg (or/c symbol? string? #f) #f] 
- [#:showtitle sttl boolean? #f]
  )
 pre-part?
 ]{Like  @racket[section] / @racket[subsection] / @racket[subsubsection] , but
