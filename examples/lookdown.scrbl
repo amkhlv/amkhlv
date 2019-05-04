@@ -1,5 +1,5 @@
 #lang scribble/base
-@(require racket scribble/core scribble/base scribble/decode scribble/html-properties racket/port)
+@(require racket scribble/core scribble/base scribble/decode scribble/html-properties racket/port racket/string)
 @(require "defs.rkt" bystroTeX/common bystroTeX/slides bystroTeX/utils (for-syntax bystroTeX/slides_for-syntax) (for-syntax bystroTeX/utils))
 @; ---------------------------------------------------------------------------------------------------
 @; User definitions:
@@ -36,7 +36,12 @@
          lookdown.html
          #f)))
 
-@title[#:style '(no-toc no-sidebar)]{@(path->string (current-directory))}
+@(define (strip-home-from-path x)
+   (let ([cur (path->string x)]
+         [hm  (path->string (find-system-path 'home-dir))])
+     (if (string-prefix? cur hm) (substring cur (string-length hm)) cur)))
+
+@title[#:style '(no-toc no-sidebar)]{@(strip-home-from-path (current-directory))}
 
 @(decode
   (cons
