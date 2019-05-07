@@ -133,7 +133,11 @@
    it 
    (name dest name.html name.scrbl formulas/ .sqlite arglist multipage?)
    (if (locate-html?)
-       (displayln name.html)
+       (if multipage?
+           (displayln (path->string (build-path name "index.html")))
+           (if dest
+               (displayln (path->string (build-path dest name.html)))
+               (displayln name.html)))
        ;;otherwize BUILD:
        (if multipage?
            (begin
