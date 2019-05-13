@@ -170,7 +170,7 @@ along with bystroTeX.  If not, see <http://www.gnu.org/licenses/>.
     (set-current-slide-number! state (+ 1 (current-slide-number state)))
     (set-current-slidename! state (if tg tg (regexp-replace #px"\\s" stitle "_")))
     (append
-     `(,(part-start 0 #f (if tg `((part ,tg)) '()) (style #f to-hide) (current-slidename state)))
+     `(,(part-start 0 #f (if tg `((part ,tg)) '()) (style #f to-hide) stitle))
      (if sttl `(,(element (make-style "pagetitle" '()) (list stitle))) '())
      `(,(bystro-css-element-from-files "misc.css" "slide.css")
        ,(collect-element 
