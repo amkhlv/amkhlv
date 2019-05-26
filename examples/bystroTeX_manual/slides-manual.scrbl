@@ -472,27 +472,19 @@ should be inserted @hyperlink["http://docs.racket-lang.org/manual@bystroTeX/inde
 
 }
 
-@slide["Notes for emacs users" #:tag "Emacs" #:showtitle #t]{
-If you use @tt{emacs}, I would highly recommend installing the @tt{emacs} scripts
-from @hyperlink["http://www.neilvandyke.org"]{www.neilvandyke.org}. Not as powerful as
-@hyperlink["http://www.gnu.org/s/auctex/"]{AUCTeX}, but still very cool!
+@slide["Emacs preview inspired by AUCTeX" #:tag "Emacs" #:showtitle #t]{
+I use @hyperlink["https://github.com/greghendershott/racket-mode"]{racket-mode}.
 
-Some more staff in @tt{.emacs}, if you wish:
+The additional library
+@hyperlink["https://github.com/amkhlv/amkhlv/blob/master/bystroTeX-preview.el"]{bystroTeX-preview.el} provides some rudimentary preview functionality similar to
+@hyperlink["http://www.gnu.org/s/auctex/"]{AUCTeX}.
 
-@verb[#:style @(make-style "comment" '())]|--{
-(add-outline 'scribble-mode-hook)
-(add-hook 'scribble-mode-hook '(lambda () (setq outline-regexp "@section\\|@subsection\\|@subsubsection\\|@slide")))
-(defface scribble-slide-face
-  '((((class color) (background dark)) (:inherit variable-pitch :family "Terminus" :foreground "khaki2" :weight bold :height 1.2)))
-  "Basic face for highlighting the scribble slide title.")
-(add-hook 'scribble-mode-hook '(lambda () (font-lock-add-keywords 'scribble-mode
-      '(("@slide\\[\"\\(.*?\\)\".*\\]" 1 'scribble-slide-face prepend)
-        ("@slide\\[@elem{\\(.*?\\)}.*\\]" 1 'scribble-slide-face prepend)
-        ("@\\(after-pause\\)" 1 'font-lock-warning-face prepend)
-        ("@\\(slide\\)" 1 'font-lock-warning-face prepend)))))
-}--|
+For example, see
+@hyperlink["https://github.com/amkhlv/usr/blob/master/lib/emacs/emacs.el"]{my @tt{.emacs} file}
+(search for @tt{racket-mode}).
 
---- for more syntax highlighting
+
+
 }
 
 @slide["Sections in slide" #:tag "Sections" #:showtitle #t]{
