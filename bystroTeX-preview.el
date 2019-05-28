@@ -1,8 +1,20 @@
 (provide 'bystroTeX-preview)
 
+
+(require 'subr-x)
+
+
 (defvar bystroTeX-preview-is-on nil)
 
 (defvar bystroTeX--hide-region-overlays nil)
+
+(defun bystroTeX--mark (x)
+  (put-image (create-image (concat "~/.config/amkhlv/bystroTeX/marker-" x ".svg")) (point)))
+
+(defun bystroTeX--flush-cursor ()
+  (bystroTeX--mark "flush")
+  (sit-for 0.33)
+  (remove-images (point) (point)))
 
 (defun bystroTeX--make-hide-overlay (b e)
   (let ((new-overlay (make-overlay b e)))
@@ -15,16 +27,30 @@
     (delete-overlay ovl))
   (setq bystroTeX--hide-region-overlays nil))
     
+(defun bystroTeX--TeX-matches (tex)
+  (not
+   (memq
+    nil
+    (mapcar
+     (lambda (line)
+       (and
+        (search-forward line (+ 1 (point) (length line)) t)
+        ;;(bystroTeX--mark "2")
+        (if (looking-at "[ ]*\n[ ]*") (re-search-forward "[ ]*\n[ ]*") (looking-at "}"))
+        ;;(bystroTeX--mark "2")
+        ))
+     (mapcar 'string-trim (split-string tex "\n"))))))
 
 (defun bystroTeX--insert-formula (tex svg)
   (let ((b nil)
         (e nil))
-    (when
-        (ignore-errors (search-forward (concat "@f{" tex "}")))
+    (when (re-search-forward "@f{\\([ ]*\n[ ]*\\)?" nil t)
       (setq b (match-beginning 0))
-      (setq e (point))
-      (put-image (create-image svg) (point))
-      (bystroTeX--make-hide-overlay b e)
+      ;;(bystroTeX--mark "1")
+      (when (bystroTeX--TeX-matches tex)
+        (setq e (+ 1 (point)))
+        (put-image (create-image svg) (+ 1 (point)))
+        (bystroTeX--make-hide-overlay b e))
       (bystroTeX--insert-formula tex svg))))
 
 (defun bystroTeX--insert-equation (tex svg)
@@ -32,15 +58,8 @@
         (e nil))
     (when (re-search-forward "@equation\\(\\[[^]]+\\]\\)?{[ ]*\n[ ]*" nil t)
       (setq b (match-beginning 0))
-      (when (not
-             (memq
-              nil
-              (mapcar
-               (lambda (line)
-                 (and
-                  (search-forward line (+ 1 (point) (length line)) t)
-                  (if (looking-at "[ ]*\n[ ]*") (re-search-forward "[ ]*\n[ ]*") nil)))
-               (split-string tex "\n"))))
+      ;;(bystroTeX--mark "1")
+      (when (bystroTeX--TeX-matches tex)
         (setq e (+ 1 (point)))
         (put-image (create-image svg) (+ 1 (point)))
         (bystroTeX--make-hide-overlay b e))
@@ -53,7 +72,7 @@
   (make-variable-buffer-local 'bystroTeX--hide-region-overlays)
   (setq svgnum 0)
   (let* ((oldpos (point))
-         (d (replace-regexp-in-string "\\.scrbl$" "/" (buffer-name)))
+         (d (replace-regexp-in-string "\\.scrbl$" "/" (buffer-file-name)))
          (formulas-database (concat d "formulas.sqlite"))
          )
     (dolist
@@ -75,9 +94,9 @@
              )))))
       (setq svgnum (1+ svgnum))
       (goto-char 0)
-      (bystroTeX--insert-formula texstr (concat (getenv "PWD") "/" d (number-to-string svgnum) ".svg"))
+      (bystroTeX--insert-formula texstr (concat d (number-to-string svgnum) ".svg"))
       (goto-char 0)
-      (bystroTeX--insert-equation texstr (concat (getenv "PWD") "/" d (number-to-string svgnum) ".svg"))
+      (bystroTeX--insert-equation texstr (concat d (number-to-string svgnum) ".svg"))
       )
     (setq bystroTeX-preview-is-on t)
     (goto-char oldpos)
@@ -91,7 +110,8 @@
   (make-variable-buffer-local 'bystroTeX--hide-region-overlays)
   (remove-images (point-min) (point-max))
   (setq bystroTeX-preview-is-on nil)
-  (bystroTeX--unhide-all))
+  (bystroTeX--unhide-all)
+  )
 
 (defun bystroTeX-toggle-preview ()
   "toggle preview"
@@ -102,7 +122,8 @@
   "toggle preview"
   (interactive)
   (bystroTeX-toggle-preview)
-  (recenter))
+  (recenter)
+  (bystroTeX--flush-cursor))
 
 ;; Searching for exact string
 ;; ==========================
