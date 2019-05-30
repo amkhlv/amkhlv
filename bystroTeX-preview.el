@@ -1,20 +1,25 @@
 (provide 'bystroTeX-preview)
 
-
 (require 'subr-x)
 
+(defgroup bystroTeX nil
+  "Functions to preview BystroTeX .scrbl files"
+  :prefix "bystroTeX-"
+  :group 'convenience)
+
+(defcustom bystroTeX-equation-regex "@\\(equation\\|e\\)"
+  "Equation regex"
+  :type 'string
+  :group 'bystroTeX)
+
+(defcustom bystroTeX-formula-regex "@,?f"
+  "Formula regex"
+  :type 'string
+  :group 'bystroTeX)
 
 (defvar bystroTeX-preview-is-on nil)
 
 (defvar bystroTeX--hide-region-overlays nil)
-
-(defun bystroTeX--mark (x)
-  (put-image (create-image (concat "~/.config/amkhlv/bystroTeX/marker-" x ".svg")) (point)))
-
-(defun bystroTeX--flush-cursor ()
-  (bystroTeX--mark "flush")
-  (sit-for 0.33)
-  (remove-images (point) (point)))
 
 (defun bystroTeX--make-hide-overlay (b e)
   (let ((new-overlay (make-overlay b e)))
@@ -35,18 +40,18 @@
      (lambda (line)
        (and
         (search-forward line (+ 1 (point) (length line)) t)
-        ;;(bystroTeX--mark "2")
         (if (looking-at "[ ]*\n[ ]*") (re-search-forward "[ ]*\n[ ]*") (looking-at "}"))
-        ;;(bystroTeX--mark "2")
         ))
      (mapcar 'string-trim (split-string tex "\n"))))))
 
 (defun bystroTeX--insert-formula (tex svg)
   (let ((b nil)
         (e nil))
-    (when (re-search-forward "@f{\\([ ]*\n[ ]*\\)?" nil t)
+    (when (re-search-forward
+           (concat bystroTeX-formula-regex "{\\([ ]*\n[ ]*\\)?")
+           nil
+           t)
       (setq b (match-beginning 0))
-      ;;(bystroTeX--mark "1")
       (when (bystroTeX--TeX-matches tex)
         (setq e (+ 1 (point)))
         (put-image (create-image svg) (+ 1 (point)))
@@ -56,9 +61,11 @@
 (defun bystroTeX--insert-equation (tex svg)
   (let ((b nil)
         (e nil))
-    (when (re-search-forward "@equation\\(\\[[^]]+\\]\\)?{[ ]*\n[ ]*" nil t)
+    (when (re-search-forward
+           (concat bystroTeX-equation-regex "\\(\\[[^]]+\\]\\)?{[ ]*\n[ ]*")
+           nil
+           t)
       (setq b (match-beginning 0))
-      ;;(bystroTeX--mark "1")
       (when (bystroTeX--TeX-matches tex)
         (setq e (+ 1 (point)))
         (put-image (create-image svg) (+ 1 (point)))
@@ -70,6 +77,7 @@
   (interactive)
   (make-variable-buffer-local 'bystroTeX-preview-is-on)
   (make-variable-buffer-local 'bystroTeX--hide-region-overlays)
+  (setq case-fold-search nil)
   (setq svgnum 0)
   (let* ((oldpos (point))
          (d (replace-regexp-in-string "\\.scrbl$" "/" (buffer-file-name)))
@@ -123,7 +131,7 @@
   (interactive)
   (bystroTeX-toggle-preview)
   (recenter)
-  (bystroTeX--flush-cursor))
+  )
 
 ;; Searching for exact string
 ;; ==========================
