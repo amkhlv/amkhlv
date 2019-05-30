@@ -458,13 +458,14 @@ along with bystroTeX.  If not, see <http://www.gnu.org/licenses/>.
                                 (bg ,(rgb-list->string bg-color)) 
                                 (fg ,(rgb-list->string fg-color))
                                 (filename ,filename)) 
-                               ,(substring texstring (string-length preamble)))))
+                               ,texstring
+                               )))
     (xml:write-xml/content
      (xml:xexpr->xml `(formula ((size ,(number->string size)) 
                                 (bg ,(rgb-list->string bg-color)) 
                                 (fg ,(rgb-list->string fg-color))
                                 (filename ,filename)) 
-                               ,texstring)) 
+                               ,(string-append preamble texstring))) 
      inport)
     (close-output-port inport)
     (let* (
@@ -476,7 +477,12 @@ along with bystroTeX.  If not, see <http://www.gnu.org/licenses/>.
       (close-input-port errport)
       (if found-error
           (begin 
-            (display (string-append found-error "<--- ERROR processing LaTeX formula: \n" texstring))
+            (display (string-append
+                      found-error
+                      "<--- ERROR processing LaTeX formula: \n"
+                      texstring
+                      "\nwith preamble: "
+                      preamble))
             (error "*** please make corrections and run again ***")
             )
           ;; if no error, return the depth (as a string):
@@ -569,7 +575,7 @@ along with bystroTeX.  If not, see <http://www.gnu.org/licenses/>.
                                         lookup
                                         (list 
                                          bsz 
-                                         (apply string-append (cons preamble tex))
+                                         (apply string-append tex)
                                          (rgb-list->string bg-color) 
                                          (rgb-list->string fg-color))))]
                [row (if (cons? rows) (car rows) #f)]
@@ -603,7 +609,7 @@ along with bystroTeX.  If not, see <http://www.gnu.org/licenses/>.
                  mydb
                  (bind-prepared-statement
                   insert-stmt 
-                  (list (apply string-append (cons preamble tex))
+                  (list (apply string-append tex)
                         bsz 
                         (rgb-list->string bg-color) 
                         (rgb-list->string fg-color) 
