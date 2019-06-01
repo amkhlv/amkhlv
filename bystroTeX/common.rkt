@@ -223,8 +223,9 @@ along with bystroTeX.  If not, see <http://www.gnu.org/licenses/>.
                                       (cons (car xs) (cons " & " (interleave& (cdr xs)))) 
                                       xs)
                                   '()))
-                          ,(if (and numbered? ((string-length (last ln)) . > . 0))  
-                               (string-append "\\label{" (last ln) "}") 
+                          ,(if (and numbered?
+                                    (target-element? (last ln)))
+                               (string-append "\\label{" (car (element-content (last ln))) "}") 
                                "")
                           )))))])
          (if (cons? rows) 
