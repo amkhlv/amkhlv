@@ -10,7 +10,7 @@
     (bystro-formula-syntax 
      #:autoalign-formula-prefix "f"
      #:manual-formula-prefix    "f"
-     #:display-math-prefix      "equation"
+     #:display-math-prefix      "e"
      #:size-change-notation     "fsize"
      #:size-increase-notation   "fsize+"
      #:size-restore-notation    "fsize="
