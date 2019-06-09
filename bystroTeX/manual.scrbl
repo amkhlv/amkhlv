@@ -628,6 +628,10 @@ available:
 ]
 }
 
+@defform[(with-external-command-as nick #:cmdline xs action ...)]{
+An alternative form, where @racket[xs] is @racket[(list cmd arg ...)]
+}
+
 @defform[(with-subprocess-as nick outp inp errp (com arg ...) action ...)]{
 A wrapper around the Racket's @racket[subprocess] procedure. It executes
 @tt{(find-executable-path com)} to find the executable. The following identifiers are
