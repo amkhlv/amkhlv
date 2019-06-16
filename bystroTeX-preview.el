@@ -31,6 +31,18 @@
   (dolist (ovl bystroTeX--hide-region-overlays)
     (delete-overlay ovl))
   (setq bystroTeX--hide-region-overlays nil))
+
+(defun bystroTeX-unhide-at-point ()
+  (setq bystroTeX--hide-region-overlays
+        (seq-filter
+         (lambda (ovl)
+           (if
+               (and
+                (< (- (overlay-start ovl) 1) (point))
+                (< (point) (+ (overlay-end ovl) 1)))
+               (progn (delete-overlay ovl) nil)
+             t))
+         bystroTeX--hide-region-overlays )))
     
 (defun bystroTeX--TeX-matches (tex)
   (not
@@ -119,6 +131,13 @@
   (remove-images (point-min) (point-max))
   (setq bystroTeX-preview-is-on nil)
   (bystroTeX--unhide-all)
+  )
+
+(defun bystroTeX-reveal ()
+  "remove SVG under cursor"
+  (interactive)
+  (remove-images (- (point) 1) (+ (point) 1))
+  (bystroTeX-unhide-at-point)
   )
 
 (defun bystroTeX-toggle-preview ()
