@@ -487,14 +487,63 @@ For example, see
 
 }
 
+@slide["@page[] vs @slide[]" #:tag "PageVsSlide" #:showtitle #t]{
+
+In the multipage mode, there are two ways to start new page:
+
+@hrule[]
+
+@verb|{
+       @slide["Title" #:tag ... #:showtitle #t]{
+                   content
+                   }
+       }|
+
+@hrule[]
+
+and
+
+@hrule[]
+
+@verb|{
+       @page["Title" #:tag ... #:showtitle #t]
+
+       content
+       }|
+
+@hrule[]
+
+The @tt|{@page[]}| is slightly different. The main difference is, there is no @tt|{ {} }|
+around the content. This simplifies writing. But, on the other hand, @tt|{@page[]}| has
+a disadvantage over @tt|{@slide[]}|:
+@(itemlist
+  @item{No way to use @tt|{@after-pause[]}| when using @tt|{@page[]}| instead of  @tt|{@slide[]}|}
+  )
+When using @tt|{@page[]}|, inside the content, use:
+@verb|{
+       @subpage[1 ...] instead of @section[...]
+       @subpage[2 ...] instead of @subsection[...]
+       @subpage[3 ...] instead of @subsubsection[...]
+       }|
+@tt|{@slide[]}| is more slideshow-oriented while @tt|{@page[]}| is more writeup-oriented.
+          
+}
+
 @slide["Sections in slide" #:tag "Sections" #:showtitle #t]{
 @table-of-contents[]
 @section{Introduction}
+@subsection{A slide can contain sections}
 A slide can contain sections.
 @div[redbox]{Restriction: the name of the section should not coincide with the tag of a slide. For example, 
 suppose that you have a slide with  @tt|{#:tag "Happiness"}|; then, if you must have also @tt|{@section{Happiness}}|
 then you must give it a tag, for example: @tt|{@section[#:tag "sectionHappiness"]{Happiness}}|
 }
+
+@subsection{Table of contents}
+
+To list the table of contents, us @tt|{@table-of-contents[]}|
+
+@spn[attn]{Attention:} on the @bold{title page}, use @tt|{bystro-toc[]}| and @bold{not}  @tt|{@table-of-contents[]}|
 
 @section{Disadvantages}
 Obviously, this is a bad idea when giving a talk:
@@ -503,7 +552,7 @@ Audience will get confused.
 @subsection{Second disadvantage}
 Audience will start reading section titles instead of reading formulas.
 @section{Advantages}
-But it could be good for something else.
+But it is good for wruteups.
 }
 @slide["Single page and printing" #:tag "SinglePage" #:showtitle #t]{
 It is also possible to have everything on one single long @tt{html} page. 
