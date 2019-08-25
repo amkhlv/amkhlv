@@ -472,8 +472,25 @@ should be inserted @hyperlink["http://docs.racket-lang.org/manual@bystroTeX/inde
 
 }
 
-@slide["Emacs preview inspired by AUCTeX" #:tag "Emacs" #:showtitle #t]{
+@slide["Emacs" #:tag "Emacs" #:showtitle #t]{
+
+@table-of-contents[]
+
+@section{Racket mode}
+
 I use @hyperlink["https://github.com/greghendershott/racket-mode"]{racket-mode}.
+
+I find it useful to disable smart bracket completion, because it does not play well
+with typesetting formulas. This requires some lines in my `Emacs` file:
+
+@verb|{
+       (define-key racket-mode-map (kbd "]") nil)
+       (define-key racket-mode-map (kbd ")") nil)
+       (define-key racket-mode-map (kbd "}") nil)
+       }|
+
+
+@section{Emacs preview inspired by AUCTeX}
 
 The additional library
 @hyperlink["https://github.com/amkhlv/amkhlv/blob/master/bystroTeX-preview.el"]{bystroTeX-preview.el} provides some rudimentary preview functionality similar to
