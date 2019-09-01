@@ -259,6 +259,12 @@ delayed-block?]{
 Insert the list of slides. This is for use on the title-slide.
 }
 
+@defproc[
+(bystro-local-toc)
+delayed-block?]{
+Insert the local table of contents on the page.
+}
+
 
 @defproc[
 (get-bib-from-server [key string?])

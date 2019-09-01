@@ -169,6 +169,7 @@ along with bystroTeX.  If not, see <http://www.gnu.org/licenses/>.
   (define (page stitle #:tag [tg #f] #:showtitle [sttl #f])
     (set-current-slide-number! state (+ 1 (current-slide-number state)))
     (set-current-slidename! state (if tg tg (regexp-replace #px"\\s" stitle "_")))
+    (set-current-slide-part-number! state 0)
     (append
      `(,(part-start 0 #f (if tg `((part ,tg)) '()) (style #f to-hide) stitle))
      (if sttl `(,(element (make-style "pagetitle" '()) (list stitle))) '())
@@ -188,9 +189,19 @@ along with bystroTeX.  If not, see <http://www.gnu.org/licenses/>.
                       (#:tag (or/c symbol? string? #f)) 
                       pre-part?)]))
   (define (subpage depth stitle #:tag [tg #f])
+    (set-current-slide-part-number! state (+ 1 (current-slide-part-number state)))
     (append
      `(,(part-start depth #f (if tg `((part ,tg)) '()) (style #f to-hide) stitle))
-     `(,(element (make-style (string-append "pagetitle-" (number->string depth)) '()) (list stitle)))))
+     `(,(element (make-style (string-append "pagetitle-" (number->string depth)) '()) (list stitle)))
+     `(,(collect-element 
+         (make-style #f '()) 
+         "" 
+         (fn-to-collect-subpage-link
+          (if tg tg stitle)
+          stitle 
+          depth
+          (current-slide-part-number state))))
+     ))
       
 ;; ---------------------------------------------------------------------------------------------------
   (provide (contract-out 
@@ -232,6 +243,10 @@ along with bystroTeX.  If not, see <http://www.gnu.org/licenses/>.
   (define (fn-to-collect-slide-link slide-shortname slide-title slide-num)
     (lambda (ci) 
       (collect-put! ci `(amkhlv-slide ,slide-shortname ,slide-num) slide-title)))
+;; ---------------------------------------------------------------------------------------------------
+  (define (fn-to-collect-subpage-link subpage-tag subpage-title subpage-depth n)
+    (lambda (ci) 
+      (collect-put! ci `(amkhlv-subpage ,subpage-tag ,subpage-depth ,n) subpage-title)))
 ;; ---------------------------------------------------------------------------------------------------
   (provide (contract-out 
             ; slide
@@ -652,4 +667,25 @@ along with bystroTeX.  If not, see <http://www.gnu.org/licenses/>.
            (for/list ([k (sort ks < #:key (lambda (k) (caddr k)))])
              (list (seclink (car (cdr k)) (resolve-get pt ri k)) (linebreak)))))))))
 ;; ---------------------------------------------------------------------------------------------------
+  (provide (contract-out  
+                                        ; table of contents on the title-slide
+   [bystro-local-toc (-> delayed-block?)]))
+  (define (bystro-local-toc)
+    (make-delayed-block 
+     (lambda (renderer pt ri) 
+       (let ([ks (resolve-get-keys pt ri (lambda (key)
+                                           (eq? (car key) 'amkhlv-subpage)))])
+         (apply 
+          nested 
+          (apply 
+           append
+           (for/list ([k (sort ks < #:key (lambda (k) (cadddr k)))])
+             (list
+              (hspace (* 4 (caddr k)))
+              (element
+               (make-style (string-append "local-toc-" (number->string (caddr k))) '())
+               (seclink (car (cdr k)) (resolve-get pt ri k))
+               )
+              (linebreak)))))))))
+
 )

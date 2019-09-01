@@ -37,6 +37,24 @@
 
 }
 
+.local-toc-1 {
+    font-size: 16pt;
+    color: navy;
+
+}
+
+.local-toc-2 {
+    font-size: 14pt;
+    color: navy;
+
+}
+
+.local-toc-3 {
+    font-size: 13pt;
+    color: navy;
+
+}
+
 .SubFlow {
   font-family: "DejaVu Sans";
   font-size: 14pt;

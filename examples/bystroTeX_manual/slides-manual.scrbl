@@ -504,7 +504,11 @@ For example, see
 
 }
 
-@slide["@page[] vs @slide[]" #:tag "PageVsSlide" #:showtitle #t]{
+@page["@page[] vs @slide[]" #:tag "PageVsSlide" #:showtitle #t]
+
+@bystro-local-toc[]
+
+@subpage[1 "Two ways to start new page" #:tag "TwoWays"]
 
 In the multipage mode, there are two ways to start new page:
 
@@ -530,7 +534,9 @@ and
 
 @hrule[]
 
-The @tt|{@page[]}| is slightly different. The main difference is, there is no @tt|{ {} }|
+@subpage[1 @elem{Difference between @tt|{@page[]}| and @tt|{@slide[]}|} #:tag "DiffPageSlide"]
+
+The main difference is, there is no @tt|{ {} }|
 around the content. This simplifies writing. But, on the other hand, @tt|{@page[]}| has
 a disadvantage over @tt|{@slide[]}|:
 @(itemlist
@@ -538,13 +544,14 @@ a disadvantage over @tt|{@slide[]}|:
   )
 When using @tt|{@page[]}|, inside the content, use:
 @verb|{
+       @bystro-local-toc[] instead of @table-of-contents[]
        @subpage[1 ...] instead of @section[...]
        @subpage[2 ...] instead of @subsection[...]
        @subpage[3 ...] instead of @subsubsection[...]
        }|
 @tt|{@slide[]}| is more slideshow-oriented while @tt|{@page[]}| is more writeup-oriented.
           
-}
+
 
 @slide["Sections in slide" #:tag "Sections" #:showtitle #t]{
 @table-of-contents[]
@@ -558,9 +565,16 @@ then you must give it a tag, for example: @tt|{@section[#:tag "sectionHappiness"
 
 @subsection{Table of contents}
 
-To list the table of contents, us @tt|{@table-of-contents[]}|
-
-@spn[attn]{Attention:} on the @bold{title page}, use @tt|{bystro-toc[]}| and @bold{not}  @tt|{@table-of-contents[]}|
+To list the table of contents:
+@itemlist[
+          @item{for the title page, use @tt|{@bystro-toc[]}|}
+          @item{for each individual slide, use:
+                    @itemlist[
+                              @item{@tt|{@table-of-contents[]}| in @seclink["PageVsSlide"]{slide mode}}
+                              @item{@tt|{@bystro-local-toc[]}| in @seclink["PageVsSlide"]{page mode}}
+                              ]}
+          ]
+If you use table of contents, @bold{do} provide @tt|{#:tag ...}| for each section/subpage.
 
 @section{Disadvantages}
 Obviously, this is a bad idea when giving a talk:
