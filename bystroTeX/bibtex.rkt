@@ -7,7 +7,7 @@
   (provide bibliography)
   
   (define (cite x)
-    (when (empty? (for/list ([y items] #:when (eq? x (car y))) #t))
+    (when (empty? (for/list ([y items] #:when (equal? x (car y))) #t))
       (let ([xh (get-bib-from-server x)]) (set! items (cons (cons x xh) items))))
     (elemref x x ))
   (define items '())

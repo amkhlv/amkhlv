@@ -312,10 +312,6 @@ along with bystroTeX.  If not, see <http://www.gnu.org/licenses/>.
   (provide (contract-out  [smaller-4 (->* () () #:rest (listof pre-content?) element?)]))
   (define smaller-4 (compose smaller smaller smaller smaller))
 ;; ---------------------------------------------------------------------------------------------------
-  (define (remove-$$ xs)
-    (if (cons? xs)
-        (filter (λ(x) (not (and (element? x) (eq? (element-content x) "$")))) xs)
-        xs))
   (provide (contract-out
                                         ; padded on the left
             [h+ (->* (integer?) () #:rest (listof pre-content?) (or/c (listof content?) table?))]))
