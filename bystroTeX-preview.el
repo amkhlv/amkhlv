@@ -126,6 +126,7 @@
           (goto-char 0)
           (bystroTeX--insert-equation tex (concat d (gethash "svg" h) ".svg"))
           )))
+    (setq already-inserted '())
     (setq bystroTeX-preview-is-on t)
     (goto-char oldpos)
     )
