@@ -1,6 +1,7 @@
 (provide 'bystroTeX-preview)
 
 (require 'subr-x)
+(require 'json)
 
 (defgroup bystroTeX nil
   "Functions to preview BystroTeX .scrbl files"
@@ -84,6 +85,25 @@
         (bystroTeX--make-hide-overlay b e))
       (bystroTeX--insert-equation tex svg))))
 
+(defun bystroTeX--get-from-sqlite ()
+  (let* ((json-object-type 'hash-table)
+         (json-array-type 'list)
+         (json-key-type 'string)
+         (d (replace-regexp-in-string "\\.scrbl$" "/" (buffer-file-name)))
+         (formulas-database (concat d "formulas.sqlite")))
+    (mapcar
+     (lambda (x) (json-read-from-string x))
+     (reverse
+      (cdr
+       (reverse
+        (split-string
+         (shell-command-to-string
+          (concat "sqlite3 "
+                  formulas-database
+                  " \"SELECT json_object('tex', tex, 'svg', filename) FROM formulas ORDER BY CAST(filename AS INT);\""))
+         "\n")))))))
+
+
 (defun bystroTeX-preview ()
   "show preview"
   (interactive)
@@ -95,29 +115,17 @@
          (d (replace-regexp-in-string "\\.scrbl$" "/" (buffer-file-name)))
          (formulas-database (concat d "formulas.sqlite"))
          )
+    (defvar already-inserted '())
     (dolist
-        (texstr
-         (reverse
-          (cdr
-           (reverse
-            (split-string
-             (shell-command-to-string
-              (concat "sqlite3"
-                      " -separator"
-                      " '"
-                      "\n"
-                      "' "
-                      formulas-database
-                      " \"select tex, '' from formulas order by CAST(filename AS INT);\"")
-              )
-             "\n\n"
-             )))))
-      (setq svgnum (1+ svgnum))
-      (goto-char 0)
-      (bystroTeX--insert-formula texstr (concat d (number-to-string svgnum) ".svg"))
-      (goto-char 0)
-      (bystroTeX--insert-equation texstr (concat d (number-to-string svgnum) ".svg"))
-      )
+        (h (bystroTeX--get-from-sqlite))
+      (let ((tex (gethash "tex" h)))
+        (unless (member tex already-inserted)
+          (setq already-inserted (cons tex already-inserted))
+          (goto-char 0)
+          (bystroTeX--insert-formula tex (concat d (gethash "svg" h) ".svg"))
+          (goto-char 0)
+          (bystroTeX--insert-equation tex (concat d (gethash "svg" h) ".svg"))
+          )))
     (setq bystroTeX-preview-is-on t)
     (goto-char oldpos)
     )
