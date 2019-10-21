@@ -19,6 +19,42 @@
   margin-left: 5pt;
 }
 
+.pagetitle {
+    font-size: 24pt;
+    color: navy;
+
+}
+
+.pagetitle-1 {
+    font-size: 20pt;
+    color: navy;
+    background-color: papayawhip;
+}
+
+.pagetitle-2 {
+    font-size: 16pt;
+    color: navy;
+    background-color: papayawhip;
+}
+
+.local-toc-1 {
+    font-size: 16pt;
+    color: navy;
+
+}
+
+.local-toc-2 {
+    font-size: 14pt;
+    color: navy;
+
+}
+
+.local-toc-3 {
+    font-size: 13pt;
+    color: navy;
+
+}
+
 .SubFlow {
   font-family: "DejaVu Sans";
   font-size: 16pt;

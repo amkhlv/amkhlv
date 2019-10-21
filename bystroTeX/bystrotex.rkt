@@ -2,7 +2,7 @@
 
 #lang racket
 
-(require racket/cmdline racket/string racket/list xml xml/path bystroTeX/utils bystroTeX/xmlconf)
+(require racket/cmdline racket/string racket/list json xml xml/path bystroTeX/utils bystroTeX/xmlconf)
 
 ;; command line parsing
 (define cleanup? (make-parameter #f))
@@ -56,6 +56,10 @@
 
 ;; main:
 
+(unless (file-exists? "bystrotex.xml")
+  (displayln "This is not a BystroTeX directory" (current-error-port))
+  (exit))
+
 (when (cleanup?) 
   (displayln "Cleanup!")
   (let* ([confs (se-path*/list '(scribblings) bystroconf-xexpr)])
@@ -89,19 +93,21 @@
          (delete-directory name))))))
 
 (when (show?)
-  (displayln "Configuration")
-  (displayln "=============")
   (let* ([confs (se-path*/list '(scribblings) bystroconf-xexpr)])
     (for ([c confs] #:when (cons? c))
       (when (verbose?) (displayln c))
       (with-bystroconf 
-       c (name dest name.html name.scrbl formulas/ .sqlite arglist multipage?)
-       (when multipage? (displayln "multipage:"))
-       (printf "Name: ~a\n" name)
-       (when dest (printf "Dest: ~a\n" dest))
-       (printf "FDir: ~a\n" formulas/)
-       (printf "SQL:  ~a\n" .sqlite)
-       (displayln "")))))
+        c (name dest name.html name.scrbl formulas/ .sqlite arglist multipage?)
+        (write-json
+         (make-immutable-hasheq
+          (append `(,(cons 'name name))
+                  (if dest `(,(cons 'destination dest)) '())
+                  (if multipage? `(,(cons 'multipage #t)) '())
+                  (if (cons? arglist) `(,(cons 'arglist arglist)) '())
+                  `(,(cons 'formulas (make-immutable-hasheq
+                                      `(,(cons 'dir formulas/) ,(cons 'database .sqlite)))))
+                  )))
+        (displayln "")))))
 
 
 (define (strip-ending x)

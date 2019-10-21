@@ -75,7 +75,7 @@ along with bystroTeX.  If not, see <http://www.gnu.org/licenses/>.
                          (path->string (build-path Xdest default-sqlite-filename-in-dest-folder))
                          (if Xname
                              (if Xmultipage? 
-                                 (build-path Xname default-sqlite-filename-in-dest-folder)
+                                 (path->string (build-path Xname default-sqlite-filename-in-dest-folder))
                                  (string-append Xname default-sqlite-filename-in-curdir_suffix))
                              #f)))])
            body ...)]))

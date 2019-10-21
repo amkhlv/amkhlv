@@ -229,8 +229,12 @@ along with bystroTeX.  If not, see <http://www.gnu.org/licenses/>.
                         (number->string (current-slide-part-number state)))))]     
           [tgs (if tg (list (list 'part tg)) (list))])
       (if (current-singlepage-mode state)
-          (decode `(,(title-decl #f tgs #f (style #f (cons 'toc-hidden to-hide)) "") ,more-content))
-          (decode `(,(title-decl #f tgs #f (style #f stl) nm) ,@(current-content state))))))
+          (decode `(,(title-decl #f tgs #f (style #f (cons 'toc-hidden to-hide)) "")
+                    ,(bystro-css-element-from-files "misc.css" "slide.css")
+                    ,more-content))
+          (decode `(,(title-decl #f tgs #f (style #f stl) nm)
+                    ,(bystro-css-element-from-files "misc.css" "slide.css")
+                    ,@(current-content state))))))
 ;; ---------------------------------------------------------------------------------------------------
   (provide (contract-out  
                                         ; removes the most recent after-pause
