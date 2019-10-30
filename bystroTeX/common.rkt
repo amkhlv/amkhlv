@@ -27,9 +27,11 @@ along with bystroTeX.  If not, see <http://www.gnu.org/licenses/>.
   (require "xmlconf.rkt" xml/path)
   (require (for-syntax racket/syntax))
 ;; ---------------------------------------------------------------------------------------------------
-  (define dumping-LaTeX? #f)
+  (define dump-LaTeX? #f)
+  (provide dumping-LaTeX?)
+  (define dumping-LaTeX? (make-parameter #f))
   (provide bystro-common-dump-LaTeX)
-  (define (bystro-common-dump-LaTeX b) (set! dumping-LaTeX? b))
+  (define (bystro-common-dump-LaTeX b) (dumping-LaTeX? b))
   (provide bystro-dump-LaTeX-with-$)
   (define bystro-dump-LaTeX-with-$ (make-parameter #t))
   (define bystro-scrbl-filename "")
@@ -311,84 +313,6 @@ along with bystroTeX.  If not, see <http://www.gnu.org/licenses/>.
   (define smaller-3 (compose smaller smaller smaller))
   (provide (contract-out  [smaller-4 (->* () () #:rest (listof pre-content?) element?)]))
   (define smaller-4 (compose smaller smaller smaller smaller))
-;; ---------------------------------------------------------------------------------------------------
-  (provide (contract-out
-                                        ; padded on the left
-            [h+ (->* (integer?) () #:rest (listof pre-content?) (or/c (listof content?) table?))]))
-  (define  (h+ n . xs)
-    (if dumping-LaTeX?
-        xs
-        (table 
-         (style #f (list (table-cells (list  
-                                       (list 
-                                        (style 
-                                            #f 
-                                          (list 
-                                           (attributes (list 
-                                                        (cons 
-                                                         'style 
-                                                         (format "padding:0px;~apx;0px;0px;" n)))))) 
-                                        (style #f '()))))))
-         (list (list (para) (if (block? xs) xs (apply para xs)))))))
-;; ---------------------------------------------------------------------------------------------------
-  (provide (contract-out
-                                        ; padded on the top
-            [h- (->* (integer?) () #:rest (listof pre-content?) (or/c (listof content?) table?))]))
-  (define  (h- n . xs)
-    (if dumping-LaTeX? 
-        xs
-        (table 
-         (style #f (list (table-cells (list  
-                                       (list 
-                                        (style #f '())
-                                        (style 
-                                            #f 
-                                          (list 
-                                           (attributes (list 
-                                                        (cons 
-                                                         'style 
-                                                         (format "padding:0px;~apx;0px;0px;" n)))))) 
-                                        )))))
-         (list (list  (if (block? xs) xs (apply para xs)) (para))))))
-;; ---------------------------------------------------------------------------------------------------
-  (provide (contract-out
-                                        ; padded on the top
-            [v- (->* (integer?) () #:rest (listof pre-content?) (or/c (listof content?) table?))]))
-  (define  (v- n . xs)
-    (if dumping-LaTeX? 
-        xs
-        (table 
-         (style #f (list (table-cells (list  
-                                       (list 
-                                        (style 
-                                            #f 
-                                          (list 
-                                           (attributes (list 
-                                                        (cons 
-                                                         'style 
-                                                         (format "padding:~apx;0px;0px;0px;" n))))))) 
-                                       (list (style #f '()))))))
-         (list (list (para)) (list (if (block? xs) xs (apply para xs)))))))
-;; ---------------------------------------------------------------------------------------------------
-  (provide (contract-out
-                                        ; padded on the top
-            [v+ (->* (integer?) () #:rest (listof pre-content?) (or/c (listof content?) table?))]))
-  (define  (v+ n . xs)
-    (if dumping-LaTeX? 
-        xs
-        (table 
-         (style #f (list (table-cells (list  
-                                       (list (style #f '()))
-                                       (list 
-                                        (style 
-                                            #f 
-                                          (list 
-                                           (attributes (list 
-                                                        (cons 
-                                                         'style 
-                                                         (format "padding:~apx;0px;0px;0px;" n))))))) 
-                                       ))))
-         (list  (list (if (block? xs) xs (apply para xs))) (list (para))))))
 ;; ---------------------------------------------------------------------------------------------------
   (provide bystro-rectangular-table?)
   (define (bystro-rectangular-table? a)

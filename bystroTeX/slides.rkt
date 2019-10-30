@@ -127,19 +127,16 @@ along with bystroTeX.  If not, see <http://www.gnu.org/licenses/>.
                    formula-ref-dict
                    singlepage-mode
                    running-database
-                   just-dump-LaTeX
                    )
           #:mutable)
   (define state 
-    (current 0 0 "SLIDE" '() 0 '() #f #f #f)) ; this is the global state
+    (current 0 0 "SLIDE" '() 0 '() #f #f)) ; this is the global state
   (provide (contract-out 
             [bystro-dump-LaTeX (-> boolean? void?)]))
-  (define (bystro-dump-LaTeX b) (begin
-                                  (set-current-just-dump-LaTeX! state b)
-                                  (bystro-common-dump-LaTeX #t)))
+  (define (bystro-dump-LaTeX b) (dumping-LaTeX? b))
   (provide (contract-out 
             [bystro-dump-LaTeX? (-> boolean?)]))
-  (define (bystro-dump-LaTeX?) (current-just-dump-LaTeX state))
+  (define (bystro-dump-LaTeX?) (dumping-LaTeX?))
 ;; ---------------------------------------------------------------------------------------------------
   (define to-hide (list 'non-toc 'no-toc 'unnumbered 'hidden 'hidden-number 'quiet))
 ;; ---------------------------------------------------------------------------------------------------
@@ -329,7 +326,7 @@ along with bystroTeX.  If not, see <http://www.gnu.org/licenses/>.
     ;;   (collect-put! ci `(amkhlv-formula-number ,lbl ,n) #f))
     )
   (define (number-for-formula lbl)
-    (if (current-just-dump-LaTeX state) 
+    (if (dumping-LaTeX?) 
         lbl
         (begin
           (set-current-formulanumber! state (+ 1 (current-formulanumber state)))
@@ -351,7 +348,7 @@ along with bystroTeX.  If not, see <http://www.gnu.org/licenses/>.
                                         ; reference a formula
    [ref-formula (-> string? (or/c element? delayed-element?))]))
   (define (ref-formula lbl)
-    (if (current-just-dump-LaTeX state)
+    (if (dumping-LaTeX?)
         (literal "\\ref{" lbl "}")
         (make-delayed-element
          (lambda (renderer pt ri) 
@@ -525,14 +522,14 @@ along with bystroTeX.  If not, see <http://www.gnu.org/licenses/>.
            #:bg-color [bgcol (bystro-formula-bg-color configuration)] 
            #:fg-color [fgcol (bystro-formula-fg-color configuration)])
     (let* ([frml1 (keyword-apply bystro-formula '() '() x #:size n #:bg-color bgcol #:fg-color fgcol #:align #f #:use-depth #t)]
-           [frml (if (current-just-dump-LaTeX state) 
+           [frml (if (dumping-LaTeX?) 
                      (deep-literal `("\\begin{equation}" 
                                      ,(if l (string-append "\\label{" l "}\n") "\n")
                                      ,@x
                                      "\n\\end{equation}"))
                      frml1)])
       (if l
-          (table-with-alignment "c.n" (list (list frml (if (current-just-dump-LaTeX state)
+          (table-with-alignment "c.n" (list (list frml (if (dumping-LaTeX?)
                                                            (string-append "\\label{" l "}")
                                                            (elemtag l (number-for-formula l))))))
           (table-with-alignment "c.n" (list (list frml "" ))))))
@@ -585,7 +582,7 @@ along with bystroTeX.  If not, see <http://www.gnu.org/licenses/>.
          #:use-depth [use-depth #f] 
          #:aa-adjust [aa-adj (bystro-autoalign-adjust configuration)] 
          . tex)
-    (if (current-just-dump-LaTeX state)
+    (if (dumping-LaTeX?)
         (if (bystro-dump-LaTeX-with-$) (deep-literal `("$" ,@tex "$")) (deep-literal tex)) 
         (let* ([lookup (prepare 
                         mydb
@@ -691,5 +688,99 @@ along with bystroTeX.  If not, see <http://www.gnu.org/licenses/>.
                (seclink (car (cdr k)) (resolve-get pt ri k))
                )
               (linebreak)))))))))
+;; ---------------------------------------------------------------------------------------------------
+  (provide (contract-out
+                                        ; padded on the top
+            [v- (->* (integer?) () #:rest (listof pre-content?) (or/c (listof content?) table?))]))
+  (define  (v- n . xs)
+    (if (dumping-LaTeX?)
+        xs
+        (table 
+         (style #f (list (table-cells (list  
+                                       (list 
+                                        (style 
+                                            #f 
+                                          (list 
+                                           (attributes (list 
+                                                        (cons 
+                                                         'style 
+                                                         (format
+                                                          "padding:~apx;0px;0px;0px;"
+                                                          (quotient
+                                                           (* (bystro-formula-size configuration) n)
+                                                           25))))))))
+                                       (list (style #f '()))))))
+         (list (list (para)) (list (if (block? xs) xs (apply para xs)))))))
+;; ---------------------------------------------------------------------------------------------------
+  (provide (contract-out
+                                        ; padded on the top
+            [v+ (->* (integer?) () #:rest (listof pre-content?) (or/c (listof content?) table?))]))
+  (define  (v+ n . xs)
+    (if (dumping-LaTeX?)
+        xs
+        (table 
+         (style #f (list (table-cells (list  
+                                       (list (style #f '()))
+                                       (list 
+                                        (style 
+                                            #f 
+                                          (list 
+                                           (attributes (list 
+                                                        (cons 
+                                                         'style 
+                                                         (format
+                                                          "padding:~apx;0px;0px;0px;"
+                                                          (quotient
+                                                           (* (bystro-formula-size configuration) n)
+                                                           25))))))))
+                                       ))))
+         (list  (list (if (block? xs) xs (apply para xs))) (list (para))))))
+;; ---------------------------------------------------------------------------------------------------
+  (provide (contract-out
+                                        ; padded on the left
+            [h+ (->* (integer?) () #:rest (listof pre-content?) (or/c (listof content?) table?))]))
+  (define  (h+ n . xs)
+    (if (dumping-LaTeX?)
+        xs
+        (table 
+         (style #f (list (table-cells (list  
+                                       (list 
+                                        (style 
+                                            #f 
+                                          (list 
+                                           (attributes (list 
+                                                        (cons 
+                                                         'style 
+                                                         (format
+                                                          "padding:0px;~apx;0px;0px;"
+                                                          (quotient
+                                                           (* (bystro-formula-size configuration) n)
+                                                           25))))))) 
+                                        (style #f '()))))))
+         (list (list (para) (if (block? xs) xs (apply para xs)))))))
+;; ---------------------------------------------------------------------------------------------------
+  (provide (contract-out
+                                        ; padded on the top
+            [h- (->* (integer?) () #:rest (listof pre-content?) (or/c (listof content?) table?))]))
+  (define  (h- n . xs)
+    (if (dumping-LaTeX?)
+        xs
+        (table 
+         (style #f (list (table-cells (list  
+                                       (list 
+                                        (style #f '())
+                                        (style 
+                                            #f 
+                                          (list 
+                                           (attributes (list 
+                                                        (cons 
+                                                         'style 
+                                                         (format
+                                                          "padding:0px;~apx;0px;0px;"
+                                                          (quotient
+                                                           (* (bystro-formula-size configuration) n)
+                                                           25))))))) 
+                                        )))))
+         (list (list  (if (block? xs) xs (apply para xs)) (para))))))
 
 )
