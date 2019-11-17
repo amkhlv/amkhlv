@@ -80,4 +80,30 @@ along with bystroTeX.  If not, see <http://www.gnu.org/licenses/>.
       )
      )
     )
+  (provide (contract-out [autolist (->*
+                                    ()
+                                    (#:exts (listof symbol?)
+                                     #:dir path-string?
+                                     #:header (or/c (listof any/c) #f)
+                                     #:output (-> path-string? (or/c (listof any/c))))
+                                    (or/c table? element?))]))
+  (define (autolist
+           #:exts [extensions '(pdf)]
+           #:dir [dir (get-bystro-scrbl-name)]
+           #:header [header #f]
+           #:output [o (lambda (f) `(,(hyperlink (path->string f) (path->string f))))])
+    (let ([relevant-files
+           (for/list
+               ([f (directory-list dir)]
+                #:when (for/or ([ext (map symbol->string extensions)])
+                         (string-suffix? (path->string f) (string-append "." ext))))
+             (o f))])
+      (if (cons? relevant-files)
+          (bystro-table
+           #:style-name "bystro-autolist"
+           (if (cons? header) (cons header relevant-files) relevant-files))
+          (make-element
+           (make-style "bystro-autolist-nothing-found" '())
+           `("no files with extensions: "
+             ,(string-join (map symbol->string extensions) "|"))))))
   )

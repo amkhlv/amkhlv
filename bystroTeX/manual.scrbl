@@ -254,6 +254,34 @@ a shortcut defined in the headers of the slide file.
 }
 
 @defproc[
+(v+ [n exact-nonnegative-integer?] [#:rest xs (listof pre-content?)])
+table?
+]{
+The content is padded from below, therefore it gets shifted up.
+}
+
+@defproc[
+(v- [n exact-nonnegative-integer?] [#:rest xs (listof pre-content?)])
+table?
+]{
+The content is padded from above, therefore it gets shifted down.
+}
+
+@defproc[
+(h+ [n exact-nonnegative-integer?] [#:rest xs (listof pre-content?)])
+table?
+]{
+The content is padded from the left, therefore gets shifted to the right.
+}
+
+@defproc[
+(h- [n exact-nonnegative-integer?] [#:rest xs (listof pre-content?)])
+table?
+]{
+The content is padded from the right, therefore gets shifted to the left.
+}
+
+@defproc[
 (bystro-toc)
 delayed-block?]{
 Insert the list of slides. This is for use on the title-slide.
@@ -285,6 +313,8 @@ Useful for translating BystroTeX documents into LaTeX.
 @defmodule[bystroTeX/common]
 
 @defproc[(get-bystro-scrbl-filename) string?]{This .scrbl filename}
+
+@defproc[(get-bystro-scrbl-name) string?]{This .scrbl filename without @tt{.scrbl} extension}
 
 @defproc[
 (bystro-set-css-dir [x path?])
@@ -406,33 +436,6 @@ Notice that the alignment symbol is now @racket[r.l.n], we added letter @racket[
 The function @tt|{@label[]}| is defined in the slides' header.
 }
 
-@defproc[
-(v+ [n exact-nonnegative-integer?] [#:rest xs (listof pre-content?)])
-table?
-]{
-The content is padded from below, therefore it gets shifted up.
-}
-
-@defproc[
-(v- [n exact-nonnegative-integer?] [#:rest xs (listof pre-content?)])
-table?
-]{
-The content is padded from above, therefore it gets shifted down.
-}
-
-@defproc[
-(h+ [n exact-nonnegative-integer?] [#:rest xs (listof pre-content?)])
-table?
-]{
-The content is padded from the left, therefore gets shifted to the right.
-}
-
-@defproc[
-(h- [n exact-nonnegative-integer?] [#:rest xs (listof pre-content?)])
-table?
-]{
-The content is padded from the right, therefore gets shifted to the left.
-}
 
 
 @defproc[

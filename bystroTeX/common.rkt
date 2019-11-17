@@ -365,6 +365,47 @@ along with bystroTeX.  If not, see <http://www.gnu.org/licenses/>.
                               x) 
                          )
                        listofrows))))
+  (provide (contract-out
+            [bystro-table (->* (bystro-rectangular-table?)
+                               (#:style-name string?
+                                #:orient (or/c 'hor 'vert)
+                                )
+                               table?)]))
+  (define (bystro-table listofrows
+                        #:style-name [style-name "bystro-table"]
+                        #:orient [dirn #f])
+    (let* ([cell-style-suffix (if dirn (string-append "-" (symbol->string dirn)) "")]
+           [generic-cell-style
+            (make-style (string-append style-name "-cell" cell-style-suffix) '())]
+           [topleft-cell-style
+            (make-style (string-append style-name "-topleft-cell" cell-style-suffix) '())]
+           [left-cell-style
+            (make-style (string-append style-name "-left-cell" cell-style-suffix) '())]
+           [top-cell-style
+            (make-style (string-append style-name "-top-cell" cell-style-suffix) '())]
+           [style-def-first-row 
+            (cons topleft-cell-style
+                  (map (lambda (x) top-cell-style) (cdr (car listofrows)))
+                  )]
+           [style-def-generic-row
+            (cons left-cell-style
+                  (map (lambda (x) generic-cell-style) (cdr (car listofrows)))
+                  )]
+           [style-def
+            (cons style-def-first-row
+                  (map (lambda (x) style-def-generic-row) (cdr listofrows))
+                  )]
+           )
+      (make-table (make-style #f (list (make-table-cells style-def)))
+                  (map (lambda (x) 
+                         (map (lambda (y) 
+                                (if (block? y)
+                                    y
+                                    (if y (make-paragraph plain y) (make-paragraph plain ""))))
+                              x) 
+                         )
+                       listofrows)))
+    )
 ;; ---------------------------------------------------------------------------------------------------
   (provide (contract-out  
                                         ; table filling 100% of width

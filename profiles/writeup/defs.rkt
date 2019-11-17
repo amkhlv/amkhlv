@@ -91,6 +91,17 @@
                    x ...)]
                [c (bystro-bg 255 255 255)])
            b)]))
+  (provide summary)
+  (define-syntax (summary stx)
+    (syntax-case stx ()
+      [(_ x ...)
+       #'(let ([a (bystro-bg 176 224 230)]
+               [b (nested 
+                   #:style (style "bystro-summary" 
+                             (list (make-attributes '((style . "background-color:PowderBlue;")))))
+                   x ...)]
+               [c (bystro-bg 255 255 255)])
+           b)]))
               
 
   )
