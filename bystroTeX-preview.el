@@ -48,7 +48,7 @@
 (defun bystroTeX--TeX-matches (tex)
   (not
    (memq
-    nil
+    nil ; all lines should match the given tex lines
     (mapcar
      (lambda (line)
        (and
@@ -57,33 +57,41 @@
         ))
      (mapcar 'string-trim (split-string tex "\n"))))))
 
+(defvar bystroTeX--formula-insertion-in-progress nil)
+
 (defun bystroTeX--insert-formula (tex svg)
-  (let ((b nil)
-        (e nil))
-    (when (re-search-forward
-           (concat bystroTeX-formula-regex "{\\([ ]*\n[ ]*\\)?")
-           nil
-           t)
-      (setq b (match-beginning 0))
-      (when (bystroTeX--TeX-matches tex)
-        (setq e (+ 1 (point)))
-        (put-image (create-image svg) (+ 1 (point)))
-        (bystroTeX--make-hide-overlay b e))
-      (bystroTeX--insert-formula tex svg))))
+  (setq bystroTeX--formula-insertion-in-progress t)
+  (while bystroTeX--formula-insertion-in-progress
+    (if (re-search-forward
+         (concat bystroTeX-formula-regex "{\\([ ]*\n[ ]*\\)?")
+         nil
+         t)
+        (let ((b nil)
+              (e nil))          
+          (setq b (match-beginning 0))
+          (when (bystroTeX--TeX-matches tex)
+            (setq e (+ 1 (point)))
+            (put-image (create-image svg) (+ 1 (point)))
+            (bystroTeX--make-hide-overlay b e)))
+      (setq bystroTeX--formula-insertion-in-progress nil))))
+
+(defvar bystroTeX--equation-insertion-in-progress nil)
 
 (defun bystroTeX--insert-equation (tex svg)
-  (let ((b nil)
-        (e nil))
-    (when (re-search-forward
+  (setq bystroTeX--equation-insertion-in-progress t)
+  (while bystroTeX--equation-insertion-in-progress
+    (if (re-search-forward
            (concat bystroTeX-equation-regex "\\(\\[[^]]+\\]\\)?{[ ]*\n[ ]*")
            nil
            t)
-      (setq b (match-beginning 0))
-      (when (bystroTeX--TeX-matches tex)
-        (setq e (+ 1 (point)))
-        (put-image (create-image svg) (+ 1 (point)))
-        (bystroTeX--make-hide-overlay b e))
-      (bystroTeX--insert-equation tex svg))))
+        (let ((b nil)
+              (e nil))
+          (setq b (match-beginning 0))
+          (when (bystroTeX--TeX-matches tex)
+            (setq e (+ 1 (point)))
+            (put-image (create-image svg) (+ 1 (point)))
+            (bystroTeX--make-hide-overlay b e)))
+      (setq bystroTeX--equation-insertion-in-progress nil))))
 
 (defun bystroTeX--get-from-sqlite ()
   (let* ((json-object-type 'hash-table)
