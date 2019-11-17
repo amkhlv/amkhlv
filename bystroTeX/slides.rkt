@@ -666,7 +666,16 @@ along with bystroTeX.  If not, see <http://www.gnu.org/licenses/>.
           (apply 
            append
            (for/list ([k (sort ks < #:key (lambda (k) (caddr k)))])
-             (list (seclink (car (cdr k)) (resolve-get pt ri k)) (linebreak)))))))))
+             (list (element
+                    (make-style
+                     "bystro-toc-section"
+                     `(,(target-url (string-append
+                                     (regexp-replace* "[^-a-zA-Z0-9_=]" (car (cdr k)) "_")
+                                     ".html"))))
+                    ; Derivation of .html filename :  (define/override (derive-filename d ci ri depth) ...) in:
+                    ; https://github.com/racket/scribble/blob/master/scribble-lib/scribble/html-render.rkt
+                    (resolve-get pt ri k))
+                   (linebreak)))))))))
 ;; ---------------------------------------------------------------------------------------------------
   (provide (contract-out  
                                         ; table of contents on the title-slide

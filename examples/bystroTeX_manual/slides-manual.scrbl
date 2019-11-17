@@ -500,6 +500,15 @@ For example, see
 @hyperlink["https://github.com/amkhlv/usr/blob/master/lib/emacs/emacs.el"]{my @tt{.emacs} file}
 (search for @tt{racket-mode}).
 
+If Emacs  complaining of exceeding + @tt{max-lisp-eval-depth} or  @tt{max-specpdl-size}, just
+increase them, for now:
+
+@verb{
+(max-lisp-eval-depth 10000)
+(max-specpdl-size 30000)
+}
+
+(to be fixed...)
 
 
 }

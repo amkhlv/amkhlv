@@ -5,6 +5,7 @@ truques/planet-docs/
 truques/*.css
 truques/*.js
 examples/bystroTeX_manual/slides-manual/
+examples/bystroTeX_manual/copy-to-server.sh
 examples/lookdown/
 examples/misc/show-xml/
 examples/letters/prof*/
