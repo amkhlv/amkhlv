@@ -134,6 +134,12 @@ font-size:x-small;
     padding-left:10px;
 }
 
+.bystro-quotation {
+    font-size:90%;
+    border-left:2px solid green;
+    padding-left:10px;
+}
+
 .redbox {
     border:2px solid red;
     padding:10px 10px 10px 10px;

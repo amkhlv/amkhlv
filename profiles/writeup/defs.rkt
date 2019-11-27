@@ -102,6 +102,16 @@
                    x ...)]
                [c (bystro-bg 255 255 255)])
            b)]))
-              
+  (provide quotation)
+  (define-syntax (quotation stx)
+    (syntax-case stx ()
+      [(_ x ...)
+       #'(let ([a (bystro-bg 253 237 236)]
+               [b (nested 
+                   #:style (style "bystro-quotation" 
+                             (list (make-attributes '((style . "background-color:rgb(253,237,236);")))))
+                   x ...)]
+               [c (bystro-bg 255 255 255)])
+           b)]))              
 
   )

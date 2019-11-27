@@ -10,7 +10,7 @@
     (bystro-formula-syntax 
      #:autoalign-formula-prefix "f"
      #:manual-formula-prefix    "f"
-     #:display-math-prefix      "equation"
+     #:display-math-prefix      "e"
      #:size-change-notation     "fsize"
      #:size-increase-notation   "fsize+"
      #:size-restore-notation    "fsize="
@@ -75,6 +75,27 @@
                    x ...)]
                [c (bystro-bg 255 255 255)])
            b)]))
-              
+  (provide summary)
+  (define-syntax (summary stx)
+    (syntax-case stx ()
+      [(_ x ...)
+       #'(let ([a (bystro-bg 176 224 230)]
+               [b (nested 
+                   #:style (style "bystro-summary" 
+                             (list (make-attributes '((style . "background-color:PowderBlue;")))))
+                   x ...)]
+               [c (bystro-bg 255 255 255)])
+           b)]))
+  (provide quotation)
+  (define-syntax (quotation stx)
+    (syntax-case stx ()
+      [(_ x ...)
+       #'(let ([a (bystro-bg 253 237 236)]
+               [b (nested 
+                   #:style (style "bystro-quotation" 
+                             (list (make-attributes '((style . "background-color:rgb(253,237,236);")))))
+                   x ...)]
+               [c (bystro-bg 255 255 255)])
+           b)]))              
 
   )

@@ -1,6 +1,7 @@
 .amkpagebreak {
   page-break-after:always;
 }
+
 .sourcelink {
   font-size:x-small;
   background-color:#FFFDD0;
@@ -102,6 +103,92 @@ font-size:x-small;
     padding: 2px 5px 2px 5px
 }
 
+/* For autolist table: */
+
+.bystro-autolist-cell {
+    border-right: 1px solid orange;
+    border-bottom: 1px solid orange;
+    padding: 2px 5px 2px 5px
+}
+
+.bystro-autolist-topleft-cell {
+    border: 1px solid orange;
+    padding: 2px 5px 2px 5px
+}
+
+.bystro-autolist-top-cell {
+    border-top: 1px solid orange;
+    border-right: 1px solid orange;
+    border-bottom: 1px solid orange;
+    padding: 2px 5px 2px 5px
+}
+
+.bystro-autolist-left-cell {
+    border-left:  1px solid orange;
+    border-right: 1px solid orange;
+    border-bottom: 1px solid orange;
+    padding: 2px 5px 2px 5px
+}
+
+.bystro-autolist-cell-hor {
+    border-top:   1px solid orange;
+    border-right: 1px solid orange;
+    border-bottom: 1px solid orange;
+    padding: 2px 5px 2px 5px
+}
+
+.bystro-autolist-topleft-cell-hor {
+    border: 1px solid orange;
+    padding: 2px 5px 2px 5px
+}
+
+.bystro-autolist-top-cell-hor {
+    border-top: 1px solid orange;
+    border-right: 1px solid orange;
+    border-bottom: 1px solid orange;
+    padding: 2px 5px 2px 5px
+}
+
+.bystro-autolist-left-cell-hor {
+    border-top:   1px solid orange;
+    border-left:  1px solid orange;
+    border-right: 1px solid orange;
+    border-bottom: 1px solid orange;
+    padding: 2px 5px 2px 5px
+}
+
+.bystro-autolist-cell-vert {
+    border-left: 2px solid orange;
+    border-right: 1px solid orange;
+    border-bottom: 1px solid orange;
+    padding: 2px 5px 2px 5px
+}
+
+.bystro-autolist-topleft-cell-vert {
+    border: 1px solid orange;
+    padding: 2px 5px 2px 5px
+}
+
+.bystro-autolist-top-cell-vert {
+    border-left: 2px solid orange;
+    border-top: 1px solid orange;
+    border-right: 1px solid orange;
+    border-bottom: 1px solid orange;
+    padding: 2px 5px 2px 5px
+}
+
+.bystro-autolist-left-cell-vert {
+    border-left:  1px solid orange;
+    border-right: 1px solid orange;
+    border-bottom: 1px solid orange;
+    padding: 2px 5px 2px 5px
+}
+
+.bystro-autolist-nothing-found {
+    background-color: lightgray;
+
+}
+
 .greenlink {
     background-color: green;
 }
@@ -122,6 +209,12 @@ font-size:x-small;
 .comment {
     font-size:70%;
     border-left:2px solid blue;
+    padding-left:10px;
+}
+
+.bystro-quotation {
+    font-size:90%;
+    border-left:2px solid green;
     padding-left:10px;
 }
 
@@ -148,3 +241,4 @@ font-size:x-small;
     border:1px solid green;
     background-color: #F0FFF0;
 }
+
