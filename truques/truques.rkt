@@ -50,18 +50,23 @@ along with bystroTeX.  If not, see <http://www.gnu.org/licenses/>.
                (add-between xx ","))])
       (hyperlink z (add-between (filter (compose not ((curry regexp-match?) #px"^\\s*$")) x) " ⋄ "))))
 
-  (provide (contract-out [copy-to-clipboard (->* () () #:rest (listof string?) element?)]))
-  (define (copy-to-clipboard . xs)
+  (provide (contract-out [copy-to-clipboard (->* () (#:rows (or/c integer? #f) #:cols (or/c integer? #f)) #:rest (listof string?) element?)]))
+  (define (copy-to-clipboard #:rows [rows #f] #:cols [cols #f]. xs)
     (set! copy-tag-num (+ 1 copy-tag-num))
     (element
      (style #f '())
      (list
-      (tg
-       textarea
-       #:attrs ([id (string-append "amkhlv-bystro-copy-id-" (number->string copy-tag-num))]
-                [readonly "1"])
-       (apply string-append xs)
-       )
+      (make-element
+       (make-style
+        "bystro-copy-to-clipboard"
+        `(,(alt-tag "textarea")
+          ,(attributes
+            `(,(cons 'id (string-append "amkhlv-bystro-copy-id-" (number->string copy-tag-num)))
+              ,(cons 'readonly "1")
+              ,@(filter (lambda (x) (cdr x))
+                        `(,(cons 'rows (if rows (number->string rows) #f))
+                          ,(cons 'cols (if cols (number->string cols) #f))))))))
+       (apply string-append xs))
       (tg
        button
        #:attrs ([onclick (string-append "amkhlvBystroCopyFn" (number->string copy-tag-num) "()")])
@@ -106,4 +111,22 @@ along with bystroTeX.  If not, see <http://www.gnu.org/licenses/>.
            (make-style "bystro-autolist-nothing-found" '())
            `("no files with extensions: "
              ,(string-join (map symbol->string extensions) "|"))))))
+  (provide (contract-out [check (->* () () #:rest (listof any/c) element?)]))
+  (define (check . xs)
+    (make-element
+     (make-style #f (list (alt-tag "label") (attributes `(,(cons 'class "bystro-checkbox-label")))))
+     (append
+      xs
+      `(
+        ,(make-element
+          (make-style #f (list (alt-tag "input")
+                               (attributes `(
+                                             ,(cons 'type "checkbox")
+                                             ,(cons 'class "bystro-checkbox")))))
+          '())
+        ,(make-element
+          (make-style #f (list (alt-tag "span") (attributes `(,(cons 'class "bystro-checkmark")))))
+          '()))
+      )))
+
   )

@@ -226,6 +226,73 @@ font-size:x-small;
     padding-left:10px;
 }
 
+
+
+/* === start checkboxes === */
+
+.bystro-checkbox-label {
+  display: block;
+  position: relative;
+  padding-left: 35px;
+  margin-bottom: 12px;
+}
+
+/* Hide the browser's default checkbox */
+.bystro-checkbox-label input {
+  position: absolute;
+  opacity: 0;
+  cursor: pointer;
+  height: 0;
+  width: 0;
+}
+
+/* Create a custom checkbox */
+.bystro-checkmark {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 16pt;
+  width: 16pt;
+  background-color: #e44;
+}
+
+/* On mouse-over, add a grey background color */
+.bystro-checkbox-label:hover input ~ .bystro-checkmark {
+  background-color: #e96;
+}
+
+/* When the checkbox is checked, add a blue background */
+.bystro-checkbox-label input:checked ~ .bystro-checkmark {
+  background-color: #21F396;
+}
+
+/* Create the checkmark/indicator (hidden when not checked) */
+.bystro-checkmark:after {
+  content: "";
+  position: absolute;
+  display: none;
+}
+
+/* Show the checkmark when checked */
+.bystro-checkbox-label input:checked ~ .bystro-checkmark:after {
+  display: block;
+}
+
+/* Style the checkmark/indicator */
+.bystro-checkbox-label .bystro-checkmark:after {
+  left: 7px;
+  top: 3px;
+  width: 5px;
+  height: 10px;
+  border: solid black;
+  border-width: 0 3px 3px 0;
+  -webkit-transform: rotate(45deg);
+  -ms-transform: rotate(45deg);
+  transform: rotate(45deg);
+}
+
+/* == end checkboxes == */
+
 .redbox {
     border:2px solid red;
     padding:10px 10px 10px 10px;
