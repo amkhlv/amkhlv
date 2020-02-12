@@ -52,7 +52,7 @@
     (mapcar
      (lambda (line)
        (and
-        (search-forward line (+ 1 (point) (length line)) t)
+        (search-forward line (+ (point) (length line)) t)
         (if (looking-at "[ ]*\n[ ]*") (re-search-forward "[ ]*\n[ ]*") (looking-at "}"))
         ))
      (mapcar 'string-trim (split-string tex "\n"))))))
@@ -67,7 +67,7 @@
          nil
          t)
         (let ((b nil)
-              (e nil))          
+              (e nil))
           (setq b (match-beginning 0))
           (when (bystroTeX--TeX-matches tex)
             (setq e (+ 1 (point)))
