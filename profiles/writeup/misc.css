@@ -189,6 +189,10 @@ font-size:x-small;
 
 }
 
+.bystro-copy-to-clipboard {
+    background-color: lightsalmon;
+}
+
 .greenlink {
     background-color: green;
 }

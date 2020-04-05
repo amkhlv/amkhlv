@@ -51,7 +51,7 @@ along with bystroTeX.  If not, see <http://www.gnu.org/licenses/>.
       (hyperlink z (add-between (filter (compose not ((curry regexp-match?) #px"^\\s*$")) x) " ⋄ "))))
 
   (provide (contract-out [copy-to-clipboard (->* () (#:rows (or/c integer? #f) #:cols (or/c integer? #f)) #:rest (listof string?) element?)]))
-  (define (copy-to-clipboard #:rows [rows #f] #:cols [cols #f]. xs)
+  (define (copy-to-clipboard #:rows [rows #f] #:cols [cols #f] . xs)
     (set! copy-tag-num (+ 1 copy-tag-num))
     (element
      (style #f '())
@@ -96,7 +96,7 @@ along with bystroTeX.  If not, see <http://www.gnu.org/licenses/>.
            #:exts [extensions '(pdf)]
            #:dir [dir (get-bystro-scrbl-name)]
            #:header [header #f]
-           #:output [o (lambda (f) `(,(hyperlink (path->string f) (path->string f))))])
+           #:output [o (lambda (f) `(,(hyperlink (path->string (path->complete-path (build-path dir f))) (path->string f))))])
     (let ([relevant-files
            (for/list
                ([f (directory-list dir)]

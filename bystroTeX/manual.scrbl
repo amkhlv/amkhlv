@@ -307,6 +307,21 @@ This triggers dumping LaTeX formulas instead of insertion of their pictures.
 Useful for translating BystroTeX documents into LaTeX.
 }
 
+@section{BibTeX}
+
+@defproc[
+(cite [x string?])
+element?]{
+Cite a BibTeX entry
+}
+
+@defproc[
+(bibliography)
+table?]{
+List of references
+}
+
+
 @section{Miscellaneous functions}
 
 

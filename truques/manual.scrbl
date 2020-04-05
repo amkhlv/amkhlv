@@ -75,7 +75,7 @@ element?
 (autolist [#:exts list-of-extensions (listof symbol?) '(pdf)]
           [#:dir dir path-string? (get-bystro-scrbl-name)]
           [#:header header (or/c (listof any/c) #f) #f]
-          [#:output f (-> path-string? (or/c (listof any/c))) (lambda (p) `(,(hyperlink (path->string p) (path->string p))))]
+          [#:output f (-> path-string? (or/c (listof any/c))) (lambda (p)   `(,(hyperlink (path->string (path->complete-path (build-path dir f))) (path->string f))))]
           )
 table?
 ]{Lists files with given extensions in the directory.
