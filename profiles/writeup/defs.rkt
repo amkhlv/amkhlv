@@ -117,5 +117,16 @@
            b)]))
   (provide appendix)
   (define appendix (elem #:style (style "bystro-end-of-main-text" '()) '()))
-
+  (provide bystro-abstract)
+  (define (bystro-abstract . xs)
+    (nested
+     #:style (style "bystro-abstract" '())
+     xs))
+  (provide bystro-authors)
+  (define (bystro-authors . xs)
+    (nested
+     #:style (style "bystro-authors" '())
+     xs))
+  (provide bystro-margin-note)
+  (define bystro-margin-note margin-note)
   )

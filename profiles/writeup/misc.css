@@ -324,3 +324,11 @@ font-size:x-small;
 .bystro-end-of-main-text {
     
 }
+
+.bystro-abstract {
+    font-size: 0.75em;
+}
+
+.bystro-authors {
+    font-size: 1.25em;
+}
