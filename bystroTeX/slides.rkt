@@ -36,6 +36,8 @@ along with bystroTeX.  If not, see <http://www.gnu.org/licenses/>.
   (require (prefix-in net: net/url))
   (require (prefix-in net: net/url-structs))
 
+  (require json)
+
   (provide (all-from-out db/base) (all-from-out db/sqlite3))
 
 ;; ---------------------------------------------------------------------------------------------------
@@ -48,6 +50,7 @@ along with bystroTeX.  If not, see <http://www.gnu.org/licenses/>.
      [host string?]
      [port number?]
      [path string?]
+     [version (or/c #f string?)]
      )
     #:mutable)
   (provide (contract-out [struct bystro
@@ -84,8 +87,9 @@ along with bystroTeX.  If not, see <http://www.gnu.org/licenses/>.
                [port (string->number (xml:se-path* '(port) server-conf))]
                [path (xml:se-path* '(path) server-conf)]
                [token (xml:se-path* '(token) server-conf)]
+               [version (xml:se-path* '(version) server-conf)]
                )
-          (bystroserver (net:http-conn-open host #:port port) token #f host port path))
+          (bystroserver (net:http-conn-open host #:port port) token #f host port path version))
         'running-without-LaTeX-server))
   (provide (contract-out
             [bystro-close-connection (-> bystro? void?)]))
@@ -371,12 +375,14 @@ along with bystroTeX.  If not, see <http://www.gnu.org/licenses/>.
              (bystroserver-port bserv)      ;port
              #t                              ;path-absolute?
              (list (net:path/param "svg" '()))   ;path
-             (list 
-              (cons 'token (bystroserver-token bserv))
-              (cons 'latex texstring)
-              (cons 'size (number->string size))
-              (cons 'bg (rgb-list->string bg-color))
-              (cons 'fg (rgb-list->string fg-color))) ;query
+             (if (bystroserver-version bserv)
+                 '()
+                 (list 
+                  (cons 'token (bystroserver-token bserv))
+                  (cons 'latex texstring)
+                  (cons 'size (number->string size))
+                  (cons 'bg (rgb-list->string bg-color))
+                  (cons 'fg (rgb-list->string fg-color)))) ;query (when version >= 2 we send in body)
              #f ;fragment
              ))]
       [(status headers inport)
@@ -385,6 +391,20 @@ along with bystroTeX.  If not, see <http://www.gnu.org/licenses/>.
         (net:url->string u)
         #:method #"POST"
         #:headers '("BystroTeX:yes")
+        #:data (if (bystroserver-version bserv) ; when version >= 2 we send everything in body
+                   (jsexpr->string
+                    (hash
+                     'token
+                     (bystroserver-token bserv)
+                     'latex
+                     texstring
+                     'size
+                     size
+                     'bg
+                     (rgb-list->string bg-color)
+                     'fg
+                     (rgb-list->string fg-color)))
+                   #f)
         )]
       [(result) (values (port->string inport))]
       [(error-type) (values
