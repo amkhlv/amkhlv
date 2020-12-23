@@ -91,46 +91,35 @@ We will start with @bold{setting up this server}.
 
 @table-of-contents[]
 
-@section{Install Java and Git}
-
-First of all, you need to have installed @bold{Java 7 or 8} (because Java 6 will not work), including the JDK.
-OpenJDK is OK. To verify that you have Java installed, type the commands:
-@verb{
-java -version
-javac -version
-}
-They should say something like ``java version 1.7....'' and ``javac 1.7....''.
+@section{Install JDK, SBT and Git}
 
 To install the server, you will need to install the following things on your computer: 
 
-@itemlist[#:style 'ordered 
+@itemlist[#:style 'ordered
+@item{Java with @hyperlink["https://en.wikipedia.org/wiki/Java_Development_Kit"]{JDK}}
 @item{@hyperlink["https://en.wikipedia.org/wiki/Git"]{git}}
-@item{@hyperlink["https://en.wikipedia.org/wiki/Apache_Maven"]{mvn} and @hyperlink["https://en.wikipedia.org/wiki/SBT_(software)"]{sbt}}
+@item{@hyperlink["https://en.wikipedia.org/wiki/SBT_(software)"]{SBT}}
 ]
 
 @section{Build things}
 
 Now execute the following commands:
 
-@smaller{@tt{git clone https://github.com/amkhlv/latex2svg}}
+@smaller{@tt{git clone https://github.com/amkhlv/LaTeX2SVGServer}}
 
-@smaller{@tt{cd latex2svg}}
+@smaller{@tt{cd LaTeX2SVGServer}}
 
-@smaller{@tt{git submodule init}}
+@smaller{@tt{sbt assembly}}
 
-@smaller{@tt{git submodule update}}
-
-@smaller{@tt{cd jlatexmath}}
-
-@smaller{@tt{mvn clean install}}
-
-@smaller{@tt{cd ..}}
-
-@smaller{@tt{sbt stage}}
 
 This will take some time, as various libraries will have to be downloaded (and saved in @tt{~/.ivy2} and @tt{~/.sbt}).
 
+After that, the following JAR file will appear:
+
+@tt{latex2svgserver.jar}
+
 @section{Run}
+
 Our Java server will communicate to the Racket frontend some initial settings 
 (including the anti-@hyperlink["https://www.owasp.org/index.php/Cross-Site_Request_Forgery_(CSRF)"]{CSRF} token) 
 by writing them into an @tt{XML} file. You have to decide how it should name this file and where to put it.
@@ -142,14 +131,12 @@ Suppose that you decided to call it @tt{bystroConf.xml}, and choosen some direct
 
 Under this assumption, start the server by typing the following command:
 
-@smaller{@tt{target/universal/stage/bin/latex2svg -DbystroFile=/path/to/bystroConf.xml -Dhttp.port=9749 -Dhttp.address=127.0.0.1}}
+@tt|{java -DbystroFile=/path/to/bystroConf.xml -Dbibfile=/path/to/yourBibTeXfile.bib -Dhttp.port=11111 -Dhttp.address=127.0.0.1 -jar latex2svgserver.jar}|
+
+(Yes, you need to supply a BibTeX file. It may be empty.)
 
 @comment{
-If you want to use @tt{BibTeX}, add the option @tt{-Dbibfile=/path/to/your/file.bib}
-}
-
-@comment{
-The port number @tt{9749} is also up to you to choose. The frontend will know it because it will be written (among other things) to @tt{/path/to/bystroConf.xml}
+The port number @tt{11111} is also up to you to choose. The frontend will know it because it will be written (among other things) to @tt{/path/to/bystroConf.xml}
 }
 
 Now the server is running. 
