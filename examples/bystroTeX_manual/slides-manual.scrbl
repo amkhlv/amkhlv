@@ -127,8 +127,6 @@ Suppose that you decided to call it @tt{bystroConf.xml}, and choosen some direct
 
 @smaller{@tt{/path/to/bystroConf.xml}}
 
-@comment{remember this location; you will need need it @seclink["SamplePresentation"]{in the following steps}}
-
 Under this assumption, start the server by typing the following command:
 
 @tt|{java -DbystroFile=/path/to/bystroConf.xml -Dbibfile=/path/to/yourBibTeXfile.bib -Dhttp.port=11111 -Dhttp.address=127.0.0.1 -jar latex2svgserver.jar}|
@@ -206,6 +204,12 @@ Now @spn[attn]{Now go to the sample folder}:
 Remember your @tt{/path/to/bystroConf.xml} ? For sample slides to build, you need to symlink it to here:
 
 @verb{ln -s /path/to/bystroConf.xml ./}
+
+@comment{
+         Generally speaking, the location of the server configuration file
+         is kept in the @tt{bystro-conf} struct which is
+         defined in the header of the @tt{.scrbl} file.
+         }
 
 Now let us go to the sample slides directory:
 
@@ -697,8 +701,7 @@ Then, the converter would have to be customized (by editing its source code).
 
 
 @slide["Troubleshooting" #:tag "Troubleshooting" #:showtitle #t]{
-You need @bold{Java 7} (because Java 6 will not work). OpenJDK should be OK. 
-Java errors are dumped to @tt{server-error.txt}. 
+
 
 @tbl[#:orient 'hor @list[
  @list[
@@ -707,7 +710,7 @@ Java errors are dumped to @tt{server-error.txt}.
 correctly in the headers, as explained @seclink["SinglePage"]{here}.}
 ]@list[
 @para{Formulas are mixed up}
-@para{Do you have to singlepage @tt{scribble} files in the same directory?
+@para{Do you have two singlepage @tt{scribble} files in the same directory?
 See @seclink["AvoidingConflicts"]{Avoiding Conflicts}}
 ]@list[
 @para{Execution of the command ``@tt{scribble ...}'' freezes}
