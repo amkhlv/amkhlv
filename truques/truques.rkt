@@ -18,7 +18,7 @@ along with bystroTeX.  If not, see <http://www.gnu.org/licenses/>.
 |#
 
 (module truques racket
-  (require scribble/core scribble/base scribble/html-properties scribble/decode scriblib/render-cond racket/string)
+  (require scribble/core scribble/base scribble/html-properties scribble/decode scriblib/render-cond racket/string racket/path)
   (require bystroTeX/common)
 
   (define copy-tag-num 0)
@@ -96,7 +96,16 @@ along with bystroTeX.  If not, see <http://www.gnu.org/licenses/>.
            #:exts [extensions '(pdf)]
            #:dir [dir (get-bystro-scrbl-name)]
            #:header [header #f]
-           #:output [o (lambda (f) `(,(hyperlink (path->string (path->complete-path (build-path dir f))) (path->string f))))])
+           #:output [o
+                     (lambda (f)
+                       `(,(hyperlink
+                           (find-relative-path
+                            (current-directory)
+                            (path->complete-path (build-path dir f)))
+                           (path->string f))))]
+           )
+    (displayln "")
+    (displayln dir)
     (let ([relevant-files
            (for/list
                ([f (directory-list dir)]
