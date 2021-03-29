@@ -18,10 +18,9 @@ along with bystroTeX.  If not, see <http://www.gnu.org/licenses/>.
 |#
 
 (module yaml racket
-  (require racket/format yaml)
+  (require racket/format yaml racket/set racket/date)
   (require bystroTeX/common truques/truques)
   (require scribble/core scribble/base scribble/html-properties scribble/decode)
-  (require racket/date)
 
   (provide (all-from-out yaml) (all-from-out racket/format))
 
@@ -34,14 +33,29 @@ along with bystroTeX.  If not, see <http://www.gnu.org/licenses/>.
       [(list yy ...)
        (apply
         itemlist
+        #:style 'ordered
         (for/list ([z yy]) (item (yaml-to-clips #:rows rows #:cols cols z))))]
+      [(cons k v)  (tbl k (yaml-to-clips #:rows rows #:cols cols v))]
       [(hash-table (k v) ...)
        (tbl
         #:orient 'hor
         (for/list ([z (map cons k v)])
           (list (car z) (yaml-to-clips #:rows rows #:cols cols (cdr z)))))]
       [v
-       (copy-to-clipboard #:rows rows #:cols cols v)]
+       (if (set? v)
+           (apply
+            itemlist
+            (for/list ([z (set->list v)]) (item (yaml-to-clips #:rows rows #:cols cols z))))
+           (copy-to-clipboard
+            #:rows rows
+            #:cols cols
+            (cond
+              [(string? v) v]
+              [(number? v) (number->string v)]
+              [(boolean? v) (if v "TRUE" "FALSE")]
+              [(date? v) (date->string v)]
+              [else "=== ERROR ==="]
+              )))]
       )
     )
   )
