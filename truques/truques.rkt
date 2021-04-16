@@ -20,7 +20,8 @@ along with bystroTeX.  If not, see <http://www.gnu.org/licenses/>.
 (module truques racket
   (require scribble/core scribble/base scribble/html-properties scribble/decode scriblib/render-cond racket/string racket/path)
   (require bystroTeX/common)
-
+  (require xml/path (prefix-in the: xml))
+  
   (define copy-tag-num 0)
 
   (provide (contract-out [show-and-go (->* (namespace-anchor?) () #:rest (listof string?) block?)]))
@@ -137,5 +138,83 @@ along with bystroTeX.  If not, see <http://www.gnu.org/licenses/>.
           (make-style #f (list (alt-tag "span") (attributes `(,(cons 'class "bystro-checkmark")))))
           '()))
       )))
+
+  (provide (contract-out [autolist-pdfs (->*
+                                         ()
+                                         (#:dir path-string?)
+                                         (or/c table? element?))]))
+  (define (autolist-pdfs #:dir [dir 'same])
+    (autolist
+     #:exts '(pdf PDF)
+     #:dir dir
+     #:header `(,(bold "summary") ,(bold "PDF"))
+     #:output (lambda (f)
+                (let* ([frel
+                        (find-relative-path
+                         (current-directory)
+                         (path->complete-path (build-path dir f)))]
+                       [.pdf (path->string f)]
+                       [.pdq (path-replace-extension frel ".pdq")]
+                       [x (if
+                           (file-exists? .pdq)
+                           (call-with-input-file .pdq
+                             (lambda (inport) (the:xml->xexpr (the:document-element (the:read-xml inport)))))
+                           '(root () (summary () "--")))]
+                       [summary (se-path* '(summary) x)])
+                  `(
+                    ,(or summary "")
+                    ,(hyperlink frel .pdf))
+                  )
+                )
+     )
+    )
+  (provide (contract-out [autolist-images (->*
+                                           ()
+                                           (#:exts (listof symbol?)
+                                            #:dir path-string?
+                                            #:scale number?
+                                            #:ncols integer?)
+                                           (or/c table? element?))]))  
+  (define (autolist-images
+           #:exts [extensions '(svg png tiff jpg jpeg)]
+           #:dir [dir 'same]
+           #:scale [scale 0.25]
+           #:ncols [ncols 2])
+    (define (complement-list lst n)
+      (if (equal? (length lst) n)
+          lst
+          (complement-list (cons "" lst) n)))
+    (define/match (split-list-in-pairs lst acc)
+      [('() (cons row aa)) (reverse (map reverse (cons (complement-list row ncols) aa)))]
+      [((cons el rst) (cons row aa))
+       #:when (equal? (length row) ncols)
+       (split-list-in-pairs rst (cons (list el) (cons row aa)))]
+      [((cons el rst) (cons row aa))
+       (split-list-in-pairs rst (cons (cons el row) aa))]
+      [((cons el rst) '())
+       (split-list-in-pairs rst (list (list el)))])
+    (let ([relevant-files
+           (for/list
+               ([f (directory-list dir)]
+                #:when (for/or ([ext (map symbol->string extensions)])
+                         (string-suffix? (path->string f) (string-append "." ext))))
+             (hyperlink (build-path dir f) (image #:scale scale (build-path dir f))))])
+      (if (cons? relevant-files)
+          (tbl (split-list-in-pairs relevant-files '()))
+          (make-element
+           (make-style "bystro-autolist-nothing-found" '())
+           `("no files with extensions: "
+             ,(string-join (map symbol->string extensions) "|")))
+          )
+      )
+    )
+  (provide (contract-out [autolist-svgs (->*
+                                         ()
+                                         (#:dir path-string?
+                                          #:scale number?
+                                          #:ncols integer?)
+                                         (or/c table? element?))]))
+  (define autolist-svgs (curry autolist-images #:exts '(svg)))
+
 
   )
