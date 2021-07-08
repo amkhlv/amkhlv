@@ -591,7 +591,10 @@ Instead of compiling as we explained @seclink["SamplePresentation"]{here}, do th
 }]}]
 
 This might be useful, for example, for @red{printing}. However, it is also easy
-to print multiple pages, using the program called @hyperlink["http://wkhtmltopdf.org/"]{wkhtmltopdf}.
+to print multiple pages, using the program called @hyperlink["http://wkhtmltopdf.org/"]{wkhtmltopdf}:
+@verb{
+      wkhtmltopdf --enable-local-file-access slide.html slide.pdf
+      }
 The only problem is to keep track of the ordering of pages. Notice that the @tt{index.html} has the
 list of all your multiple pages, and this script will extract them and print the filenames sorted:
 
