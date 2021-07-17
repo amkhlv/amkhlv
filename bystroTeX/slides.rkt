@@ -475,7 +475,16 @@ along with bystroTeX.  If not, see <http://www.gnu.org/licenses/>.
            (close-input-port inport)
            (error "*** please make corrections and run again ***")
            )
-         (let* ([bibxexpr (xml:xml->xexpr (xml:document-element (xml:read-xml inport)))]
+         (let* ([bibxexpr
+                 (with-handlers
+                   ([exn:fail:read?
+                     (λ (e)
+                       (error (string-append "\n Citation not found: " k))
+                       )
+                     ])
+                  (xml:xml->xexpr (xml:document-element (xml:read-xml inport)))
+                  )
+                 ]
                 [xs (xml:se-path*/list '(bibentry) bibxexpr)]
                 )
            (close-input-port inport)

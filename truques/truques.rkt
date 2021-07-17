@@ -174,7 +174,7 @@ along with bystroTeX.  If not, see <http://www.gnu.org/licenses/>.
                                             #:dir path-string?
                                             #:scale number?
                                             #:ncols integer?)
-                                           (or/c table? element?))]))  
+                                           (or/c nested-flow? element?))]))  
   (define (autolist-images
            #:exts [extensions '(svg png tiff jpg jpeg)]
            #:dir [dir 'same]
@@ -198,9 +198,11 @@ along with bystroTeX.  If not, see <http://www.gnu.org/licenses/>.
                ([f (directory-list dir)]
                 #:when (for/or ([ext (map symbol->string extensions)])
                          (string-suffix? (path->string f) (string-append "." ext))))
-             (hyperlink (build-path dir f) (image #:scale scale (build-path dir f))))])
+             (tbl `((,(hyperlink (build-path dir f) (image #:scale scale (build-path dir f)))) (,(path->string f)))))])
       (if (cons? relevant-files)
-          (tbl (split-list-in-pairs relevant-files '()))
+          (nested
+           (copy-to-clipboard #:cols 80 (path->string (path->complete-path dir)))
+           (tbl (split-list-in-pairs relevant-files '())))
           (make-element
            (make-style "bystro-autolist-nothing-found" '())
            `("no files with extensions: "
@@ -213,7 +215,7 @@ along with bystroTeX.  If not, see <http://www.gnu.org/licenses/>.
                                          (#:dir path-string?
                                           #:scale number?
                                           #:ncols integer?)
-                                         (or/c table? element?))]))
+                                         (or/c nested-flow? element?))]))
   (define autolist-svgs (curry autolist-images #:exts '(svg)))
 
 
