@@ -33,6 +33,23 @@ along with bystroTeX.  If not, see <http://www.gnu.org/licenses/>.
   (provide with-external-command-as)
   (define-syntax (with-external-command-as stx)
     (syntax-case stx ()
+      [(_ p-nick (com arg ...))
+       (with-syntax 
+           ([nick-stdout (format-id stx "~a-stdout" #'p-nick)]
+            [nick-stdin  (format-id stx "~a-stdin"  #'p-nick)]
+            [nick-pid    (format-id stx "~a-pid"    #'p-nick)]
+            [nick-stderr (format-id stx "~a-stderr" #'p-nick)]
+            [nick-ctrl   (format-id stx "~a-ctrl"   #'p-nick)]
+            )
+         #`(let* 
+               ([p-params (process* (find-executable-path com) arg ...)]
+                [nick-stdout (car p-params)]
+                [nick-stdin  (cadr p-params)]
+                [nick-pid    (caddr p-params)]
+                [nick-stderr (cadddr p-params)]
+                [nick-ctrl   (cadr (cdddr p-params))])
+             (close-these-ports: nick-stdout nick-stdin nick-stderr)
+             ))]
       [(_ p-nick x y action ...) 
        (with-syntax 
            ([nick-stdout (format-id stx "~a-stdout" #'p-nick)]
@@ -63,12 +80,13 @@ along with bystroTeX.  If not, see <http://www.gnu.org/licenses/>.
                    [nick-ctrl   (cadr (cdddr p-params))])
                 (define results (let () #t action ...))
                 (close-these-ports: nick-stdout nick-stdin nick-stderr)
-                results)]))]))
+                results)]))]
+      ))
 
   (provide with-subprocess-as)
   (define-syntax (with-subprocess-as stx)
     (syntax-case stx ()
-      [(_ p-nick outp inp errp (com arg ...) action ...) 
+      [(_ p-nick outp inp errp (com arg ...)) 
        (with-syntax 
            ([nick-process (format-id stx "~a-process" #'p-nick)]
             [nick-stdout  (format-id stx "~a-stdout" #'p-nick)]
@@ -77,11 +95,36 @@ along with bystroTeX.  If not, see <http://www.gnu.org/licenses/>.
          #`(let-values
                ([(nick-process nick-stdout nick-stdin nick-stderr)
                  (subprocess outp inp errp (find-executable-path com) arg ...)])  
-             (let ([results (let () action ...)])
-               (when nick-stdout (close-input-port nick-stdout))
-               (when nick-stdin  (close-output-port nick-stdin))
-               (when nick-stderr (close-input-port nick-stderr))
-               results)))]))
+             (when nick-stdout (close-input-port nick-stdout))
+             (when nick-stdin  (close-output-port nick-stdin))
+             (when nick-stderr (close-input-port nick-stderr))))]
+      [(_ p-nick outp inp errp x y action ...) 
+       (with-syntax 
+           ([nick-process (format-id stx "~a-process" #'p-nick)]
+            [nick-stdout  (format-id stx "~a-stdout" #'p-nick)]
+            [nick-stdin   (format-id stx "~a-stdin"  #'p-nick)]
+            [nick-stderr  (format-id stx "~a-stderr" #'p-nick)])
+         (syntax-case #'x ()
+           [(com arg ...)
+            #`(let-values
+                  ([(nick-process nick-stdout nick-stdin nick-stderr)
+                    (subprocess outp inp errp (find-executable-path com) arg ...)])  
+                (let ([results (let () y action ...)])
+                  (when nick-stdout (close-input-port nick-stdout))
+                  (when nick-stdin  (close-output-port nick-stdin))
+                  (when nick-stderr (close-input-port nick-stderr))
+                  results))]
+           [#:cmdline 
+            #`(let-values
+                  ([(nick-process nick-stdout nick-stdin nick-stderr)
+                    (apply subprocess (list outp inp errp (find-executable-path (car y)) (cdr y)))])  
+                (let ([results (let () #t action ...)])
+                  (when nick-stdout (close-input-port nick-stdout))
+                  (when nick-stdin  (close-output-port nick-stdin))
+                  (when nick-stderr (close-input-port nick-stderr))
+                  results))]
+           ))]))
+
 
   (provide run-pipeline)
   (define-syntax (run-pipeline stx)

@@ -669,6 +669,10 @@ available:
 See the manual for @racket[subprocess]
 }
 
+@defform[(with-subprocess-as nick outp inp errp #:cmdline xs action ...)]{
+An alternative form, where @racket[xs] is @racket[(list cmd arg ...)]
+}
+
 @defform[(run-pipeline pipe-stdout pipe-stdin (com arg ...) ...)]{
 Runs the pipeline and returns the @racket[input-port] from its @tt{stdout}.
 (Which should eventually be closed by calling @racket[close-input-port] !)
@@ -677,7 +681,7 @@ Runs the pipeline and returns the @racket[input-port] from its @tt{stdout}.
 
 @section{Legal}
 
-Copyright 2012-2016 Andrei Mikhailov
+Copyright 2012-2021 Andrei Mikhailov
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
