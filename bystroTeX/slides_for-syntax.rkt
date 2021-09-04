@@ -35,6 +35,7 @@ along with bystroTeX.  If not, see <http://www.gnu.org/licenses/>.
                                  #:calc-size
                                  [calc-size
                                   (lambda (s) `(+ (bystro-formula-size bystro-conf) ,(* 2 s)))]
+                                 #:color-reset-command [color-reset-command "bystro-reset-colors"]
                                  stx)
     (let* (
            [formula-db `(define formula-database
@@ -52,8 +53,12 @@ along with bystroTeX.  If not, see <http://www.gnu.org/licenses/>.
                     (bystro-equation #:label lbl #:size n x))]
            [old-formula-size      (string->unreadable-symbol "oldfsize")]
            [old-autoalign-adjust  (string->unreadable-symbol "old-aa-adjust")]
+           [old-bg-color (string->unreadable-symbol "old-bg")]
+           [old-fg-color (string->unreadable-symbol "old-fg")]
            [oldsz `(define ,old-formula-size (bystro-formula-size bystro-conf))]
            [oldaa `(define ,old-autoalign-adjust (bystro-autoalign-adjust bystro-conf))]
+           [oldbg `(define ,old-bg-color (bystro-formula-bg-color bystro-conf))]
+           [oldfg `(define ,old-fg-color (bystro-formula-fg-color bystro-conf))]
            [ch-sz `(define (,(string->symbol size-change-id) (i #f) (aaadj #f))
                      (if i (begin 
                              (set! ,old-formula-size (bystro-formula-size bystro-conf))
@@ -77,6 +82,9 @@ along with bystroTeX.  If not, see <http://www.gnu.org/licenses/>.
                       (set-bystro-formula-size! bystro-conf ,old-formula-size)
                       (set-bystro-autoalign-adjust! bystro-conf ,old-autoalign-adjust)
                       )]
+           [rs-clr `(define (,(string->symbol color-reset-command))
+                      (set-bystro-formula-bg-color! bystro-conf ,old-bg-color)
+                      (set-bystro-formula-fg-color! bystro-conf ,old-fg-color))]
            [fname  `(register-path-to-scribble-file (syntax-source #`stx))]
            [ttp-init '(bystro-titlepage-init #:singlepage-mode singlepage-mode)]
            [l+ (lambda (m)
@@ -141,10 +149,13 @@ along with bystroTeX.  If not, see <http://www.gnu.org/licenses/>.
                          auto 
                          disp 
                          oldsz 
-                         oldaa 
+                         oldaa
+                         oldbg
+                         oldfg
                          ch-sz 
                          inc-sz 
-                         rs-sz 
+                         rs-sz
+                         rs-clr
                          fname
                          ttp-init
                          set-css-dir
