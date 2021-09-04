@@ -13,28 +13,34 @@
 }
 
 .maincolumn {
-  font-size: 20pt;
+  font-size: 18pt;
   width: 970px;
 /*  margin-right: -40em; */
   margin-left: 5pt;
 }
 
 .pagetitle {
-    font-size: 24pt;
+    font-size: 26pt;
     color: navy;
 
 }
 
 .pagetitle-1 {
-    font-size: 20pt;
+    font-size: 24pt;
     color: navy;
     background-color: papayawhip;
 }
 
 .pagetitle-2 {
-    font-size: 16pt;
+    font-size: 22pt;
     color: navy;
     background-color: papayawhip;
+}
+
+.pagetitle-3 {
+    font-size: 20pt;
+    color: black;
+    background-color: #d5e5ff;
 }
 
 .local-toc-1 {

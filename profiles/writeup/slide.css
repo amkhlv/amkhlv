@@ -157,3 +157,10 @@ table, th, td
     text-align: left;
     padding: 5px;
 }
+
+talk {
+    font-size: 18pt;
+    font-family: Courier;
+    background-color: red;
+    color: white;
+}
