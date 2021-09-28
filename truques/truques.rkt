@@ -21,7 +21,7 @@ along with bystroTeX.  If not, see <http://www.gnu.org/licenses/>.
   (require scribble/core scribble/base scribble/html-properties scribble/decode scriblib/render-cond racket/string racket/path)
   (require bystroTeX/common)
   (require xml/path (prefix-in the: xml))
-  
+  (require "xml.rkt")
   (define copy-tag-num 0)
 
   (provide (contract-out [show-and-go (->* (namespace-anchor?) () #:rest (listof string?) block?)]))
@@ -162,7 +162,10 @@ along with bystroTeX.  If not, see <http://www.gnu.org/licenses/>.
                            '(root () (summary () "--")))]
                        [summary (se-path* '(summary) x)])
                   `(
-                    ,(or summary "")
+                    ,(if
+                      summary
+                      (show-xexpr (cons 'rt (se-path*/list '(summary) x)))
+                      "")
                     ,(hyperlink frel .pdf))
                   )
                 )
