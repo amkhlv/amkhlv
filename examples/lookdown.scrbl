@@ -43,6 +43,8 @@
 
 @title[#:style '(no-toc no-sidebar)]{@(strip-home-from-path (current-directory))}
 
+
+
 @(decode
   (cons
    (title-decl 
@@ -59,6 +61,7 @@
        (make-style "LookdownPart" '(unnumbered))
        '()
        `(,(bystro-ribbon)
+         ,(table-of-contents)
          ,(tbl #:orient 'hor
                (for/list ([bystrotex-dir bystrotex.xml-dirs])
                  (list
