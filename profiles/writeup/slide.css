@@ -5,7 +5,7 @@
 
 body {
 
-    background-color: #fdceb1;
+    background-color: #ffe4e1;
 
 }
 
@@ -37,20 +37,26 @@ body {
 
 .pagetitle-1 {
     font-size: 20pt;
-    color: navy;
-    background-color: papayawhip;
+    color: black;
+    border-radius: 8px;
+    padding: 8px;
+    background-color: #97ffff;
 }
 
 .pagetitle-2 {
     font-size: 16pt;
-    color: navy;
-    background-color: papayawhip;
+    color: black;
+    border-radius: 8px;
+    padding: 4px;
+    background-color: #97ffff;
 }
 
 .pagetitle-3 {
     font-size: 13pt;
     color: navy;
-    background-color: papayawhip;
+    border-radius: 8px;
+    padding: 2px;
+    background-color: #97ffff;
 }
 
 .local-toc-1 {
@@ -158,9 +164,23 @@ table, th, td
     padding: 5px;
 }
 
+.bystro-summary {
+    background-color: white;
+}
+
 talk {
     font-size: 18pt;
     font-family: Courier;
     background-color: red;
     color: white;
 }
+
+hidden {
+    background-color: gray;
+    color: gray;
+}
+hidden::selection {
+ background-color: black;
+    color: black;
+}   
+                      
