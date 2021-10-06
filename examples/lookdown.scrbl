@@ -36,6 +36,14 @@
          lookdown.html
          #f)))
 
+@(define (depth dir n)
+   (let-values ([(base x y) (split-path dir)])
+     (if (path? base)
+         (if (link-exists? (build-path base "lookdown.scrbl"))
+             (depth base (n . + . 1))
+             (depth base n))
+         n)))
+
 @(define (strip-home-from-path x)
    (let ([cur (path->string x)]
          [hm  (path->string (find-system-path 'home-dir))])
@@ -70,20 +78,24 @@
                   (seclink bystrotex-dir)))))
        '())
      ,@(for/list ([bystrotex-dir bystrotex.xml-dirs])
-         (part 
-          #f 
-          (list (list 'part bystrotex-dir))
-          `(,bystrotex-dir) 
-          (make-style
-           "LookdownPartFolder"
-           (if (get-lookdown.html bystrotex-dir)
-               '(unnumbered)
-               '(unnumbered toc-hidden)))
-          '()
-          (begin
-            ;(displayln bystrotex.xml)
-            (list (bystro-ribbon-for-location (string->path bystrotex-dir) #:exclude-same-name #t)))
-          '())))))
+         (let ([lookdown.html (get-lookdown.html bystrotex-dir)])
+           (part 
+            #f 
+            (list (list 'part bystrotex-dir))
+            `(,bystrotex-dir) 
+            (make-style
+             "LookdownPartFolder"
+             (if (and lookdown.html ((depth bystrotex-dir 0) . < . 2))
+                 '(unnumbered)
+                 '(unnumbered toc-hidden)))
+            '()
+            (begin
+              (reverse
+               (cons
+                (bystro-ribbon-for-location (string->path bystrotex-dir) #:exclude-same-name #t)
+                (if lookdown.html `(,(nested (hyperlink lookdown.html (path->string lookdown.html)))) '())
+                )))
+            '()))))))
 
 @; ---------------------------------------------------------------------------------------------------
 @(bystro-close-connection bystro-conf)
