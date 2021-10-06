@@ -43,7 +43,9 @@
 
 @title[#:style '(no-toc no-sidebar)]{@(strip-home-from-path (current-directory))}
 
+@(bystro-ribbon)
 
+@(table-of-contents)
 
 @(decode
   (cons
@@ -51,17 +53,15 @@
     #f 
     '((part "LookdownMain"))
     #f
-    (make-style "LookdownMainTitle" '(unnumbered))
+    (make-style "LookdownMainTitle" '(unnumbered toc-hidden))
     "")
-   `(
-     ,(part
+   `(,(part
        #f
        '((part "Lookdown"))
        '()
-       (make-style "LookdownPart" '(unnumbered))
+       (make-style "LookdownPart" '(unnumbered toc-hidden))
        '()
-       `(,(bystro-ribbon)
-         ,(table-of-contents)
+       `(
          ,(tbl #:orient 'hor
                (for/list ([bystrotex-dir bystrotex.xml-dirs])
                  (list
@@ -74,10 +74,14 @@
           #f 
           (list (list 'part bystrotex-dir))
           `(,bystrotex-dir) 
-          (make-style "LookdownPartFolder" '(unnumbered))
+          (make-style
+           "LookdownPartFolder"
+           (if (get-lookdown.html bystrotex-dir)
+               '(unnumbered)
+               '(unnumbered toc-hidden)))
           '()
           (begin
-                                        ;(displayln bystrotex.xml)
+            ;(displayln bystrotex.xml)
             (list (bystro-ribbon-for-location (string->path bystrotex-dir) #:exclude-same-name #t)))
           '())))))
 
