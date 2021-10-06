@@ -18,8 +18,8 @@
 @(bystro-def-formula "formula-enormula-humongula!")
 
 @(define bystrotex.xml-dirs
-   (let* ([inp (run-pipeline #f #f ("find" "." "-type" "f" "-name" "bystrotex.xml") ("sort"))]
-          [lns (port->lines (run-pipeline #f #f ("find" "." "-type" "f" "-name" "bystrotex.xml" "-exec" "dirname" "{}" ";") ("sort")))])
+   (let* ([inp (run-pipeline #f #f ("find" "." "-mindepth" "2" "-type" "f" "-name" "bystrotex.xml") ("sort"))]
+          [lns (port->lines (run-pipeline #f #f ("find" "." "-mindepth" "2" "-type" "f" "-name" "bystrotex.xml" "-exec" "dirname" "{}" ";") ("sort")))])
      (close-input-port inp)
      lns))
    
@@ -63,7 +63,9 @@
     #f
     (make-style "LookdownMainTitle" '(unnumbered toc-hidden))
     "")
-   `(,(part
+   `(
+     #|
+     ,(part
        #f
        '((part "Lookdown"))
        '()
@@ -76,7 +78,9 @@
                   (let ([lookdown.html (get-lookdown.html bystrotex-dir)])
                     (if lookdown.html (hyperlink lookdown.html bystrotex-dir) ""))
                   (seclink bystrotex-dir)))))
-       '())
+       '()
+       )
+     |#
      ,@(for/list ([bystrotex-dir bystrotex.xml-dirs])
          (let ([lookdown.html (get-lookdown.html bystrotex-dir)])
            (part 
