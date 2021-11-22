@@ -332,11 +332,3 @@ font-size:x-small;
 .bystro-authors {
     font-size: 1.25em;
 }
-hidden {
-    background-color: gray;
-    color: gray;
-}
-hidden::selection {
- background-color: black;
-    color: black;
-}   

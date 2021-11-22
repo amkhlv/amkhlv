@@ -18,7 +18,7 @@ along with bystroTeX.  If not, see <http://www.gnu.org/licenses/>.
 |#
 
 (module truques racket
-  (require scribble/core scribble/base scribble/html-properties scribble/decode scriblib/render-cond racket/string racket/path)
+  (require scribble/core scribble/base scribble/html-properties scribble/decode scriblib/render-cond racket/string racket/path racket/date)
   (require bystroTeX/common)
   (require xml/path (prefix-in the: xml))
   (require "xml.rkt")
@@ -141,13 +141,14 @@ along with bystroTeX.  If not, see <http://www.gnu.org/licenses/>.
 
   (provide (contract-out [autolist-pdfs (->*
                                          ()
-                                         (#:dir path-string?)
+                                         (#:dir path-string?
+                                          #:showtime boolean?)
                                          (or/c table? element?))]))
-  (define (autolist-pdfs #:dir [dir 'same])
+  (define (autolist-pdfs #:dir [dir 'same] #:showtime [st #f])
     (autolist
      #:exts '(pdf PDF)
      #:dir dir
-     #:header `(,(bold "summary") ,(bold "PDF"))
+     #:header `(,(bold "summary") ,@(if st (list (bold "time")) '()) ,(bold "PDF"))
      #:output (lambda (f)
                 (let* ([frel
                         (find-relative-path
@@ -155,6 +156,7 @@ along with bystroTeX.  If not, see <http://www.gnu.org/licenses/>.
                          (path->complete-path (build-path dir f)))]
                        [.pdf (path->string f)]
                        [.pdq (path-replace-extension frel ".pdq")]
+                       [t (if st (file-or-directory-modify-seconds frel) #f)]
                        [x (if
                            (file-exists? .pdq)
                            (call-with-input-file .pdq
@@ -166,6 +168,7 @@ along with bystroTeX.  If not, see <http://www.gnu.org/licenses/>.
                       summary
                       (show-xexpr (cons 'rt (se-path*/list '(summary) x)))
                       "")
+                    ,@(if t (list (smaller (date->string (seconds->date t)))) '())
                     ,(hyperlink frel .pdf))
                   )
                 )

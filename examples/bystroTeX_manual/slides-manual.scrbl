@@ -32,7 +32,7 @@ Andrei Mikhailov, IFT UNESP
 @slide["Inserting mathematical formulas into html slides" #:tag "MathFormulasInSlides" #:showtitle #t]{
 
 We can insert @f{W(\phi)} as an inline formula, or a display formula:
-@equation[#:label "Lagrangian" ]{
+@e[#:label "Lagrangian"]{
 {\cal L} = \left(\partial_{\mu}\phi,\partial^{\mu}\phi\right) - 
 \left|\left| {\partial W(\phi)\over \partial\phi} \right|\right|^2
 }
@@ -98,7 +98,10 @@ To install the server, you will need to install the following things on your com
 @itemlist[#:style 'ordered
 @item{Java with @hyperlink["https://en.wikipedia.org/wiki/Java_Development_Kit"]{JDK}}
 @item{@hyperlink["https://en.wikipedia.org/wiki/Git"]{git}}
-@item{@hyperlink["https://en.wikipedia.org/wiki/SBT_(software)"]{SBT}}
+          @item{@hyperlink["https://en.wikipedia.org/wiki/SBT_(software)"]{SBT}
+                          (it is best installed @italic{via}
+                              @hyperlink["https://get-coursier.io/docs/cli-installation"]{Coursier},
+                              @tt{cs update cs} then @tt{cs install sbt})}
 ]
 
 @section{Build things}
@@ -313,8 +316,8 @@ the structure of parentheses inside your formula. @bold{If parentheses are well-
 is: @f-4|{v = \left\{\begin{array}{l} u \mbox{ if } u \geq 0 \cr -u \mbox{ if } u < 0\end{array}\right.}|,
 then you absolutely need to use @tt|{@f|-{...}-|}|, since the @f|{\{}| is unbalanced}
 
-There is also the display-style @tt|--{@equation{...}}--| which allows formula labeling using
-@tt|--{@equation[#:tag "FormulaName"]{...}}--|.
+There is also the display-style @tt|--{@e{...}}--| which allows formula labeling using
+@tt|--{@e[#:tag "FormulaName"]{...}}--|.
 
 
 It is also possible to manually align the formulas, for example 

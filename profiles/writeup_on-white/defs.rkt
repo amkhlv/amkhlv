@@ -68,7 +68,6 @@
     (elemref label (list (exercise-number label))))
   (provide noindent)
   (define noindent "")
-
   (provide comment)
   (define-syntax (comment stx)
     (syntax-case stx ()
@@ -106,7 +105,7 @@
                   [a (bystro-bg 176 224 230)]
                   [b (nested 
                       #:style (style "bystro-summary" 
-                                     '())
+                                     (list (make-attributes '((style . "background-color:PowderBlue;")))))
                       x ...)]
                   [c (apply bystro-bg oldbg)])
              b))]))

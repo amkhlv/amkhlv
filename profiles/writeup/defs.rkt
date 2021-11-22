@@ -1,7 +1,7 @@
 (module defs racket
 
   (require (for-syntax racket/base bystroTeX/slides_for-syntax racket/syntax))
-  (require racket scribble/core scribble/base scribble/html-properties)
+  (require racket scribble/core scribble/base scribble/html-properties scribble/decode)
   (require bystroTeX/common bystroTeX/slides)
 
   ;; Here the basic syntax can be adjusted:
@@ -103,10 +103,9 @@
       [(_ x ...)
        (with-syntax ([bc (format-id stx "bystro-conf")])
          #'(let* ([oldbg (bystro-formula-bg-color bc)]
-                  [a (bystro-bg 176 224 230)]
-                  [b (nested 
-                      #:style (style "bystro-summary" 
-                                     '())
+                  [a (bystro-bg 255 255 255)]
+                  [b (nested
+                      #:style (style "bystro-summary" '())
                       x ...)]
                   [c (apply bystro-bg oldbg)])
              b))]))
