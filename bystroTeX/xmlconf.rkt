@@ -20,6 +20,8 @@ along with bystroTeX.  If not, see <http://www.gnu.org/licenses/>.
 (module xmlconf racket
   (require xml xml/path racket/string (for-syntax racket/syntax))
   
+  (provide (contract-out [working-directory parameter?]))
+  (define working-directory (make-parameter #f))
   ;; some default values
   (define default-sqlite-filename-in-dest-folder   "formulas.sqlite")
   (define default-sqlite-filename-in-curdir_suffix "_formulas.sqlite")
@@ -28,21 +30,22 @@ along with bystroTeX.  If not, see <http://www.gnu.org/licenses/>.
   (define (xml-file->bystroconf-xexpr xf)
     (call-with-input-file xf (λ (inport) (xml->xexpr (document-element (read-xml inport))))))
 
-  (provide (contract-out [bystroconf-xexpr (or/c xexpr? #f)]))
-  (define bystroconf-xexpr
-    (if (file-exists? "bystrotex.xml")
-        (xml-file->bystroconf-xexpr "bystrotex.xml")
-        #f))
+  (provide (contract-out [bystroconf-xexpr (-> (or/c xexpr? #f))]))
+  (define (bystroconf-xexpr)
+    (let ([f (build-path (or (working-directory) 'same) "bystrotex.xml")])
+      (if (file-exists? f)
+          (xml-file->bystroconf-xexpr f)
+          #f)))
 
-  (provide (contract-out [all-names (listof string?)]))
-  (define all-names
-    (for/list ([c (se-path*/list '(scribblings) (or bystroconf-xexpr 'empty))] #:when (cons? c))
+  (provide (contract-out [all-names (-> (listof string?))]))
+  (define (all-names)
+    (for/list ([c (se-path*/list '(scribblings) (or (bystroconf-xexpr) 'empty))] #:when (cons? c))
       (string-trim (se-path* '(name) c))))
 
   (provide (contract-out
             [get-bystroconf (-> string? (or/c xexpr? #f))]))
   (define (get-bystroconf x)
-    (for/first ([y (se-path*/list '(scribblings) (or bystroconf-xexpr 'empty))]
+    (for/first ([y (se-path*/list '(scribblings) (or (bystroconf-xexpr) 'empty))]
                 #:when
                 (and 
                  (cons? y)

@@ -592,6 +592,11 @@ then @racket{(bystro-get-cl-argument "person")} will return @racket{"Andrei"}.
 
 The configuration file is usually called @tt{bystrotex.xml}
 
+@defparam[working-directory dir (or/c path-string? #f)]{
+A parameter defining the BystroTeX directory.
+Defaults to current directory.
+}
+
 @defproc[
 (xml-file->bystroconf-xexpr
  [xf path-string?]
@@ -601,12 +606,12 @@ xexpr?
 Reads configuration an XML file
 }
 
-@defthing[bystroconf-xexpr (or/c xexpr? #f)]{
+@defproc[(bystroconf-xexpr) (or/c xexpr? #f)]{
 Configuration read from the file @tt{bystrotex.xml} in the current directory.
 (If there is no such file, returns @racket[#f]
 }
 
-@defthing[all-names (listof string?)]{
+@defproc[(all-names) (listof string?)]{
 List of all scribbling names in the current directory
 }
 
