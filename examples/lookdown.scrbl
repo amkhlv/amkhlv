@@ -55,6 +55,8 @@
 
 @(table-of-contents)
 
+@(define listfile (open-output-file "lookdown.lst"))
+
 @(decode
   (cons
    (title-decl 
@@ -82,6 +84,7 @@
        )
      |#
      ,@(for/list ([bystrotex-dir bystrotex.xml-dirs])
+         (displayln bystrotex-dir listfile)
          (let ([lookdown.html (get-lookdown.html bystrotex-dir)])
            (part 
             #f 
@@ -100,6 +103,7 @@
                 (if lookdown.html `(,(nested (hyperlink lookdown.html (path->string lookdown.html)))) '())
                 )))
             '()))))))
+(close-output-port listfile)
 
 @; ---------------------------------------------------------------------------------------------------
 @(bystro-close-connection bystro-conf)
