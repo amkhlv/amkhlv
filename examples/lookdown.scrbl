@@ -55,7 +55,7 @@
 
 @(table-of-contents)
 
-@(define listfile (open-output-file "lookdown.lst"))
+@(define listfile (open-output-file "lookdown.lst" #:exists 'replace))
 
 @(decode
   (cons
@@ -84,7 +84,7 @@
        )
      |#
      ,@(for/list ([bystrotex-dir bystrotex.xml-dirs])
-         (displayln bystrotex-dir listfile)
+         (displayln (string-trim bystrotex-dir "./" #:right? #f) listfile)
          (let ([lookdown.html (get-lookdown.html bystrotex-dir)])
            (part 
             #f 
