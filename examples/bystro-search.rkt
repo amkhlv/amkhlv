@@ -32,7 +32,7 @@
                         (lambda (f) (for/or ([ln (in-lines f)]) (regexp-match (regexp regular-expression) ln))))
                   (if multipage?
                       (begin
-                        (displayln (string-append  (path->string (path->complete-path (build-path ln name))) " :"))
+                        (displayln (string-append  "-------- " (path->string (path->complete-path (build-path ln name))) " :"))
                         (with-handlers
                           ([exn:fail?
                             (lambda (exn)
@@ -40,11 +40,12 @@
                               (displayln exn)
                               (displayln "--------------------------- ERROR ----------------------------------------------------------------------")
                               )])
+                          (displayln (string-append "  file://" (path->string (path->complete-path (build-path ln name "index.html")))))
                           (for ([page (directory-list (build-path ln name))] #:when (string-suffix? (path->string page) ".html"))
                             (when (call-with-input-file
                                     (build-path ln name page)
                                     (lambda (f) (for/or ([ln (in-lines f)]) (regexp-match (regexp regular-expression) ln))))
-                              (displayln (string-append "  file://" (path->string (path->complete-path (build-path ln name page))))))))
+                              (displayln (string-append "    file://" (path->string (path->complete-path (build-path ln name page))))))))
                         )
                       (displayln (string-append "file://" (path->string (path->complete-path (build-path ln (dest . or . name)  name.html))))))))))))))
   
