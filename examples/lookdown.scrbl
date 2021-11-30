@@ -103,7 +103,7 @@
                 (if lookdown.html `(,(nested (hyperlink lookdown.html (path->string lookdown.html)))) '())
                 )))
             '()))))))
-(close-output-port listfile)
+@(close-output-port listfile)
 
 @; ---------------------------------------------------------------------------------------------------
 @(bystro-close-connection bystro-conf)
