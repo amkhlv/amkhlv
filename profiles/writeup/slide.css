@@ -180,4 +180,9 @@ talk {
     color: white;
 }
 
-                      
+doubt {
+    background-color: peru;
+    color: darkblue;
+    padding: 3px;
+    border-radius: 5px;
+}

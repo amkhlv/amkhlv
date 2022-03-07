@@ -179,13 +179,17 @@ along with bystroTeX.  If not, see <http://www.gnu.org/licenses/>.
                                            (#:exts (listof symbol?)
                                             #:dir path-string?
                                             #:scale number?
-                                            #:ncols integer?)
+                                            #:ncols integer?
+                                            #:filter (path-for-some-system? . -> . boolean?)
+                                            )
                                            (or/c nested-flow? element?))]))  
   (define (autolist-images
            #:exts [extensions '(svg png tiff jpg jpeg)]
            #:dir [dir 'same]
            #:scale [scale 0.25]
-           #:ncols [ncols 2])
+           #:ncols [ncols 2]
+           #:filter [filt (λ (f) #t)]
+           )
     (define (complement-list lst n)
       (if (equal? (length lst) n)
           lst
@@ -202,8 +206,11 @@ along with bystroTeX.  If not, see <http://www.gnu.org/licenses/>.
     (let ([relevant-files
            (for/list
                ([f (directory-list dir)]
-                #:when (for/or ([ext (map symbol->string extensions)])
+                #:when (and
+                        (filt (build-path dir f))
+                        (for/or ([ext (map symbol->string extensions)])
                          (string-suffix? (path->string f) (string-append "." ext))))
+                )
              (tbl `((,(hyperlink (build-path dir f) (image #:scale scale (build-path dir f)))) (,(path->string f)))))])
       (if (cons? relevant-files)
           (nested
@@ -220,7 +227,9 @@ along with bystroTeX.  If not, see <http://www.gnu.org/licenses/>.
                                          ()
                                          (#:dir path-string?
                                           #:scale number?
-                                          #:ncols integer?)
+                                          #:ncols integer?
+                                          #:filter (-> path-for-some-system? boolean?)
+                                          )
                                          (or/c nested-flow? element?))]))
   (define autolist-svgs (curry autolist-images #:exts '(svg)))
 
