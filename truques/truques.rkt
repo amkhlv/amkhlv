@@ -91,7 +91,9 @@ along with bystroTeX.  If not, see <http://www.gnu.org/licenses/>.
                                     (#:exts (listof symbol?)
                                      #:dir path-string?
                                      #:header (or/c (listof any/c) #f)
-                                     #:output (-> path-string? (or/c (listof any/c))))
+                                     #:output (-> path-string? (or/c (listof any/c)))
+                                     #:filter (path-for-some-system? . -> . boolean?)
+                                     )
                                     (or/c table? element?))]))
   (define (autolist
            #:exts [extensions '(pdf)]
@@ -104,14 +106,19 @@ along with bystroTeX.  If not, see <http://www.gnu.org/licenses/>.
                             (current-directory)
                             (path->complete-path (build-path dir f)))
                            (path->string f))))]
+           #:filter [flt (lambda (p) #t)]
            )
     (displayln "")
     (displayln dir)
     (let ([relevant-files
            (for/list
                ([f (directory-list dir)]
-                #:when (for/or ([ext (map symbol->string extensions)])
-                         (string-suffix? (path->string f) (string-append "." ext))))
+                #:when (and
+                        (for/or ([ext (map symbol->string extensions)])
+                          (string-suffix? (path->string f) (string-append "." ext)))
+                        (flt f)
+                        )
+                )
              (o f))])
       (if (cons? relevant-files)
           (bystro-table
@@ -142,13 +149,15 @@ along with bystroTeX.  If not, see <http://www.gnu.org/licenses/>.
   (provide (contract-out [autolist-pdfs (->*
                                          ()
                                          (#:dir path-string?
-                                          #:showtime boolean?)
+                                          #:showtime boolean?
+                                          #:filter (path-for-some-system? . -> . boolean?))
                                          (or/c table? element?))]))
-  (define (autolist-pdfs #:dir [dir 'same] #:showtime [st #f])
+  (define (autolist-pdfs #:dir [dir 'same] #:showtime [st #f] #:filter [flt (lambda (p) #t)])
     (autolist
      #:exts '(pdf PDF)
      #:dir dir
      #:header `(,(bold "summary") ,@(if st (list (bold "time")) '()) ,(bold "PDF"))
+     #:filter flt
      #:output (lambda (f)
                 (let* ([frel
                         (find-relative-path
@@ -181,6 +190,8 @@ along with bystroTeX.  If not, see <http://www.gnu.org/licenses/>.
                                             #:scale number?
                                             #:ncols integer?
                                             #:filter (path-for-some-system? . -> . boolean?)
+                                            #:showtime boolean?
+                                            #:showdir boolean?
                                             )
                                            (or/c nested-flow? element?))]))  
   (define (autolist-images
@@ -189,6 +200,8 @@ along with bystroTeX.  If not, see <http://www.gnu.org/licenses/>.
            #:scale [scale 0.25]
            #:ncols [ncols 2]
            #:filter [filt (λ (f) #t)]
+           #:showtime [st #f]
+           #:showdir [sd #t]
            )
     (define (complement-list lst n)
       (if (equal? (length lst) n)
@@ -211,11 +224,29 @@ along with bystroTeX.  If not, see <http://www.gnu.org/licenses/>.
                         (for/or ([ext (map symbol->string extensions)])
                          (string-suffix? (path->string f) (string-append "." ext))))
                 )
-             (tbl `((,(hyperlink (build-path dir f) (image #:scale scale (build-path dir f)))) (,(path->string f)))))])
+             (tbl `(,@`((,(hyperlink
+                           (build-path dir f)
+                           (image #:scale scale (build-path dir f))))
+                        (,(path->string f)))
+                    ,@(if st
+                          `((,(date->string
+                               (seconds->date
+                                (file-or-directory-modify-seconds
+                                 (find-relative-path
+                                  (current-directory)
+                                  (path->complete-path (build-path dir f))))))))
+                          '()
+                          )
+                    )
+                  )
+             )
+           ]
+          )
       (if (cons? relevant-files)
-          (nested
-           (copy-to-clipboard #:cols 80 (path->string (path->complete-path dir)))
-           (tbl (split-list-in-pairs relevant-files '())))
+          (apply
+           nested
+           `(,@(if sd `(,(copy-to-clipboard #:cols 80 (path->string (path->complete-path dir)))) '())
+             ,(tbl (split-list-in-pairs relevant-files '()))))
           (make-element
            (make-style "bystro-autolist-nothing-found" '())
            `("no files with extensions: "
@@ -223,12 +254,16 @@ along with bystroTeX.  If not, see <http://www.gnu.org/licenses/>.
           )
       )
     )
+    
+
   (provide (contract-out [autolist-svgs (->*
                                          ()
                                          (#:dir path-string?
                                           #:scale number?
                                           #:ncols integer?
                                           #:filter (-> path-for-some-system? boolean?)
+                                          #:showtime boolean?
+                                          #:showdir boolean?
                                           )
                                          (or/c nested-flow? element?))]))
   (define autolist-svgs (curry autolist-images #:exts '(svg)))
