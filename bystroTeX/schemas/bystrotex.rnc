@@ -11,8 +11,8 @@ element config {
             }
              | element flag { text })+
          }?,
-         (element multipage { empty } 
-          | (element dest { text }?))
+         element dest { text }?,
+         element multipage { empty }?
       }*
    }*
 }

@@ -617,6 +617,16 @@ along with bystroTeX.  If not, see <http://www.gnu.org/licenses/>.
               (cadr arglist)
               (v (cdr arglist)))
           #f)))
+  (provide (contract-out 
+            ; get the value of the command line argument with key --k
+            [bystro-cl-flag? (-> string? boolean?)]))
+  (define (bystro-cl-flag? k)
+    (let v ([arglist (vector->list (current-command-line-arguments))])
+      (if (cons? arglist)
+          (if (equal? (car arglist) (string-append "--" k))
+              #t
+              (v (cdr arglist)))
+          #f)))
   (provide (contract-out
             ; get the path to the .scrbl file
             [bystro-source (-> element?)]))
