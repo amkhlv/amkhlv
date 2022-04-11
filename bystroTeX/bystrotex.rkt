@@ -123,7 +123,7 @@
 
 ;; If names are absent, build ALL; otherwize, build those with matching names:
 (items 
- (for/list ([c (se-path*/list '(scribblings) bystroconf-xexpr)] 
+ (for/list ([c (se-path*/list '(scribblings) (bystroconf-xexpr))] 
             #:when 
             (and 
              (cons? c)
@@ -136,28 +136,30 @@
 
 (for ([it (items)])
   (with-bystroconf 
-   it 
-   (name dest name.html name.scrbl formulas/ .sqlite arglist multipage?)
-   (if (locate-html?)
-       (if multipage?
-           (displayln (path->string (build-path name "index.html")))
-           (if dest
-               (displayln (path->string (build-path dest name.html)))
-               (displayln name.html)))
-       ;;otherwize BUILD:
-       (if multipage?
-           (begin
-             (printf "Building ~a (multipage)\n" name)
-             (run-and-show-results `("scribble" ,@arglist "++arg" "--htmls" "--htmls" ,name.scrbl))
-             ;(run-and-show-results `("ln" "-s" "-v" ,(path->string (build-path name "index.html")) ,name.html))
-             )
-           (begin
-             (printf "Building ~a (singlepage)\n" name)
-             (if dest
-                 (begin
-                   (run-and-show-results `("scribble" ,@arglist "++arg" "--dest" "++arg" ,dest "--dest" ,dest ,name.scrbl))
-                   ;(run-and-show-results `("ln" "-s" "-v" ,(path->string (build-path dest name.html)) "./"))
-                   )
-                 (run-and-show-results `("scribble" ,@arglist ,name.scrbl))))))))
-             
+    it 
+    (name dest name.html name.scrbl formulas/ .sqlite arglist multipage?)
+    (if (locate-html?)
+        (if multipage?
+            (if dest
+                (displayln (path->string (build-path dest "index.html")))
+                (displayln (path->string (build-path name "index.html"))))
+            (if dest
+                (displayln (path->string (build-path dest name.html)))
+                (displayln name.html)))
+        ;;otherwize BUILD:
+        (if multipage?
+            (begin
+              (printf "Building ~a (multipage)\n" name)
+              (run-and-show-results `("scribble" ,@(if dest `("--dest" ,dest) '()) ,@arglist "++arg" "--htmls" "--htmls" ,name.scrbl))
+              ;(run-and-show-results `("ln" "-s" "-v" ,(path->string (build-path name "index.html")) ,name.html))
+              )
+            (begin
+              (printf "Building ~a (singlepage)\n" name)
+              (if dest
+                  (begin
+                    (run-and-show-results `("scribble" ,@arglist "++arg" "--dest" "++arg" ,dest "--dest" ,dest ,name.scrbl))
+                    ;(run-and-show-results `("ln" "-s" "-v" ,(path->string (build-path dest name.html)) "./"))
+                    )
+                  (run-and-show-results `("scribble" ,@arglist ,name.scrbl))))))))
+
 
