@@ -62,7 +62,7 @@
 
 (when (cleanup?) 
   (displayln "Cleanup!")
-  (let* ([confs (se-path*/list '(scribblings) bystroconf-xexpr)])
+  (let* ([confs (se-path*/list '(scribblings) (bystroconf-xexpr))])
     (for ([c confs] #:when (cons? c))
       (with-bystroconf 
        c (name dest name.html name.scrbl formulas/ .sqlite arglist multipage?)
@@ -93,7 +93,7 @@
          (delete-directory name))))))
 
 (when (show?)
-  (let* ([confs (se-path*/list '(scribblings) bystroconf-xexpr)])
+  (let* ([confs (se-path*/list '(scribblings) (bystroconf-xexpr))])
     (for ([c confs] #:when (cons? c))
       (when (verbose?) (displayln c))
       (with-bystroconf 
