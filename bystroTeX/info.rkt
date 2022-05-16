@@ -7,7 +7,8 @@
     "db-lib"
     "scheme-lib"
     "scribble-lib"))
-(define build-deps '("racket-doc"
+(define build-deps '("net-doc"
+                     "racket-doc"
                      "rackunit-lib"
                      "scribble-doc"
                      "at-exp-lib"))
