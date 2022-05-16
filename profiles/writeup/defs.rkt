@@ -2,7 +2,7 @@
 
   (require (for-syntax racket/base bystroTeX/slides_for-syntax racket/syntax))
   (require racket scribble/core scribble/base scribble/html-properties scribble/decode)
-  (require bystroTeX/common bystroTeX/slides)
+  (require bystroTeX/common bystroTeX/slides truques/truques)
 
   ;; Here the basic syntax can be adjusted:
   (provide bystro-def-formula)
@@ -140,4 +140,30 @@
   (define-syntax (bystro-scrbl-only stx) (syntax-case stx () [(_ x ...) #'(begin x ...)]))
   (provide bystro-latex-only)
   (define (bystro-latex-only . xs) (elem '()))
+  (provide marg)
+  (define
+    (marg #:scale s #:dir d #:filter f #:build-for-local [build-for-local #t])
+    (bystro-margin-note
+     (if build-for-local
+         (autolist-svgs
+          #:scale s
+          #:dir d
+          #:ncols 1
+          #:showdir #f
+          #:filter f
+          )
+         (autolist
+          #:exts '(svg)
+          #:dir d
+          #:filter f
+          #:output (lambda (x)
+                     `(,(hyperlink
+                         (path->string x)
+                         (image
+                          #:scale s
+                          (find-relative-path
+                           (current-directory)
+                           (path->complete-path (build-path d x))))
+                         )))))))
+
   )
