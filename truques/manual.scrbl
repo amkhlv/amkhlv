@@ -43,6 +43,10 @@ Here I will write up various tricks useful with Scribble.
 @section{Truques}
 @defmodule[truques/truques]
 
+@defform[(explain expr ...)]{
+First prints the code, then executes it an prints the result of the execution.
+}
+
 @defproc[
 (show-and-go
  [a namespace-anchor?]
@@ -50,6 +54,7 @@ Here I will write up various tricks useful with Scribble.
 ) 
 block?
 ]{
+@bold{Deprecated}, better use @racket{(explain xs ...)}.
 First prints the code, then executes it an prints the result of the execution. But first need to set up 
 a namespace anchor, for example:
 @verb|--{

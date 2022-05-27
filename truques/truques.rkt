@@ -24,6 +24,20 @@ along with bystroTeX.  If not, see <http://www.gnu.org/licenses/>.
   (require "xml.rkt")
   (define copy-tag-num 0)
 
+  (provide explain)
+  (define-syntax explain
+    (syntax-rules ()
+      [(expose a ...)
+       (nested
+        (nested
+         #:style (style "comment" '())
+         (verbatim
+          (let ([o (open-output-string)])
+            (for ([x (syntax->datum  #'(a ...))])
+              (write x o))
+            (get-output-string o))))
+        a ... )]))
+  
   (provide (contract-out [show-and-go (->* (namespace-anchor?) () #:rest (listof string?) block?)]))
   (define (show-and-go a . x)
     (define thisns (namespace-anchor->namespace a))
