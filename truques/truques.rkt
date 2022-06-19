@@ -24,6 +24,8 @@ along with bystroTeX.  If not, see <http://www.gnu.org/licenses/>.
   (require "xml.rkt")
   (define copy-tag-num 0)
 
+  (define svg-annotations (make-hash))
+
   (provide explain)
   (define-syntax explain
     (syntax-rules ()
@@ -192,11 +194,7 @@ along with bystroTeX.  If not, see <http://www.gnu.org/licenses/>.
                       (show-xexpr (cons 'rt (se-path*/list '(summary) x)))
                       "")
                     ,@(if t (list (smaller (date->string (seconds->date t)))) '())
-                    ,(hyperlink frel .pdf))
-                  )
-                )
-     )
-    )
+                    ,(hyperlink frel .pdf))))))
   (provide (contract-out [autolist-images (->*
                                            ()
                                            (#:exts (listof symbol?)
@@ -206,6 +204,7 @@ along with bystroTeX.  If not, see <http://www.gnu.org/licenses/>.
                                             #:filter (path-for-some-system? . -> . boolean?)
                                             #:showtime boolean?
                                             #:showdir boolean?
+                                            #:output (path-string?  path? . -> . block?)
                                             )
                                            (or/c nested-flow? element?))]))  
   (define (autolist-images
@@ -216,6 +215,20 @@ along with bystroTeX.  If not, see <http://www.gnu.org/licenses/>.
            #:filter [filt (λ (f) #t)]
            #:showtime [st #f]
            #:showdir [sd #t]
+           #:output [o
+                     (λ (d f)
+                       (tbl `(,@`((,(hyperlink
+                                     (build-path d f)
+                                     (image #:scale scale (build-path d f))))
+                                  (,(path->string f)))
+                              ,@(if st
+                                    `((,(date->string
+                                         (seconds->date
+                                          (file-or-directory-modify-seconds
+                                           (find-relative-path
+                                            (current-directory)
+                                            (path->complete-path (build-path d f))))))))
+                                    '()))))]
            )
     (define (complement-list lst n)
       (if (equal? (length lst) n)
@@ -238,23 +251,7 @@ along with bystroTeX.  If not, see <http://www.gnu.org/licenses/>.
                         (for/or ([ext (map symbol->string extensions)])
                          (string-suffix? (path->string f) (string-append "." ext))))
                 )
-             (tbl `(,@`((,(hyperlink
-                           (build-path dir f)
-                           (image #:scale scale (build-path dir f))))
-                        (,(path->string f)))
-                    ,@(if st
-                          `((,(date->string
-                               (seconds->date
-                                (file-or-directory-modify-seconds
-                                 (find-relative-path
-                                  (current-directory)
-                                  (path->complete-path (build-path dir f))))))))
-                          '()
-                          )
-                    )
-                  )
-             )
-           ]
+             (o dir f))]
           )
       (if (cons? relevant-files)
           (apply
@@ -265,11 +262,10 @@ along with bystroTeX.  If not, see <http://www.gnu.org/licenses/>.
            (make-style "bystro-autolist-nothing-found" '())
            `("no files with extensions: "
              ,(string-join (map symbol->string extensions) "|")))
-          )
-      )
-    )
+          )))
     
 
+    
   (provide (contract-out [autolist-svgs (->*
                                          ()
                                          (#:dir path-string?
@@ -278,9 +274,87 @@ along with bystroTeX.  If not, see <http://www.gnu.org/licenses/>.
                                           #:filter (-> path-for-some-system? boolean?)
                                           #:showtime boolean?
                                           #:showdir boolean?
+                                          #:annotated boolean?
                                           )
                                          (or/c nested-flow? element?))]))
-  (define autolist-svgs (curry autolist-images #:exts '(svg)))
-
-
+  (define
+    (autolist-svgs
+     #:dir [dir 'same]
+     #:scale [scale 0.25]
+     #:ncols [ncols 2]
+     #:filter [filt (λ (f) #t)]
+     #:showtime [st #f]
+     #:showdir [sd #t]
+     #:annotated [annot #f]
+     )
+    (let* ([tag-prefix (gensym "annotation")]
+           )
+      (nested
+       `(
+         ,@(if annot
+               `(,(make-delayed-block
+                   (lambda (renderer pt ri) 
+                     (let ([ks (resolve-get-keys
+                                pt
+                                ri
+                                (lambda (key)
+                                  (and (cons? key)
+                                       (cons? (cadr key))
+                                       (cons? (cdr (cadr key)))
+                                       (eq? (car (cadr key)) 'bystro-svg-annot)
+                                       (eq? (cadr (cadr key)) tag-prefix))))]
+                           )
+                       (nested
+                        `(,(element
+                            (style #f '())
+                            (for/list ([k ks])
+                              (element
+                               (style #f '())
+                               `(,(hspace 2)
+                                 ,(elemref
+                                   (cadr k)
+                                   (hash-ref svg-annotations (cdr (cadr k))))))))))))))
+               '())
+         ,(autolist-images
+           #:exts '(svg)
+           #:dir dir
+           #:ncols ncols
+           #:filter filt
+           #:showtime st
+           #:showdir sd
+           #:scale scale
+           #:output (λ (d f)
+                      (tbl `(
+                             ,@(if annot
+                                   (let* ([in (open-input-file (build-path d f))]
+                                          [doc (the:read-xml in)]
+                                          [root (the:xml->xexpr (the:document-element doc))]
+                                          )
+                                     (close-input-port in)
+                                     `(,(let ([ans (se-path*/list '(desc) root)])
+                                          (if (cons? ans)
+                                              `(,(tbl 
+                                                  (list (for/list ([annotation ans])
+                                                          (let ([n (gensym "no")]
+                                                                )
+                                                            (hash-set! svg-annotations `(,tag-prefix ,n) annotation)
+                                                            (elemtag
+                                                             `(bystro-svg-annot ,tag-prefix ,n)
+                                                             annotation))))))
+                                              '("---")))))
+                                   '())
+                             ,@`((,(hyperlink
+                                    (build-path d f)
+                                    (image #:scale scale (build-path d f))))
+                                 (,(path->string f)))
+                             ,@(if st
+                                   `((,(date->string
+                                        (seconds->date
+                                         (file-or-directory-modify-seconds
+                                          (find-relative-path
+                                           (current-directory)
+                                           (path->complete-path (build-path d f))))))))
+                                   '()
+                                   )))))))))
+      
   )
