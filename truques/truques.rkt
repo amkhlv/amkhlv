@@ -292,7 +292,8 @@ along with bystroTeX.  If not, see <http://www.gnu.org/licenses/>.
       (nested
        `(
          ,@(if annot
-               `(,(make-delayed-block
+               `(,(elemtag `(bystro-svg-annot-top ,tag-prefix) "")
+                 ,(make-delayed-block
                    (lambda (renderer pt ri) 
                      (let ([ks (resolve-get-keys
                                 pt
@@ -310,10 +311,12 @@ along with bystroTeX.  If not, see <http://www.gnu.org/licenses/>.
                             (for/list ([k ks])
                               (element
                                (style #f '())
-                               `(,(hspace 2)
-                                 ,(elemref
-                                   (cadr k)
-                                   (hash-ref svg-annotations (cdr (cadr k))))))))))))))
+                               `(,(element
+                                   (style "bystro-svg-annotation-tag-link" '())
+                                   `(,(elemref
+                                       (cadr k)
+                                       (hash-ref svg-annotations (cdr (cadr k))))))
+                                 ,(hspace 1)))))))))))
                '())
          ,(autolist-images
            #:exts '(svg)
@@ -331,21 +334,31 @@ along with bystroTeX.  If not, see <http://www.gnu.org/licenses/>.
                                           [root (the:xml->xexpr (the:document-element doc))]
                                           )
                                      (close-input-port in)
-                                     `(,(let ([ans (se-path*/list '(desc) root)])
+                                     `((,(let ([ans (se-path*/list '(desc) root)])
                                           (if (cons? ans)
-                                              `(,(tbl 
-                                                  (list (for/list ([annotation ans])
-                                                          (let ([n (gensym "no")]
-                                                                )
-                                                            (hash-set! svg-annotations `(,tag-prefix ,n) annotation)
-                                                            (elemtag
-                                                             `(bystro-svg-annot ,tag-prefix ,n)
-                                                             annotation))))))
-                                              '("---")))))
+                                              (element
+                                               (make-style #f '())
+                                               `(,(element
+                                                   (make-style "bystro-svg-annotation-tag-link" '())
+                                                   `(,(elemref `(bystro-svg-annot-top ,tag-prefix) "up")))
+                                                 ,(hspace 1)
+                                                 ,(element
+                                                   (make-style #f '())
+                                                   `(,@(for/list ([annotation ans])
+                                                         (let ([n (gensym "no")]
+                                                               )
+                                                           (hash-set! svg-annotations `(,tag-prefix ,n) annotation)
+                                                           (element
+                                                            (make-style #f '())
+                                                            `(,(element
+                                                                (make-style "bystro-svg-annotation-tag" '())
+                                                                `(,(elemtag `(bystro-svg-annot ,tag-prefix ,n) annotation)))
+                                                              ,(hspace 1)))))))))
+                                              (element
+                                                  (make-style "bystro-svg-annotation-tag-link" '())
+                                                  `(,(elemref `(bystro-svg-annot-top ,tag-prefix) "up"))))))))
                                    '())
-                             ,@`((,(hyperlink
-                                    (build-path d f)
-                                    (image #:scale scale (build-path d f))))
+                             ,@`((,(hyperlink (build-path d f) (image #:scale scale (build-path d f))))
                                  (,(path->string f)))
                              ,@(if st
                                    `((,(date->string

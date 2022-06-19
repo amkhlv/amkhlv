@@ -332,6 +332,27 @@ font-size:x-small;
 .bystro-authors {
     font-size: 1.25em;
 }
+
+.bystro-svg-annotation-tag {
+    font-size: 0.75em;
+    background-color: darkgreen;
+    color: white;
+    border-radius: 0.75em;
+    border-style: solid;
+    border-width: thin;
+    border-color: darkred;
+    padding: 0.3em;
+}
+
+.bystro-svg-annotation-tag-link {
+    font-size: 0.75em;
+    background-color: lightgreen;
+    border-radius: 0.75em;
+    border-style: solid;
+    border-width: thin;
+    padding: 0.3em;
+}
+
 hidden {
     background-color: gray;
     color: gray;
