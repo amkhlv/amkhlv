@@ -120,7 +120,7 @@ along with bystroTeX.  If not, see <http://www.gnu.org/licenses/>.
                        `(,(hyperlink
                            (find-relative-path
                             (current-directory)
-                            (path->complete-path (build-path dir f)))
+                            (path->complete-path (simplify-path (build-path dir f))))
                            (path->string f))))]
            #:filter [flt (lambda (p) #t)]
            )
@@ -168,7 +168,7 @@ along with bystroTeX.  If not, see <http://www.gnu.org/licenses/>.
                                           #:showtime boolean?
                                           #:filter (path-for-some-system? . -> . boolean?))
                                          (or/c table? element?))]))
-  (define (autolist-pdfs #:dir [dir 'same] #:showtime [st #f] #:filter [flt (lambda (p) #t)])
+  (define (autolist-pdfs #:dir [dir (build-path 'same)] #:showtime [st #f] #:filter [flt (lambda (p) #t)])
     (autolist
      #:exts '(pdf PDF)
      #:dir dir
@@ -178,7 +178,7 @@ along with bystroTeX.  If not, see <http://www.gnu.org/licenses/>.
                 (let* ([frel
                         (find-relative-path
                          (current-directory)
-                         (path->complete-path (build-path dir f)))]
+                         (path->complete-path (simplify-path (build-path dir f))))]
                        [.pdf (path->string f)]
                        [.pdq (path-replace-extension frel ".pdq")]
                        [t (if st (file-or-directory-modify-seconds frel) #f)]
@@ -209,7 +209,7 @@ along with bystroTeX.  If not, see <http://www.gnu.org/licenses/>.
                                            (or/c nested-flow? element?))]))  
   (define (autolist-images
            #:exts [extensions '(svg png tiff jpg jpeg)]
-           #:dir [dir 'same]
+           #:dir [dir (build-path 'same)]
            #:scale [scale 0.25]
            #:ncols [ncols 2]
            #:filter [filt (λ (f) #t)]
@@ -227,7 +227,7 @@ along with bystroTeX.  If not, see <http://www.gnu.org/licenses/>.
                                           (file-or-directory-modify-seconds
                                            (find-relative-path
                                             (current-directory)
-                                            (path->complete-path (build-path d f))))))))
+                                            (path->complete-path (simplify-path (build-path d f)))))))))
                                     '()))))]
            )
     (define (complement-list lst n)
@@ -279,7 +279,7 @@ along with bystroTeX.  If not, see <http://www.gnu.org/licenses/>.
                                          (or/c nested-flow? element?))]))
   (define
     (autolist-svgs
-     #:dir [dir 'same]
+     #:dir [dir (build-path 'same)]
      #:scale [scale 0.25]
      #:ncols [ncols 2]
      #:filter [filt (λ (f) #t)]
