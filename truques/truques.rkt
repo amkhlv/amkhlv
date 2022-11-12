@@ -36,7 +36,7 @@ along with bystroTeX.  If not, see <http://www.gnu.org/licenses/>.
          (verbatim
           (let ([o (open-output-string)])
             (for ([x (syntax->datum  #'(a ...))])
-              (write x o))
+              (pretty-print x o))
             (get-output-string o))))
         a ... )]))
   
