@@ -173,6 +173,14 @@ table, th, td
     padding-right: 5pt;
 }
 
+.bystro-indent-1 {
+    margin-left: 10%;
+}
+
+.bystro-indent-2 {
+    margin-left: 20%;
+}
+
 talk {
     font-size: 18pt;
     font-family: Courier;
@@ -186,3 +194,4 @@ doubt {
     padding: 3px;
     border-radius: 5px;
 }
+
