@@ -346,7 +346,8 @@ along with bystroTeX.  If not, see <http://www.gnu.org/licenses/>.
            (make-style #f '()) 
            (string-append "(" (number->string (current-formulanumber state)) ")")
            (fn-to-collect-formula-number lbl (current-formulanumber state))
-           ))))
+           )
+          )))
 ;; ---------------------------------------------------------------------------------------------------
   (provide (contract-out 
                                         ; reference a formula
@@ -560,7 +561,7 @@ along with bystroTeX.  If not, see <http://www.gnu.org/licenses/>.
       (if l
           (table-with-alignment "c.n" (list (list frml (if (dumping-LaTeX?)
                                                            (string-append "\\label{" l "}")
-                                                           (elemtag l (number-for-formula l))))))
+                                                           (elemtag l (elemref l (number-for-formula l)))))))
           (table-with-alignment "c.n" (list (list frml "" ))))))
 ;; ---------------------------------------------------------------------------------------------------
   (define (aligned-formula-image manual-adj use-depth depth aa-adj filepath sz)

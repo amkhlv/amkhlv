@@ -21,7 +21,7 @@
 
   ;; Here we define new functions:
   (provide label)
-  (define (label s) (elemtag s (number-for-formula s)))  
+  (define (label s) (elemtag s (elemref s (number-for-formula s))))  
   (provide ref)
   (define (ref s) (elemref s (ref-formula s)))
   (provide red)

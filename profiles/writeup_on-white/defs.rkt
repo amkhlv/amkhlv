@@ -21,7 +21,7 @@
 
   ;; Here we define new functions:
   (provide label)
-  (define (label s) (elemtag s (number-for-formula s)))  
+  (define (label s) (elemtag s (elemref s (number-for-formula s))))  
   (provide ref)
   (define (ref s) (elemref s (ref-formula s)))
   (provide red)
@@ -122,6 +122,10 @@
                       x ...)]
                   [c (apply bystro-bg oldbg)])
              b))]))
+  (provide indent)
+  (define (indent . xs) (nested #:style (style "bystro-indent-1" '()) xs))
+  (provide indent--->)
+  (define (indent---> . xs) (nested #:style (style "bystro-indent-2" '()) xs))
   (provide appendix)
   (define appendix (elem #:style (style "bystro-end-of-main-text" '()) '()))
   (provide bystro-abstract)

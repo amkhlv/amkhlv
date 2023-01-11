@@ -21,7 +21,7 @@
 
   ;; Here we define new functions:
   (provide label)
-  (define (label s) (elemtag s (number-for-formula s)))  
+  (define (label s) (elemtag s (elemref s (number-for-formula s))))  
   (provide ref)
   (define (ref s) (elemref s (ref-formula s)))
   (provide red)
@@ -120,6 +120,10 @@
                       x ...)]
                   [c (apply bystro-bg oldbg)])
              b))]))
+  (provide indent)
+  (define (indent . xs) (nested #:style (style "bystro-indent-1" '()) xs))
+  (provide indent--->)
+  (define (indent---> . xs) (nested #:style (style "bystro-indent-2" '()) xs))
   (provide appendix)
   (define appendix (elem #:style (style "bystro-end-of-main-text" '()) '()))
   (provide bystro-abstract)
@@ -138,4 +142,30 @@
   (define-syntax (bystro-scrbl-only stx) (syntax-case stx () [(_ x ...) #'(begin x ...)]))
   (provide bystro-latex-only)
   (define (bystro-latex-only . xs) (elem '()))
+  (provide marg)
+  (define
+    (marg #:scale s #:dir d #:filter f #:build-for-local [build-for-local #t])
+    (bystro-margin-note
+     (if build-for-local
+         (autolist-svgs
+          #:scale s
+          #:dir d
+          #:ncols 1
+          #:showdir #f
+          #:filter f
+          )
+         (autolist
+          #:exts '(svg)
+          #:dir d
+          #:filter f
+          #:output (lambda (x)
+                     `(,(hyperlink
+                         (path->string x)
+                         (image
+                          #:scale s
+                          (find-relative-path
+                           (current-directory)
+                           (path->complete-path (build-path d x))))
+                         )))))))
+
   )
