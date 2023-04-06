@@ -17,6 +17,8 @@
 @(define singlepage-mode #t)
 @(bystro-def-formula "formula-enormula-humongula!")
 
+@(require xml/path bystroTeX/xmlconf)
+
 @(define bystrotex.xml-dirs
    (let* ([inp (run-pipeline #f #f ("find" "." "-mindepth" "2" "-type" "f" "-name" "bystrotex.xml") ("sort"))]
           [lns (port->lines (run-pipeline #f #f ("find" "." "-mindepth" "2" "-type" "f" "-name" "bystrotex.xml" "-exec" "dirname" "{}" ";") ("sort")))])
@@ -57,52 +59,73 @@
 
 @(define listfile (open-output-file "lookdown.lst" #:exists 'replace))
 
-@(decode
-  (cons
-   (title-decl 
-    #f 
-    '((part "LookdownMain"))
-    #f
-    (make-style "LookdownMainTitle" '(unnumbered toc-hidden))
-    "")
-   `(
-     #|
-     ,(part
+@(define pgc
+   (if (bystro-cl-flag? "top")
+       (postgre:postgresql-connect
+        #:database "scribbles"
+        #:socket (postgre:postgresql-guess-socket-path)
+        #:user (bystro-get-cl-argument "db-user")
+        )
        #f
-       '((part "Lookdown"))
-       '()
-       (make-style "LookdownPart" '(unnumbered toc-hidden))
-       '()
-       `(
-         ,(tbl #:orient 'hor
-               (for/list ([bystrotex-dir bystrotex.xml-dirs])
-                 (list
-                  (let ([lookdown.html (get-lookdown.html bystrotex-dir)])
-                    (if lookdown.html (hyperlink lookdown.html bystrotex-dir) ""))
-                  (seclink bystrotex-dir)))))
-       '()
-       )
-     |#
-     ,@(for/list ([bystrotex-dir bystrotex.xml-dirs])
-         (displayln (string-trim bystrotex-dir "./" #:right? #f) listfile)
-         (let ([lookdown.html (get-lookdown.html bystrotex-dir)])
-           (part 
-            #f 
-            (list (list 'part bystrotex-dir))
-            `(,bystrotex-dir) 
-            (make-style
-             "LookdownPartFolder"
-             (if (and lookdown.html ((depth bystrotex-dir 0) . < . 2))
-                 '(unnumbered)
-                 '(unnumbered toc-hidden)))
-            '()
-            (begin
-              (reverse
-               (cons
-                (bystro-ribbon-for-location (string->path bystrotex-dir) #:exclude-same-name #t)
-                (if lookdown.html `(,(nested (hyperlink lookdown.html (path->string lookdown.html)))) '())
-                )))
-            '()))))))
+       ))
+
+@(when (bystro-cl-flag? "top")
+   (postgre:query-exec pgc "delete from lookdown"))
+
+@(require (prefix-in postgre: db))
+@(parameterize ([current-locale #f])
+   (decode
+    (cons
+     (title-decl 
+      #f 
+      '((part "LookdownMain"))
+      #f
+      (make-style "LookdownMainTitle" '(unnumbered toc-hidden))
+      "")
+     `(,@(for/list ([bystrotex-dir bystrotex.xml-dirs])
+           (displayln (string-trim bystrotex-dir "./" #:right? #f) listfile)
+           (let* ([lookdown.html (get-lookdown.html bystrotex-dir)]
+                  [bystrotex.xml (build-path bystrotex-dir "bystrotex.xml")]
+                  [bconf-xexpr (if (file-exists? bystrotex.xml)
+                                   (xml-file->bystroconf-xexpr bystrotex.xml)
+                                   #f)]
+                  )
+             (when (bystro-cl-flag? "top")
+               (for/list ([bc (if bconf-xexpr (se-path*/list '(scribblings) bconf-xexpr) '())]
+                          #:when (cons? bc))
+                 (with-bystroconf
+                   bc
+                   (name dest name.html name.scrbl formulas/ .sqlite arglist multipage?)
+                   (postgre:query-exec
+                    pgc
+                    "insert into lookdown values ($1,$2,$3)"
+                    (path->string (build-path bystrotex-dir name.scrbl))
+                    (path->string
+                     (build-path
+                      bystrotex-dir
+                      (if multipage? name (or dest "./"))
+                      (if multipage? "index.html" name.html)
+                      ))
+                    (file->string (build-path bystrotex-dir name.scrbl))
+                    )
+                   )))
+             (part 
+              #f 
+              (list (list 'part bystrotex-dir))
+              `(,bystrotex-dir) 
+              (make-style
+               "LookdownPartFolder"
+               (if (and lookdown.html ((depth bystrotex-dir 0) . < . 2))
+                   '(unnumbered)
+                   '(unnumbered toc-hidden)))
+              '()
+              (begin
+                (reverse
+                 (cons
+                  (bystro-ribbon-for-location (string->path bystrotex-dir) #:exclude-same-name #t)
+                  (if lookdown.html `(,(nested (hyperlink lookdown.html (path->string lookdown.html)))) '())
+                  )))
+              '())))))))
 @(close-output-port listfile)
 
 @; ---------------------------------------------------------------------------------------------------

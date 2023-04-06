@@ -17,7 +17,7 @@
    regular-expression))
 
 (define (search-in-bystro-dir ln)
-  (parameterize ([working-directory ln])
+  (parameterize ([working-directory ln] [current-locale #f])
     (for ([nm (all-names)])
       (with-bystroconf
         (get-bystroconf nm)
