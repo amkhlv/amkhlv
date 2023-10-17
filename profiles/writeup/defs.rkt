@@ -139,7 +139,7 @@
      #:style (style "bystro-authors" '())
      xs))
   (provide bystro-margin-note)
-  (define bystro-margin-note margin-note)
+  (define bystro-margin-note margin-note*)
   (provide bystro-scrbl-only)
   (define-syntax (bystro-scrbl-only stx) (syntax-case stx () [(_ x ...) #'(begin x ...)]))
   (provide bystro-latex-only)
