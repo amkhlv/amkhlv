@@ -4,5 +4,9 @@
       <name>lookdown</name>
       <dest>lookdown</dest>
     </scribbling>
+    <scribbling>
+      <name>docx-generation</name>
+      <dest>docx-generation</dest>
+    </scribbling>
   </scribblings>
 </config>
