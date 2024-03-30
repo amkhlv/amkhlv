@@ -218,6 +218,11 @@ font-size:x-small;
     font-weight: bold;
 }
 
+.TODO {
+    color: red;
+    font-weight: bold;
+}
+
 .comment {
     font-size:70%;
     border-left:2px solid blue;
