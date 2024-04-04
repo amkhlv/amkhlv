@@ -20,7 +20,7 @@ along with bystroTeX.  If not, see <http://www.gnu.org/licenses/>.
 |#
 
 
-(require racket/base xml/xexpr)
+(require racket/base xml)
 
 (struct a-bold (contents))
 (provide b)
@@ -39,59 +39,67 @@ along with bystroTeX.  If not, see <http://www.gnu.org/licenses/>.
 (define (img s c) (a-image s c))
 (define (ins a as)
   (if (member (car a) (map car as)) as (cons a as)))
-(define (prepattr attrs) (filter cadr attrs))
+(define (prepattr attrs)
+  (let ([x (filter cadr attrs)])
+    (if (empty? x) '() `(,x))))
 (provide (contract-out [p (->*
-                           (any/c)
+                           ()
                            (#:size (or/c string? #f)
                             #:color (or/c string? #f)
                             #:align (or/c string? #f)
                             )
+                           #:rest any/c
                            xexpr/c)]))
-(define (p
-         #:size [sz #f] #:color [clr #f] #:align [aln #f]
-         expr)
+(define (p #:size [sz #f] #:color [clr #f] #:align [aln #f]
+           . exprs)
   (append
-   `(p ,(prepattr `([size ,sz] [color ,clr] [align ,aln])))
-   (let rec ([attrs (prepattr `([size ,sz] [color ,clr] [align ,aln]))] [x expr])
-     (match x
-       [str
-        #:when (string? str)
-        `((r ,attrs ,str))]
-       [(a-link h t)
-        `((a ([href ,h]) ,t))]
-       [(a-image s c)
-        `((a ([src ,s]) ,c))]
-       [(a-bold xs)
-        (append-map (λ (e) (rec (ins '(b "×") attrs) e)) xs)]
-       [(a-italic xs)
-        (append-map (λ (e) (rec `((i "×") ,@attrs) e)) xs)]
-       [(a-underline xs)
-        (append-map (λ (e) (rec `((u "×") ,@attrs) e)) xs)]
-       )
-     )
+   `(p ,@(prepattr `([size ,sz] [color ,clr] [align ,aln])))
+   (append-map
+    (λ(expr)
+      (let rec ([attrs '()] [x expr])
+        (match x
+          [str
+           #:when (string? str)
+           `((r ,@(prepattr attrs) ,str))]
+          [(a-link h t)
+           `((a ([href ,h]) ,t))]
+          [(a-image s c)
+           `((img ([src ,s]) ,c))]
+          [(a-bold xs)
+           (append-map (λ (e) (rec (ins '(b "") attrs) e)) xs)]
+          [(a-italic xs)
+           (append-map (λ (e) (rec (ins '(i "") attrs) e)) xs)]
+          [(a-underline xs)
+           (append-map (λ (e) (rec (ins '(u "") attrs) e)) xs)]
+          )
+        )
+      )
+    exprs)
    )
   )
+(provide (contract-out [t (->* () () #:rest (listof xexpr/c) xexpr/c)]))
+(define (t . rows) `(table ,@rows))
+(provide (contract-out [tr (->* () () #:rest (listof xexpr/c) xexpr/c)]))
+(define (tr . cells) `(tr ,@cells))
+(provide (contract-out [td (->* () () #:rest (listof xexpr/c) xexpr/c)]))
+(define (td . contents) `(td ,@contents))
 
+(provide (contract-out [docx-xexpr (->* () () #:rest (listof xexpr/c) xexpr/c)]) )
+(define (docx-xexpr . expr)
+  `(root ,@expr))
 
-(define (docx-xexpr expr)
-  (apply
-   (cons 'root 
-         (let rec ([attrs '()] [x expr])
-           (match x
-             [str
-              #:when (string? str)
-              `((r ,attrs ,str))]
-             [(a-bold xs)
-              (append-map (λ (e) (rec (ins '(b "") attrs) e)) xs)]
-             [(a-italic xs)
-              (append-map (λ (e) (rec `((i "") ,@attrs) e)) xs)]
-             [(a-underline xs)
-              (append-map (λ (e) (rec `((u "") ,@attrs) e)) xs)]
-             )
-           )
-         )
-   )
-  )
+(provide (contract-out [docx->file (->* (path-string? xexpr/c) () void?)]))
+(define (docx->file file-path doc-xexpr)
+    (let-values
+      ([(proc out in err)
+        (subprocess #f #f #f (find-executable-path "xml2docx") "-o" file-path)])
+      (display (xexpr->string doc-xexpr) in)
+      (close-output-port in)
+      (display (port->string err) (current-error-port))
+      (close-input-port err)
+      (close-input-port out)
+    ))
+  
 
 
 

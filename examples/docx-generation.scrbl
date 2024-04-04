@@ -41,25 +41,21 @@ We can generate rudimentary DOCX documents using
 The XML should satisfy the grammar:
 @hyperlink["https://github.com/amkhlv/usr/blob/master/share/Rust/xml2docx/docx.rnc"]{docx.rnc}
 
-It is very easy to generate XML using @tt|{@}|-expressions:
-@(define docxml
+Notice that we use @tt{EN SPACE} to preserve space between runs.
+@(define mytable
    `(root
      @,p[#:size "40" #:color "FF0000" #:align "center"]{Famous search engines}
-     (table
-      (tr (td @,p{LexisNexis}) (td @,p{@a["https://www.lexisnexis.com/en-us/search.page"]{link}}))
-      (tr (td (p @r{Google})) (td (p @a[([href "https://www.google.com"])]{link})))
-      (tr (td (p @r{Yahoo})) (td (p @a[([href "https://search.yahoo.com/"])]{link})))
-      )
+     @,t[
+      @tr[@td[@p{LexisNexis}] @td[@p{US link is @a["https://www.lexisnexis.com/en-us/search.page"]{here}}]]
+      ;alternatively, construct xexpr by hand:
+      '(tr (td (p @r{Google})) (td (p @a[([href "https://www.google.com"])]{link})))
+      '(tr (td (p @r{Yahoo})) (td (p @r{still exists: }@a[([href "https://search.yahoo.com/"])]{link})))
+      ]
      ))
 
-@(call-with-output-file "example.xml" #:exists 'truncate
-   (λ (f) (display (xexpr->string docxml) f)))
+@(write mytable)
 
-Then:
-
-@verb{
-      xml2docx -i example.xml -o example.docx
-      }
+@(docx->file "example.docx" mytable)
 
 
 @bystro-ribbon[]
