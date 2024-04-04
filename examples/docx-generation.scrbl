@@ -17,7 +17,7 @@
 @(define singlepage-mode #t)
 @(bystro-def-formula "formula-enormula-humongula!")
 
-@(require (only-in xml xexpr->string))
+@(require (only-in xml xexpr->string) truques/docx)
 
 
 @title[#:style '(no-toc no-sidebar)]{DOCX}
@@ -44,9 +44,9 @@ The XML should satisfy the grammar:
 It is very easy to generate XML using @tt|{@}|-expressions:
 @(define docxml
    `(root
-     (p ([size "40"] [color "FF0000"] [align "center"]) @r{Famous search engines})
+     @,p[#:size "40" #:color "FF0000" #:align "center"]{Famous search engines}
      (table
-      (tr (td (p @r{LexisNexis})) (td (p @a[([href "https://www.lexisnexis.com/en-us/search.page"])]{link})))
+      (tr (td @,p{LexisNexis}) (td @,p{@a["https://www.lexisnexis.com/en-us/search.page"]{link}}))
       (tr (td (p @r{Google})) (td (p @a[([href "https://www.google.com"])]{link})))
       (tr (td (p @r{Yahoo})) (td (p @a[([href "https://search.yahoo.com/"])]{link})))
       )
