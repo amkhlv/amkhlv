@@ -366,3 +366,9 @@ hidden::selection {
  background-color: black;
     color: black;
 }   
+
+.docx {
+    background-color: white;
+.docx-paragraph {
+    background-color: pink;
+}

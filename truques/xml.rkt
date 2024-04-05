@@ -20,7 +20,7 @@ along with bystroTeX.  If not, see <http://www.gnu.org/licenses/>.
 |#
 
 
-(require (prefix-in the: xml) xml/path racket/format)
+(require (prefix-in the: xml) xml/path xml/xexpr racket/format)
 (require bystroTeX/common)
 (require scribble/core scribble/base scribble/html-properties scribble/decode)
 (require racket/date)
@@ -233,3 +233,76 @@ along with bystroTeX.  If not, see <http://www.gnu.org/licenses/>.
          (not time-zone-offset))))
     result
     ))
+
+(define (show-run r)
+  (let-values
+      ([(attrs text)
+        (if ((cons? (car r)) . and . (cons? (car (car r)))) ; first element is list of attributes
+            (values (car r) (cdr r))
+            (values '() r))])
+    ;(displayln r)
+    (element
+     (style "docx-run" '())
+     `(,text))))
+(define (show-link a)
+  (let-values
+      ([(attrs text)
+        (values (car a) (cadr a))])
+    (hyperlink
+     (cadr (findf (λ(x) (eq? 'href (car x))) attrs))
+     text)))
+(define (show-image img)
+  (let-values
+      ([(src caption)
+        (values (car (car img)) (cadr img))])
+    (image src caption)))
+(define (show-docx-paragraph p)
+  (let-values
+      ([(attrs contents)
+        (if ((cons? (car p)) . and . (cons? (car (car p)))) ; first element is list of attributes
+            (values (car p) (cdr p))
+            (values '() p))])
+    (paragraph
+     (style "docx-paragraph" '())
+     (for/list ([e contents])
+       (match (car e)
+         ['r (show-run (cdr e))]
+         ['a (show-link (cdr e))]
+         ['img (show-image (cdr e))])))))
+(define (show-docx-table rows)
+  (tabular
+   (map
+    (λ(row)
+      (map
+       (λ(cell)
+         (apply
+          nested
+          (for/list ([e (cdr cell)])
+            (match (car e)
+              ['p (show-docx-paragraph (cdr e))]
+              ['table (show-docx-table (cdr e))]
+              ))
+          #:style (style "docx-table-cell" '())
+          )
+         )
+       (cdr row))
+      )
+    rows)
+   )
+  )
+(provide (contract-out [show-docx (->* (xexpr/c) () (or/c #f content? block?))]))
+(define (show-docx doc)
+  (apply
+   nested
+   (for/list ([e (cdr doc)])
+     (match (car e)
+       ['p (show-docx-paragraph (cdr e))]
+       ['table (show-docx-table (cdr e))]
+       )
+     )
+   #:style (style "docx" '())
+   )
+  )
+   
+   
+   

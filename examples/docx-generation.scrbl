@@ -17,7 +17,7 @@
 @(define singlepage-mode #t)
 @(bystro-def-formula "formula-enormula-humongula!")
 
-@(require (only-in xml xexpr->string) truques/docx)
+@(require (only-in xml xexpr->string) xml/xexpr truques/docx truques/xml)
 
 
 @title[#:style '(no-toc no-sidebar)]{DOCX}
@@ -42,7 +42,9 @@ The XML should satisfy the grammar:
 @hyperlink["https://github.com/amkhlv/usr/blob/master/share/Rust/xml2docx/docx.rnc"]{docx.rnc}
 
 Notice that we use @tt{EN SPACE} to preserve space between runs.
-@(define mytable
+@(define/contract
+   mydocx
+   xexpr/c
    `(root
      @,p[#:size "40" #:color "FF0000" #:align "center"]{Famous search engines}
      @,t[
@@ -53,9 +55,13 @@ Notice that we use @tt{EN SPACE} to preserve space between runs.
       ]
      ))
 
-@(write mytable)
 
-@(docx->file "example.docx" mytable)
+
+@(show-docx  mydocx)
+
+
+
+@(docx->file "example.docx" mydocx)
 
 
 @bystro-ribbon[]
