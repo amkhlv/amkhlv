@@ -53,13 +53,12 @@ Notice that we use @tt{EN SPACE} to preserve space between runs.
       '(tr (td (p @r{Google})) (td (p @a[([href "https://www.google.com"])]{link})))
       '(tr (td (p @r{Yahoo})) (td (p @r{still exists: }@a[([href "https://search.yahoo.com/"])]{link})))
       ]
+     @,p{@i{Lor@b{i}m Ips@b{e}m etc}}
      ))
 
-
+@(display mydocx)
 
 @(show-docx  mydocx)
-
-
 
 @(docx->file "example.docx" mydocx)
 
