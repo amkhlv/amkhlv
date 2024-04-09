@@ -1,0 +1,374 @@
+.amkpagebreak {
+  page-break-after:always;
+}
+
+.sourcelink {
+  font-size:x-small;
+  background-color:#FFFDD0;
+}
+
+.scrbllink {
+  font-size:small;
+}
+
+/* This one below is for homepage link table: */
+.mytitlecell {
+vertical-align: top; 
+text-align: right; 
+border-right: 1px solid black; 
+}
+
+.linktablecell {
+text-align:left;
+font-size:x-small;
+}
+
+/* For standard table: */
+.amktablecell {
+    border-right: 1px solid green;
+    border-bottom: 1px solid green;
+    padding: 2px 5px 2px 5px
+}
+
+.amktabletopleftcell {
+    border: 1px solid green;
+    padding: 2px 5px 2px 5px
+}
+
+.amktabletopcell {
+    border-top: 1px solid green;
+    border-right: 1px solid green;
+    border-bottom: 1px solid green;
+    padding: 2px 5px 2px 5px
+}
+
+.amktableleftcell {
+    border-left:  1px solid green;
+    border-right: 1px solid green;
+    border-bottom: 1px solid green;
+    padding: 2px 5px 2px 5px
+}
+
+.amktablecell-hor {
+    border-top:   1px solid green;
+    border-right: 1px solid green;
+    border-bottom: 1px solid green;
+    padding: 2px 5px 2px 5px
+}
+
+.amktabletopleftcell-hor {
+    border: 1px solid green;
+    padding: 2px 5px 2px 5px
+}
+
+.amktabletopcell-hor {
+    border-top: 1px solid green;
+    border-right: 1px solid green;
+    border-bottom: 1px solid green;
+    padding: 2px 5px 2px 5px
+}
+
+.amktableleftcell-hor {
+    border-top:   1px solid green;
+    border-left:  1px solid green;
+    border-right: 1px solid green;
+    border-bottom: 1px solid green;
+    padding: 2px 5px 2px 5px
+}
+
+.amktablecell-vert {
+    border-left: 2px solid green;
+    border-right: 1px solid green;
+    border-bottom: 1px solid green;
+    padding: 2px 5px 2px 5px
+}
+
+.amktabletopleftcell-vert {
+    border: 1px solid green;
+    padding: 2px 5px 2px 5px
+}
+
+.amktabletopcell-vert {
+    border-left: 2px solid green;
+    border-top: 1px solid green;
+    border-right: 1px solid green;
+    border-bottom: 1px solid green;
+    padding: 2px 5px 2px 5px
+}
+
+.amktableleftcell-vert {
+    border-left:  1px solid green;
+    border-right: 1px solid green;
+    border-bottom: 1px solid green;
+    padding: 2px 5px 2px 5px
+}
+
+/* For autolist table: */
+
+.bystro-autolist-cell {
+    border-right: 1px solid orange;
+    border-bottom: 1px solid orange;
+    padding: 2px 5px 2px 5px
+}
+
+.bystro-autolist-topleft-cell {
+    border: 1px solid orange;
+    padding: 2px 5px 2px 5px
+}
+
+.bystro-autolist-top-cell {
+    border-top: 1px solid orange;
+    border-right: 1px solid orange;
+    border-bottom: 1px solid orange;
+    padding: 2px 5px 2px 5px
+}
+
+.bystro-autolist-left-cell {
+    border-left:  1px solid orange;
+    border-right: 1px solid orange;
+    border-bottom: 1px solid orange;
+    padding: 2px 5px 2px 5px
+}
+
+.bystro-autolist-cell-hor {
+    border-top:   1px solid orange;
+    border-right: 1px solid orange;
+    border-bottom: 1px solid orange;
+    padding: 2px 5px 2px 5px
+}
+
+.bystro-autolist-topleft-cell-hor {
+    border: 1px solid orange;
+    padding: 2px 5px 2px 5px
+}
+
+.bystro-autolist-top-cell-hor {
+    border-top: 1px solid orange;
+    border-right: 1px solid orange;
+    border-bottom: 1px solid orange;
+    padding: 2px 5px 2px 5px
+}
+
+.bystro-autolist-left-cell-hor {
+    border-top:   1px solid orange;
+    border-left:  1px solid orange;
+    border-right: 1px solid orange;
+    border-bottom: 1px solid orange;
+    padding: 2px 5px 2px 5px
+}
+
+.bystro-autolist-cell-vert {
+    border-left: 2px solid orange;
+    border-right: 1px solid orange;
+    border-bottom: 1px solid orange;
+    padding: 2px 5px 2px 5px
+}
+
+.bystro-autolist-topleft-cell-vert {
+    border: 1px solid orange;
+    padding: 2px 5px 2px 5px
+}
+
+.bystro-autolist-top-cell-vert {
+    border-left: 2px solid orange;
+    border-top: 1px solid orange;
+    border-right: 1px solid orange;
+    border-bottom: 1px solid orange;
+    padding: 2px 5px 2px 5px
+}
+
+.bystro-autolist-left-cell-vert {
+    border-left:  1px solid orange;
+    border-right: 1px solid orange;
+    border-bottom: 1px solid orange;
+    padding: 2px 5px 2px 5px
+}
+
+.bystro-autolist-nothing-found {
+    background-color: lightgray;
+
+}
+
+.bystro-copy-to-clipboard {
+    background-color: lightsalmon;
+}
+
+.greenlink {
+    background-color: green;
+}
+
+.amkgreen {
+    background-color: #d0ffd0;;
+}
+
+.amksand {
+    background-color: #ffffc0;
+}
+
+.amkyell {
+    background-color: yellow;
+}
+
+.red {
+    color: red;
+}
+
+.attn {
+    color: red;
+    font-weight: bold;
+}
+
+.TODO {
+    color: red;
+    font-weight: bold;
+}
+
+.comment {
+    font-size:70%;
+    border-left:2px solid blue;
+    padding-left:10px;
+}
+
+.bystro-quotation {
+    font-size:90%;
+    border-left:2px solid green;
+    padding-left:10px;
+}
+
+
+
+/* === start checkboxes === */
+
+.bystro-checkbox-label {
+  display: block;
+  position: relative;
+  padding-left: 35px;
+  margin-bottom: 12px;
+}
+
+/* Hide the browser's default checkbox */
+.bystro-checkbox-label input {
+  position: absolute;
+  opacity: 0;
+  cursor: pointer;
+  height: 0;
+  width: 0;
+}
+
+/* Create a custom checkbox */
+.bystro-checkmark {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 16pt;
+  width: 16pt;
+  background-color: #e44;
+}
+
+/* On mouse-over, add a grey background color */
+.bystro-checkbox-label:hover input ~ .bystro-checkmark {
+  background-color: #e96;
+}
+
+/* When the checkbox is checked, add a blue background */
+.bystro-checkbox-label input:checked ~ .bystro-checkmark {
+  background-color: #21F396;
+}
+
+/* Create the checkmark/indicator (hidden when not checked) */
+.bystro-checkmark:after {
+  content: "";
+  position: absolute;
+  display: none;
+}
+
+/* Show the checkmark when checked */
+.bystro-checkbox-label input:checked ~ .bystro-checkmark:after {
+  display: block;
+}
+
+/* Style the checkmark/indicator */
+.bystro-checkbox-label .bystro-checkmark:after {
+  left: 7px;
+  top: 3px;
+  width: 5px;
+  height: 10px;
+  border: solid black;
+  border-width: 0 3px 3px 0;
+  -webkit-transform: rotate(45deg);
+  -ms-transform: rotate(45deg);
+  transform: rotate(45deg);
+}
+
+/* == end checkboxes == */
+
+.redbox {
+    border:2px solid red;
+    padding:10px 10px 10px 10px;
+}
+
+.greenbox {
+    border:2px solid green;
+    padding:10px 10px 10px 10px;
+}
+
+.nobr {
+    white-space: nowrap;
+}
+
+.short-intro {
+    border:2px solid blue;
+    background-color: #F0F0FF;
+    padding:10px 10px 10px 10px;
+}
+.citation {
+    border:1px solid green;
+    background-color: #F0FFF0;
+}
+
+.bystro-end-of-main-text {
+    
+}
+
+.bystro-abstract {
+    font-size: 0.75em;
+}
+
+.bystro-authors {
+    font-size: 1.25em;
+}
+
+.bystro-svg-annotation-tag {
+    font-size: 0.75em;
+    background-color: darkgreen;
+    color: white;
+    border-radius: 0.75em;
+    border-style: solid;
+    border-width: thin;
+    border-color: darkred;
+    padding: 0.3em;
+}
+
+.bystro-svg-annotation-tag-link {
+    font-size: 0.75em;
+    background-color: lightgreen;
+    border-radius: 0.75em;
+    border-style: solid;
+    border-width: thin;
+    padding: 0.3em;
+}
+
+hidden {
+    background-color: gray;
+    color: gray;
+}
+hidden::selection {
+ background-color: black;
+    color: black;
+}   
+
+.docx {
+    background-color: white;
+.docx-paragraph {
+    background-color: pink;
+}

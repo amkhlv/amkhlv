@@ -234,15 +234,44 @@ along with bystroTeX.  If not, see <http://www.gnu.org/licenses/>.
     result
     ))
 
+; DOCX
+(define (docx-make-style-props attrs)
+  (let* ([html-attrs
+          (let rec ([xs attrs])
+            (if (empty? xs)
+                ""
+                (string-append
+                 (match (car xs)
+                   [(list 'b _) "font-weight:bold;"]
+                   [(list 'i _) "font-style:italic;"]
+                   [(list 'size n) (format "font-size:~apt;" n)]
+                   [(list 'align a) (format "text-align:~a;" a)]
+                   [_ ""])
+                 (rec (cdr xs))
+                 )
+                )
+            )]
+         [hattrs (if (empty? html-attrs) '() `(,(attributes (list (cons 'style html-attrs)))))]
+         )
+    (let rec ([xs attrs])
+      (if (empty? xs)
+          hattrs
+          (match (car xs)
+            [(list 'color rgb)
+             (let ([r (string->number (substring rgb 0 2) 16)]
+                   [g (string->number (substring rgb 2 4) 16)]
+                   [b (string->number (substring rgb 4 6) 16)])
+               (cons (color-property (list r g b)) (rec (cdr xs))))]
+            [_ (rec (cdr xs))])))))
+
 (define (show-run r)
   (let-values
       ([(attrs text)
         (if ((cons? (car r)) . and . (cons? (car (car r)))) ; first element is list of attributes
             (values (car r) (cdr r))
             (values '() r))])
-    ;(displayln r)
     (element
-     (style "docx-run" '())
+     (style "docx-run" (docx-make-style-props attrs))
      `(,text))))
 (define (show-link a)
   (let-values
@@ -263,7 +292,7 @@ along with bystroTeX.  If not, see <http://www.gnu.org/licenses/>.
             (values (car p) (cdr p))
             (values '() p))])
     (paragraph
-     (style "docx-paragraph" '())
+     (style "docx-paragraph" (docx-make-style-props attrs))
      (for/list ([e contents])
        (match (car e)
          ['r (show-run (cdr e))]

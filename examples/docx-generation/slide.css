@@ -1,0 +1,197 @@
+
+
+/* ----------------------------------------------- */
+/* The ones below modify the default scribble.css: */
+
+body {
+
+    background-color: #ffe4e1;
+
+}
+
+.main {
+  font-family: "Arial, Helvetica, sans-serif";
+  font-size: 14pt;
+  line-height: 1.6;
+}
+
+
+
+
+.main > h3,h4,h5 {
+
+   color: maroon;
+}
+
+.maincolumn {
+  font-size: 14pt;
+  width: 50em;
+/*  margin-right: -40em; */
+  margin-left: 5pt;
+}
+
+.pagetitle {
+    font-size: 24pt;
+    color: navy;
+
+}
+
+.pagetitle-1 {
+    font-size: 20pt;
+    color: black;
+    border-radius: 8px;
+    padding: 8px;
+    background-color: #97ffff;
+}
+
+.pagetitle-2 {
+    font-size: 16pt;
+    color: black;
+    border-radius: 8px;
+    padding: 4px;
+    background-color: #97ffff;
+}
+
+.pagetitle-3 {
+    font-size: 13pt;
+    color: navy;
+    border-radius: 8px;
+    padding: 2px;
+    background-color: #97ffff;
+}
+
+.local-toc-1 {
+    font-size: 16pt;
+    color: navy;
+
+}
+
+.local-toc-2 {
+    font-size: 14pt;
+    color: navy;
+
+}
+
+.local-toc-3 {
+    font-size: 13pt;
+    color: navy;
+
+}
+
+.SubFlow {
+  font-family: "DejaVu Sans";
+  font-size: 14pt;
+}
+
+/* ---------------------------------------- */
+/* Table of contents, left margin */
+
+.tocview { display: none; }
+
+.tocset { display: none; }
+/* .tocset { */
+/*   font-size: 18pt; */
+/*   position: relative; */
+/*   float: left; */
+/*   width: 12em; */
+/*   margin-right: 2em; */
+/* } */
+/* .tocset td { */
+/*   vertical-align: text-top; */
+/* } */
+
+/* .tocview { */
+/*   text-align: left; */
+/*   background-color: #f0f0e0; */
+/* } */
+
+
+
+/* ---------------------------------------- */
+/* Navigation */
+
+.navsettop, .navsetbottom {
+  background-color: #f0f0e0;
+
+}
+
+.navsettop {
+  margin-top:    0em;
+  margin-bottom: 0.2em;
+  border-bottom: 0px solid #e0e0c0;
+  height: 0.2em;
+}
+
+.navsetbottom {
+  margin-top: 0.2em;
+  border-top: 0px solid #e0e0c0;
+  height: 0.2em;
+}
+
+.navleft {
+  margin-left: 1ex;
+  position: relative;
+  float: left;
+  white-space: nowrap;
+}
+.navright {
+  font-size: 15pt;
+  margin-right: 1ex;
+  position: relative;
+  float: right;
+  white-space: nowrap;
+  padding: 0 0 0.7em 0;
+  margin-top: -0.8em;
+  /* Border is useful for debugging: */
+  /* border: 1px solid red; */
+  height: 0.8em;
+}
+
+
+/* For standard table: */
+table, th, td
+{
+  font-family: "DejaVu Sans";
+}
+
+.bystro-bib-key-cell {
+    text-align: right;
+    vertical-align: top;
+    padding: 5px;
+}
+
+.bystro-bib-value-cell {
+    text-align: left;
+    padding: 5px;
+}
+
+.bystro-summary {
+    background-color: white;
+    line-height: 1.5;
+    margin-left: 0;
+    padding-left: 5pt;
+    padding-right: 5pt;
+}
+
+.bystro-indent-1 {
+    margin-left: 10%;
+}
+
+.bystro-indent-2 {
+    margin-left: 20%;
+}
+
+talk {
+    font-size: 18pt;
+    font-family: Courier;
+    background-color: red;
+    color: white;
+}
+
+doubt {
+    background-color: peru;
+    color: darkblue;
+    padding: 3px;
+    border-radius: 5px;
+}
+

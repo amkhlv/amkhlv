@@ -100,7 +100,3 @@ along with bystroTeX.  If not, see <http://www.gnu.org/licenses/>.
       (close-input-port out)
     ))
   
-
-
-
-
