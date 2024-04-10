@@ -20,6 +20,7 @@ along with bystroTeX.  If not, see <http://www.gnu.org/licenses/>.
 }
 
 @(require scribble/manual
+          scribble/extract
           (for-label racket  
                      scribble/core 
                      scribble/base 
@@ -330,6 +331,15 @@ see @hyperlink["https://en.wikipedia.org/wiki/File:Xterm_256color_chart.svg"]{Xt
 @defproc[(ansi-blink [x string?]) string?]{blinking}
 @defproc[(ansi-reverse [x string?]) string?]{reverse}
 @defproc[(ansi-clear-screen) any/c]{clear screen}
+
+@section{Dhall}
+
+@(include-extracted truques/dhall)
+
+@section{DOCX}
+
+@(include-extracted truques/docx)
+
 
 @section{Legal}
 

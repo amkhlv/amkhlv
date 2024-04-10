@@ -27,6 +27,10 @@
 @bystro-ribbon[]
 @table-of-contents[]
 
+
+
+
+
 @section{HTML to DOCX using LibreOffice}
 
 @verb|{

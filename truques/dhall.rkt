@@ -24,11 +24,11 @@ along with bystroTeX.  If not, see <http://www.gnu.org/licenses/>.
 ;(require bystroTeX/common)
 ;(require scribble/core scribble/base scribble/html-properties scribble/decode)
 
+(require scribble/srcdoc (for-doc scribble/base scribble/manual))
 
 
 
-
-(provide (contract-out [dhall (-> string? #:dir path-string? string?)]))
+(provide (proc-doc/names dhall (->* (string? #:dir path-string?) () string?) ((code workdir) ()) ("run Dhall")))
 (define  (dhall #:dir workdir code)
   (parameterize
       ([current-directory workdir])

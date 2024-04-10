@@ -21,35 +21,43 @@ along with bystroTeX.  If not, see <http://www.gnu.org/licenses/>.
 
 
 (require racket/base xml)
+(require scribble/srcdoc (for-doc scribble/base scribble/manual))
+
 
 (struct a-bold (contents))
-(provide b)
+(provide (proc-doc b (->i () () #:rest [txt rich-text/c] [result rich-text-element/c]) ()))
 (define (b . x) (a-bold x))
 (struct a-italic (contents))
-(provide i)
+(provide (proc-doc i (->i () () #:rest [txt rich-text/c] [result rich-text-element/c]) ()))
 (define (i . x) (a-italic x))
 (struct a-underline (contents))
-(provide u)
+(provide (proc-doc u (->i () () #:rest [txt rich-text/c] [result rich-text-element/c]) ()))
 (define (u . x) (a-underline x))
 (struct a-link (href text))
-(provide a)
+(provide (proc-doc a (->i ([href string?] [txt string?]) ()  [result rich-text-element/c]) ("hyperlink")))
 (define (a h t) (a-link h t))
 (struct a-image (src caption))
-(provide img)
+(provide (proc-doc img (->i ([src path-string?] [caption string?]) ()  [result rich-text-element/c]) ("image")))
 (define (img s c) (a-image s c))
+(define rich-text-element/c (or/c string? a-bold? a-italic? a-underline? a-link? a-image?))
+(define rich-text/c (listof rich-text-element/c))
 (define (ins a as)
   (if (member (car a) (map car as)) as (cons a as)))
 (define (prepattr attrs)
   (let ([x (filter cadr attrs)])
     (if (empty? x) '() `(,x))))
-(provide (contract-out [p (->*
-                           ()
-                           (#:size (or/c string? #f)
-                            #:color (or/c string? #f)
-                            #:align (or/c string? #f)
-                            )
-                           #:rest any/c
-                           xexpr/c)]))
+(provide (proc-doc
+          p
+          (->i
+           ()
+           (#:size [size  (or/c string? #f)]
+            #:color [color  (or/c string? #f)]
+            #:align [align  (or/c string? #f)]
+            )
+           #:rest [rt rich-text/c]
+           [result xexpr/c])
+          ([size #f] [color #f] [align #f])
+          ("paragraph builder")))
 (define (p #:size [sz #f] #:color [clr #f] #:align [aln #f]
            . exprs)
   (append
@@ -77,18 +85,32 @@ along with bystroTeX.  If not, see <http://www.gnu.org/licenses/>.
     exprs)
    )
   )
-(provide (contract-out [t (->* () () #:rest (listof xexpr/c) xexpr/c)]))
+(provide (proc-doc
+          t
+          (->i () () #:rest [row (listof xexpr/c)] [result xexpr/c])
+          ("table")))
 (define (t . rows) `(table ,@rows))
-(provide (contract-out [tr (->* () () #:rest (listof xexpr/c) xexpr/c)]))
+(provide (proc-doc
+          tr
+          (->i () () #:rest [cell (listof xexpr/c)] [result xexpr/c])
+          ("table row")))
 (define (tr . cells) `(tr ,@cells))
-(provide (contract-out [td (->* () () #:rest (listof xexpr/c) xexpr/c)]))
+(provide (proc-doc
+          td
+          (->i () () #:rest [content (listof xexpr/c)] [result xexpr/c])
+          ("table cell")))
 (define (td . contents) `(td ,@contents))
 
-(provide (contract-out [docx-xexpr (->* () () #:rest (listof xexpr/c) xexpr/c)]) )
-(define (docx-xexpr . expr)
-  `(root ,@expr))
+(provide (proc-doc
+          docx-xexpr
+          (->i () () #:rest [paragraph-or-table (listof xexpr/c)] [result xexpr/c])
+          ("build document as xexpr (actually just (root expr...))")))
+(define (docx-xexpr . expr) `(root ,@expr))
 
-(provide (contract-out [docx->file (->* (path-string? xexpr/c) () void?)]))
+(provide (proc-doc
+          docx->file
+          (->i ([file path-string?] [doc-as-xexpr  xexpr/c]) () [result void?])
+          ("save docx-xexpr to file")))
 (define (docx->file file-path doc-xexpr)
     (let-values
       ([(proc out in err)
