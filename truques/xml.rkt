@@ -23,6 +23,7 @@ along with bystroTeX.  If not, see <http://www.gnu.org/licenses/>.
 (require (prefix-in the: xml) xml/path xml/xexpr racket/format)
 (require bystroTeX/common)
 (require scribble/core scribble/base scribble/html-properties scribble/decode)
+(require scribble/srcdoc (for-doc scribble/base scribble/manual))
 (require racket/date)
 
 (provide (all-from-out xml/path) (all-from-out racket/format))
@@ -263,7 +264,6 @@ along with bystroTeX.  If not, see <http://www.gnu.org/licenses/>.
                    [b (string->number (substring rgb 4 6) 16)])
                (cons (color-property (list r g b)) (rec (cdr xs))))]
             [_ (rec (cdr xs))])))))
-
 (define (show-run r)
   (let-values
       ([(attrs text)
@@ -319,7 +319,7 @@ along with bystroTeX.  If not, see <http://www.gnu.org/licenses/>.
     rows)
    )
   )
-(provide (contract-out [show-docx (->* (xexpr/c) () (or/c #f content? block?))]))
+(provide (proc-doc show-docx (->i ([doc xexpr/c]) () [result (or/c #f content? block?)]) ("show docx")))
 (define (show-docx doc)
   (apply
    nested

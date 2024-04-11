@@ -1,4 +1,4 @@
-#lang racket
+#lang at-exp racket
 
 #|
 Copyright 2024 Andrei Mikhailov
@@ -20,8 +20,17 @@ along with bystroTeX.  If not, see <http://www.gnu.org/licenses/>.
 |#
 
 
-(require racket/base xml)
+(require racket/base (only-in xml xexpr/c xexpr->string))
 (require scribble/srcdoc (for-doc scribble/base scribble/manual))
+(require
+ (only-in scribble/core element paragraph content? block? style)
+ (only-in scribble/base hyperlink nested)
+ (only-in scribble/html-properties attributes make-css-addition)
+ (only-in scribble/manual racket)
+ )
+
+(require "xml.rkt")
+(require (only-in bystroTeX/common bystro-path-to-link))
 
 
 (struct a-bold (contents))
@@ -112,13 +121,45 @@ along with bystroTeX.  If not, see <http://www.gnu.org/licenses/>.
           (->i ([file path-string?] [doc-as-xexpr  xexpr/c]) () [result void?])
           ("save docx-xexpr to file")))
 (define (docx->file file-path doc-xexpr)
-    (let-values
+  (let-values
       ([(proc out in err)
         (subprocess #f #f #f (find-executable-path "xml2docx") "-o" file-path)])
-      (display (xexpr->string doc-xexpr) in)
-      (close-output-port in)
-      (display (port->string err) (current-error-port))
-      (close-input-port err)
-      (close-input-port out)
+    (display (xexpr->string doc-xexpr) in)
+    (close-output-port in)
+    (display (port->string err) (current-error-port))
+    (close-input-port err)
+    (close-input-port out)
     ))
-  
+
+(provide (proc-doc
+          docx-here
+          (->i
+           ([file path-string?])
+           ()
+           #:rest [line  (listof xexpr/c)]
+           [result (or/c #f content? block?)]
+           )
+          @{
+             Prepare DOCX file and show it here.
+             
+             A root child is either @racket[(p . x)] or (@racket[t]...) (that is, paragraph or table)
+
+             A paragraph child is either string or @racket[b]{...} or @racket[i]{...} or @racket[a]{...} or @racket[img]{...}
+            }))
+(define (docx-here file-path . line)
+  (let ([rooted `(root ,@line)])
+    (docx->file file-path rooted)
+    (nested
+     (paragraph
+      (style
+       "docx-file-link-paragraph"
+       `(,(attributes `(,(cons 'align "right")))))
+      (hyperlink
+       #:style
+       (style "docx-file-link" '())
+       (bystro-path-to-link file-path) file-path))
+     (show-docx rooted)
+     #:style (style "docx" '())
+     )))
+
+

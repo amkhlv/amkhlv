@@ -267,6 +267,9 @@ string?
 Replaces dollar sign with underscore. Useful for SQLITE queries.
 }
 
+@(include-extracted truques/xml)
+
+
 @section{SQLite tables}
 @defmodule[truques/sqlite]
 

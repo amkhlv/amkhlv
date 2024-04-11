@@ -45,26 +45,19 @@ We can generate rudimentary DOCX documents using
 The XML should satisfy the grammar:
 @hyperlink["https://github.com/amkhlv/usr/blob/master/share/Rust/xml2docx/docx.rnc"]{docx.rnc}
 
-Notice that we use @tt{EN SPACE} to preserve space between runs.
-@(define/contract
-   mydocx
-   xexpr/c
-   `(root
-     @,p[#:size "40" #:color "FF0000" #:align "center"]{Famous search engines}
-     @,t[
-      @tr[@td[@p{LexisNexis}] @td[@p{US link is @a["https://www.lexisnexis.com/en-us/search.page"]{here}}]]
-      ;alternatively, construct xexpr by hand:
-      '(tr (td (p @r{Google})) (td (p @a[([href "https://www.google.com"])]{link})))
-      '(tr (td (p @r{Yahoo})) (td (p @r{still exists: }@a[([href "https://search.yahoo.com/"])]{link})))
-      ]
-     @,p{@i{Lor@b{i}m Ips@b{e}m etc}}
-     ))
+Notice that we use @tt{EN SPACE} ( ) to preserve space between runs.
 
-@(display mydocx)
-
-@(show-docx  mydocx)
-
-@(docx->file "example.docx" mydocx)
+@(docx-here
+  "example.docx"
+  @p[#:size "40" #:color "FF0000" #:align "center"]{Famous search engines}
+  @t[
+     @tr[@td[@p{LexisNexis}] @td[@p{US link is @a["https://www.lexisnexis.com/en-us/search.page"]{here}}]]
+     ;alternatively, construct xexpr by hand:
+     '(tr (td (p @r{Google})) (td (p @a[([href "https://www.google.com"])]{link})))
+     '(tr (td (p @r{Yahoo})) (td (p @r{still exists: }@a[([href "https://search.yahoo.com/"])]{link})))
+     ]
+  @p{@i{Lor@b{i}m Ips@b{e}m etc}}
+  )
 
 
 @bystro-ribbon[]
