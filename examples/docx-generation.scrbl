@@ -49,6 +49,7 @@ Notice that we use @tt{EN SPACE} ( ) to preserve space between runs.
 
 @(docx-here
   "example.docx"
+  'frozen 
   @p[#:size "40" #:color "FF0000" #:align "center"]{Famous search engines}
   @t[
      @tr[@td[@p{LexisNexis}] @td[@p{US link is @a["https://www.lexisnexis.com/en-us/search.page"]{here}}]]
@@ -56,7 +57,7 @@ Notice that we use @tt{EN SPACE} ( ) to preserve space between runs.
      '(tr (td (p @r{Google})) (td (p @a[([href "https://www.google.com"])]{link})))
      '(tr (td (p @r{Yahoo})) (td (p @r{still exists: }@a[([href "https://search.yahoo.com/"])]{link})))
      ]
-  @p{@i{Lor@b{i}m Ips@b{e}m etc}}
+  @p[#:size "32"]{@i{Lor@b{i}m Ips@b{e}m etc}}
   )
 
 

@@ -136,30 +136,38 @@ along with bystroTeX.  If not, see <http://www.gnu.org/licenses/>.
           (->i
            ([file path-string?])
            ()
-           #:rest [line  (listof xexpr/c)]
+           #:rest [line  (or/c (cons/c 'frozen any/c) (listof xexpr/c))]
            [result (or/c #f content? block?)]
            )
           @{
              Prepare DOCX file and show it here.
-             
+
+             If the content starts with @racket['frozen], then the rest is simply ignored
+             and no new docx file is generated. 
+
              A root child is either @racket[(p . x)] or (@racket[t]...) (that is, paragraph or table)
 
-             A paragraph child is either string or @racket[b]{...} or @racket[i]{...} or @racket[a]{...} or @racket[img]{...}
+             A paragraph child is either string or @racket[(b . x)] or @racket[(i . x)] or @racket[(a url txt)] or @racket[(img src caption)]
             }))
 (define (docx-here file-path . line)
-  (let ([rooted `(root ,@line)])
-    (docx->file file-path rooted)
-    (nested
-     (paragraph
-      (style
-       "docx-file-link-paragraph"
-       `(,(attributes `(,(cons 'align "right")))))
-      (hyperlink
-       #:style
-       (style "docx-file-link" '())
-       (bystro-path-to-link file-path) file-path))
-     (show-docx rooted)
-     #:style (style "docx" '())
-     )))
+  (let ([banner
+         (paragraph
+          (style
+           "docx-file-link-paragraph"
+           `(,(attributes `(,(cons 'align "right")))))
+          (hyperlink
+           #:style
+           (style "docx-file-link" '())
+           (bystro-path-to-link file-path) file-path))
+         ])     
+    (if (eq? (car line) 'frozen)
+        (nested banner #:style (style "docx" '()))
+        (let ([rooted `(root ,@line)])
+          (docx->file file-path rooted)
+          (nested
+           banner
+           (show-docx rooted)
+           #:style (style "docx" '())
+           )))))
 
 

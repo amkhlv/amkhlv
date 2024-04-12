@@ -343,7 +343,6 @@ see @hyperlink["https://en.wikipedia.org/wiki/File:Xterm_256color_chart.svg"]{Xt
 
 @(include-extracted truques/docx)
 
-
 @section{Legal}
 
 Copyright 2012,2013,2014 Andrei Mikhailov
