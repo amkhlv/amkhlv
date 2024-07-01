@@ -93,10 +93,10 @@ along with bystroTeX.  If not, see <http://www.gnu.org/licenses/>.
        (string-append
         "function amkhlvBystroCopyFn"
         (number->string copy-tag-num)
-        "() {var copyText = document.getElementById(\""
+        "() {navigator.clipboard.writeText(document.getElementById(\""
         "amkhlv-bystro-copy-id-"
         (number->string copy-tag-num)
-        "\") ; copyText.select(); document.execCommand(\"copy\"); }"
+        "\").value); }"
         )
        )
       )
