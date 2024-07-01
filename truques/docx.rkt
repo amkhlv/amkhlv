@@ -124,6 +124,10 @@ along with bystroTeX.  If not, see <http://www.gnu.org/licenses/>.
   (let-values
       ([(proc out in err)
         (subprocess #f #f #f (find-executable-path "xml2docx") "-o" file-path)])
+    ;; (with-output-to-file
+    ;;   #:exists 'replace
+    ;;   "eraseme.xml"
+    ;;   (λ () (display (xexpr->string doc-xexpr))))
     (display (xexpr->string doc-xexpr) in)
     (close-output-port in)
     (display (port->string err) (current-error-port))

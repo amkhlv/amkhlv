@@ -58,6 +58,9 @@ Notice that we use @tt{EN SPACE} ( ) to preserve space between runs.
      '(tr (td (p @r{Yahoo})) (td (p @r{still exists: }@a[([href "https://search.yahoo.com/"])]{link})))
      ]
   @p[#:size "32"]{@i{Lor@b{i}m Ips@b{e}m etc}}
+  @p{line one
+          line two
+          line three}
   )
 
 

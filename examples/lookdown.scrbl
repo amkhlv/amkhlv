@@ -98,7 +98,7 @@
                    (name dest name.html name.scrbl formulas/ .sqlite arglist multipage?)
                    (postgre:query-exec
                     pgc
-                    "insert into lookdown values ($1,$2,$3)"
+                    "insert into lookdown values ($1,$2,$3)" ;(scrbl,html,content)
                     (path->string (build-path bystrotex-dir name.scrbl))
                     (path->string
                      (build-path

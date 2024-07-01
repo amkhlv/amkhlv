@@ -368,7 +368,13 @@ hidden::selection {
 }   
 
 .docx {
-    background-color: white;
+    background-color: #ECFFDC;
 .docx-paragraph {
     background-color: pink;
+}
+.docx-file-link {
+    background: lightgreen;
+}
+.docx-file-link-paragraph {
+    background-color: #ECFFDC;
 }
