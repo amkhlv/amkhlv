@@ -1,0 +1,16 @@
+{
+  "name": "latex-to-svg",
+  "version": "1.0.0",
+  "description": "LaTeX to SVG converter",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Andrei Mikhailov",
+  "license": "ISC",
+  "dependencies": {
+    "mathjax-full": "^3.2.2",
+    "tex-to-svg": "^0.2.0",
+    "zeromq": "^6.0.0-beta.20"
+  }
+}

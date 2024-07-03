@@ -36,6 +36,7 @@ along with bystroTeX.  If not, see <http://www.gnu.org/licenses/>.
   (require (prefix-in net: net/url))
   (require (prefix-in net: net/url-structs))
 
+  (require net/zmq)
   (require json)
 
   (provide (all-from-out db/base) (all-from-out db/sqlite3))
@@ -79,7 +80,16 @@ along with bystroTeX.  If not, see <http://www.gnu.org/licenses/>.
   (provide (contract-out
                                         ; opens the server connection and returns the corresponding struct
             [bystro-connect-to-server (-> (or/c #f path?) (or/c 'running-without-LaTeX-server bystroserver?))]))
+  (define (get-zeromq-socket)
+    (let* ([ctxt (context 1)]
+           [sock (socket ctxt 'REQ)])
+      (displayln " -- connecting to ipc:///home/andrei/.local/run/bystrotex.ipc")
+      (socket-connect! sock "ipc:///home/andrei/.local/run/bystrotex.ipc")
+      (displayln " -- connected")
+      sock))
+  (define zeromq-socket #f)
   (define (bystro-connect-to-server xmlconf-file)
+    (set! zeromq-socket (get-zeromq-socket))
     (if xmlconf-file
         (let* ([server-conf (call-with-input-file xmlconf-file
                               (lambda (inport) (xml:xml->xexpr (xml:document-element (xml:read-xml inport)))))]
@@ -364,7 +374,28 @@ along with bystroTeX.  If not, see <http://www.gnu.org/licenses/>.
          (lambda () "")    ; TODO: what is this?
          )))
   ;; ---------------------------------------------------------------------------------------------------
-  (define (get-svg-from-server texstring size bg-color fg-color filename)
+  (define (get-svg-from-zeromq texstring size bg-color fg-color filepath)
+    (displayln "\n------ getting SVG ------")
+    (let* ([path
+            (build-path (current-directory) filepath)]
+           [j
+             (make-hash
+              (list (cons 'texstring texstring)
+                (cons 'size size)
+                (cons 'bg bg-color)
+                (cons 'fg fg-color)
+                (cons 'outpath (path->string path))))])
+      (displayln j)
+      (socket-send! zeromq-socket (jsexpr->bytes j))
+      (define reply (socket-recv! zeromq-socket))
+      (displayln "\n --- REPLY was: ")
+      (displayln reply)
+      (bytes->string/utf-8 reply)
+      )
+    )
+
+  ;; ---------------------------------------------------------------------------------------------------
+  (define (get-svg-from-server texstring size bg-color fg-color filepath)
                                         ; The procedure returns an integer representing the vertical offset.
     (let*-values
      ([(bserv) (values (bystro-formula-processor configuration))]
@@ -430,7 +461,7 @@ along with bystroTeX.  If not, see <http://www.gnu.org/licenses/>.
                                                  "BystroTeX-depth:"
                                                  (car (string-split (bytes->string/utf-8 h)))))
                                (cadr (string-split (bytes->string/utf-8 h))))])
-           (with-output-to-file #:exists 'replace filename (lambda () (display result)))
+           (with-output-to-file #:exists 'replace filepath (lambda () (display result)))
            depth-string))))
   ;; ---------------------------------------------------------------------------------------------------
   (provide (contract-out  
@@ -564,20 +595,17 @@ along with bystroTeX.  If not, see <http://www.gnu.org/licenses/>.
                                                            (elemtag l (elemref l (number-for-formula l)))))))
           (table-with-alignment "c.n" (list (list frml "" ))))))
 ;; ---------------------------------------------------------------------------------------------------
-  (define (aligned-formula-image manual-adj use-depth depth aa-adj filepath sz)
-    (element 
-        (bystro-elemstyle 
-         (cond
-          [manual-adj (string-append 
-                       "display:inline;white-space:nowrap;vertical-align:-" 
-                       (number->string (+ aa-adj depth (- (round (/ (* manual-adj sz) 18))))) 
-                       "px")]
-          [use-depth (string-append 
-                      "display:inline;white-space:nowrap;vertical-align:-" 
-                      (number->string (+ aa-adj depth)) 
-                      "px" )]
-          [else "display:inline;white-space:nowrap;vertical-align:middle"]))
-      (image  filepath)))
+  (define (aligned-formula-image stl filepath)
+    ;(element 
+     ;(bystro-elemstyle stl)
+    ;(tg image #:attrs ([src (path->string (car (reverse (explode-path filepath))))])))
+    ;(image #:style (style #f `(,stl)) filepath)
+    (tg image
+        #:attrs
+        ([src (path->string (car (reverse (explode-path filepath))))]
+         [style stl]
+         ))
+    )
 ;; ---------------------------------------------------------------------------------------------------
   (define (rgb-list->string x) 
     (string-append
@@ -629,28 +657,26 @@ along with bystroTeX.  If not, see <http://www.gnu.org/licenses/>.
                )
           (if row
               (aligned-formula-image 
-               align 
-               use-depth 
-               (string->number (vector-ref row 1)) 
-               aa-adj 
+               (vector-ref row 1)
                (build-path formdir (string-append (vector-ref row 0) ".svg")) 
-               bsz)
+               )
               (let* 
                   ([formnum (totalnumber . + . 1)]
-                   [filename (string-append formdir "/" (number->string formnum) ".svg")]
+                   [filename (build-path formdir  (string-append (number->string formnum) ".svg"))]
                    [insert-stmt (prepare mydb "insert into formulas values (?,?,?,?,?,?,?)")]
                                         ;(tex, scale, bg, fg, filename, depth, tags)
                    [procedure-to-typeset-formula
                     (if (bystroserver? (bystro-formula-processor configuration))
-                        get-svg-from-server
+                        get-svg-from-zeromq
+                        ;get-svg-from-server
                         (curry bystro-command-to-typeset-formula (bystro-formula-processor configuration)))]
-                   [dpth-str (procedure-to-typeset-formula
-                              (apply string-append (cons preamble tex))
-                              bsz 
-                              bg-color
-                              fg-color
-                              filename)])
-                (unless (string? dpth-str) (error "ERROR: procedure to typeset formulas did not return the depth string"))
+                   [stl (procedure-to-typeset-formula
+                         (apply string-append (cons preamble tex))
+                         bsz 
+                         bg-color
+                         fg-color
+                         filename)])
+                (unless (string? stl) (error "ERROR: formula processor did not return style"))
                 (query
                  mydb
                  (bind-prepared-statement
@@ -660,16 +686,12 @@ along with bystroTeX.  If not, see <http://www.gnu.org/licenses/>.
                         (rgb-list->string bg-color) 
                         (rgb-list->string fg-color) 
                         (number->string formnum) 
-                        dpth-str 
+                        stl
                         "")))
                 (commit-transaction mydb)
                 (aligned-formula-image 
-                 align 
-                 use-depth 
-                 (string->number dpth-str) 
-                 aa-adj 
-                 (build-path filename) 
-                 bsz))))))
+                 stl
+                 (build-path filename) ))))))
 ;; ---------------------------------------------------------------------------------------------------
   (provide (contract-out 
                                         ; change the background color for the formulas
