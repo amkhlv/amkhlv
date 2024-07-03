@@ -107,7 +107,7 @@ along with bystroTeX.  If not, see <http://www.gnu.org/licenses/>.
     (unless (eq? 'running-without-LaTeX-server (bystro-formula-processor bconf))
       (net:http-conn-close! (bystroserver-connection (bystro-formula-processor bconf)))))
   (define configuration (bystro 'running-without-LaTeX-server
-                                "formulas.sqlite"
+                                "bystrotex.db"
                                 "formulas"
                                 25
                                 (list 255 255 255)
@@ -325,7 +325,7 @@ along with bystroTeX.  If not, see <http://www.gnu.org/licenses/>.
            [sqlite-master_rows (query-rows mydb "select name from SQLITE_MASTER")])
       (and (not (for/or ([r sqlite-master_rows]) (equal? (vector-ref r 0) "formulas")))
            (begin
-             (query-exec mydb "CREATE TABLE formulas (tex, scale, bg, fg, filename, depth, tags)")
+             (query-exec mydb "CREATE TABLE formulas (tex, scale, bg, fg, filename, valign, width, height)")
              (commit-transaction mydb))
            )
       (set-current-running-database! state mydb)
@@ -595,7 +595,7 @@ along with bystroTeX.  If not, see <http://www.gnu.org/licenses/>.
                                                            (elemtag l (elemref l (number-for-formula l)))))))
           (table-with-alignment "c.n" (list (list frml "" ))))))
 ;; ---------------------------------------------------------------------------------------------------
-  (define (aligned-formula-image stl filepath)
+  (define (aligned-formula-image filepath valign width height)
     ;(element 
      ;(bystro-elemstyle stl)
     ;(tg image #:attrs ([src (path->string (car (reverse (explode-path filepath))))])))
@@ -603,7 +603,7 @@ along with bystroTeX.  If not, see <http://www.gnu.org/licenses/>.
     (tg image
         #:attrs
         ([src (path->string (car (reverse (explode-path filepath))))]
-         [style stl]
+         [style (string-append valign "; width: " width "; height: " height ";")]
          ))
     )
 ;; ---------------------------------------------------------------------------------------------------
@@ -644,7 +644,7 @@ along with bystroTeX.  If not, see <http://www.gnu.org/licenses/>.
         (if (bystro-dump-LaTeX-with-$) (deep-literal `("$" ,@tex "$")) (deep-literal tex)) 
         (let* ([lookup (prepare 
                         mydb
-                        "select filename,depth  from formulas where scale = ? and tex = ? and bg = ? and fg = ?")]
+                        "select filename,valign,width,height  from formulas where scale = ? and tex = ? and bg = ? and fg = ?")]
                [rows  (query-rows mydb (bind-prepared-statement
                                         lookup
                                         (list 
@@ -657,26 +657,30 @@ along with bystroTeX.  If not, see <http://www.gnu.org/licenses/>.
                )
           (if row
               (aligned-formula-image 
-               (vector-ref row 1)
                (build-path formdir (string-append (vector-ref row 0) ".svg")) 
+               (vector-ref row 1)
+               (vector-ref row 2)
+               (vector-ref row 3)
                )
               (let* 
                   ([formnum (totalnumber . + . 1)]
                    [filename (build-path formdir  (string-append (number->string formnum) ".svg"))]
-                   [insert-stmt (prepare mydb "insert into formulas values (?,?,?,?,?,?,?)")]
-                                        ;(tex, scale, bg, fg, filename, depth, tags)
+                   [insert-stmt (prepare mydb "insert into formulas values (?,?,?,?,?,?,?,?)")]
+                                        ;(tex, scale, bg, fg, filename, depth, width, height)
                    [procedure-to-typeset-formula
                     (if (bystroserver? (bystro-formula-processor configuration))
                         get-svg-from-zeromq
                         ;get-svg-from-server
                         (curry bystro-command-to-typeset-formula (bystro-formula-processor configuration)))]
-                   [stl (procedure-to-typeset-formula
-                         (apply string-append (cons preamble tex))
-                         bsz 
-                         bg-color
-                         fg-color
-                         filename)])
-                (unless (string? stl) (error "ERROR: formula processor did not return style"))
+                   [dims (procedure-to-typeset-formula
+                          (apply string-append (cons preamble tex))
+                          bsz 
+                          bg-color
+                          fg-color
+                          filename)]
+                   [dims-json (with-input-from-string dims (λ () (read-json)))]
+                   )
+                (unless (string? dims) (error "ERROR: formula processor did not return style"))
                 (query
                  mydb
                  (bind-prepared-statement
@@ -686,12 +690,17 @@ along with bystroTeX.  If not, see <http://www.gnu.org/licenses/>.
                         (rgb-list->string bg-color) 
                         (rgb-list->string fg-color) 
                         (number->string formnum) 
-                        stl
+                        (hash-ref dims-json "valign")
+                        (hash-ref dims-json "width")
+                        (hash-ref dims-json "height")
                         "")))
                 (commit-transaction mydb)
                 (aligned-formula-image 
-                 stl
-                 (build-path filename) ))))))
+                 (build-path filename)
+                 (hash-ref dims-json "valign")
+                 (hash-ref dims-json "width")
+                 (hash-ref dims-json "height")
+                 ))))))
 ;; ---------------------------------------------------------------------------------------------------
   (provide (contract-out 
                                         ; change the background color for the formulas
