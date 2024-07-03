@@ -681,6 +681,7 @@ along with bystroTeX.  If not, see <http://www.gnu.org/licenses/>.
                    [dims-json (with-input-from-string dims (λ () (read-json)))]
                    )
                 (unless (string? dims) (error "ERROR: formula processor did not return style"))
+                (displayln dims-json)
                 (query
                  mydb
                  (bind-prepared-statement
@@ -690,16 +691,16 @@ along with bystroTeX.  If not, see <http://www.gnu.org/licenses/>.
                         (rgb-list->string bg-color) 
                         (rgb-list->string fg-color) 
                         (number->string formnum) 
-                        (hash-ref dims-json "valign")
-                        (hash-ref dims-json "width")
-                        (hash-ref dims-json "height")
-                        "")))
+                        (hash-ref dims-json 'valign)
+                        (hash-ref dims-json 'width)
+                        (hash-ref dims-json 'height)
+                        )))
                 (commit-transaction mydb)
                 (aligned-formula-image 
                  (build-path filename)
-                 (hash-ref dims-json "valign")
-                 (hash-ref dims-json "width")
-                 (hash-ref dims-json "height")
+                 (hash-ref dims-json 'valign)
+                 (hash-ref dims-json 'width)
+                 (hash-ref dims-json 'height)
                  ))))))
 ;; ---------------------------------------------------------------------------------------------------
   (provide (contract-out 

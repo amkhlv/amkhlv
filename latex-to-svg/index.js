@@ -40,9 +40,6 @@ async function runServer() {
 
     const node = html.convert(obj.texstring, {
         display: !INLINE,
-        em: 20 * obj.size,
-        ex: 10 * obj.size,
-        scale: obj.size
     });
 
     const svgWidth = node.children[0].attributes.viewBox.split(' ')[2];
@@ -50,7 +47,8 @@ async function runServer() {
     const align = node.children[0].attributes.style;
     const width = node.children[0].attributes.width;
     const height = node.children[0].attributes.height;
-    const style = `${align} width: ${width}; height: ${height}`;
+    const dims = { valign : align, width : width , height: height };
+    //const style = `${align} width: ${width}; height: ${height}`;
     let svgString = adaptor.innerHTML(node);
     svgString = svgString.replace(/<defs>/, `<defs><style>${CSS}</style>`)
     
@@ -62,7 +60,7 @@ async function runServer() {
         // file written successfully
       }
     });
-    await sock.send(style);
+    await sock.send(JSON.stringify(dims));
   }
 }
 
