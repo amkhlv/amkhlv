@@ -38,11 +38,12 @@ along with bystroTeX.  If not, see <http://www.gnu.org/licenses/>.
 
   (require net/zmq)
   (require json)
+  (require scribble/srcdoc (for-doc scribble/base scribble/manual))
 
   (provide (all-from-out db/base) (all-from-out db/sqlite3))
 
-;; ---------------------------------------------------------------------------------------------------
-                                        ; Global variables
+  ;; ------------------ start of compatibility block ---------------------
+
   (provide bystroserver)
   (define-struct/contract bystroserver 
     ([connection net:http-conn?] 
@@ -74,12 +75,20 @@ along with bystroTeX.  If not, see <http://www.gnu.org/licenses/>.
                   manual-base-alignment
                   )
           #:mutable)
-  (provide (contract-out [set-bystro-extension! (-> bystro? string? void?)]))
-  (define (set-bystro-extension! b x)
-    (unless (equal? "svg" x) (error "Extensional other than svg are not supported any more, at least for now")))
-  (provide (contract-out
-                                        ; opens the server connection and returns the corresponding struct
-            [bystro-connect-to-server (-> (or/c #f path?) (or/c 'running-without-LaTeX-server bystroserver?))]))
+  (provide (proc-doc bystro-connect-to-server (->i ([xmlconf path?]) () [result 'running-without-LaTeX-server]) ()))
+  (define (bystro-connect-to-server x) 'running-without-LaTeX-server)
+  (define configuration (bystro 'running-without-LaTeX-server
+                                "bystrotex.db"
+                                "formulas"
+                                25
+                                (list 255 255 255)
+                                (list 0 0 0)
+                                1
+                                (- 2)
+                                ))
+
+  ;; ---------------- end of compatibility block --------------------------------
+
   (define (get-zeromq-socket)
     (let* ([ctxt (context 1)]
            [sock (socket ctxt 'REQ)]
@@ -90,34 +99,22 @@ along with bystroTeX.  If not, see <http://www.gnu.org/licenses/>.
       (socket-connect! sock sock-path)
       (displayln " -- connected")
       sock))
-  (define zeromq-socket #f)
-  (define (bystro-connect-to-server xmlconf-file)
-    (set! zeromq-socket (get-zeromq-socket))
-    (if xmlconf-file
-        (let* ([server-conf (call-with-input-file xmlconf-file
-                              (lambda (inport) (xml:xml->xexpr (xml:document-element (xml:read-xml inport)))))]
-               [host (xml:se-path* '(host) server-conf)]
-               [port (string->number (xml:se-path* '(port) server-conf))]
-               [path (xml:se-path* '(path) server-conf)]
-               [token (xml:se-path* '(token) server-conf)]
-               [version (xml:se-path* '(version) server-conf)]
-               )
-          (bystroserver (net:http-conn-open host #:port port) token #f host port path version))
-        'running-without-LaTeX-server))
+  (define zeromq-socket (get-zeromq-socket))
+
   (provide (contract-out
             [bystro-close-connection (-> bystro? void?)]))
   (define (bystro-close-connection bconf)
-    (unless (eq? 'running-without-LaTeX-server (bystro-formula-processor bconf))
-      (net:http-conn-close! (bystroserver-connection (bystro-formula-processor bconf)))))
-  (define configuration (bystro 'running-without-LaTeX-server
-                                "bystrotex.db"
-                                "formulas"
-                                25
-                                (list 255 255 255)
-                                (list 0 0 0)
-                                1
-                                (- 2)
-                                ))
+    (when zeromq-socket (socket-close! zeromq-socket)))
+  
+  (define database-filename "bystrotex.db")
+  (provide (proc-doc bystro-set-database-filename (->i ([filename string?]) () [result void?]) ()))
+  (define (bystro-set-database-filename filename) (set! database-filename filename))
+  
+  (define formula-dir "formulas")
+  (provide (proc-doc bystro-set-formula-dir (->i ([dirname string?]) () [result void?]) ()))
+  (define (bystro-set-formula-dir dirname) (set! formula-dir dirname))
+
+
   (define equation-css-class "bystro-equation")
   (provide (contract-out
             (bystro-set-equation-css-class (-> string? void?))))
@@ -155,12 +152,6 @@ along with bystroTeX.  If not, see <http://www.gnu.org/licenses/>.
           #:mutable)
   (define state 
     (current 0 0 "SLIDE" '() 0 '() #f #f)) ; this is the global state
-  (provide (contract-out 
-            [bystro-dump-LaTeX (-> boolean? void?)]))
-  (define (bystro-dump-LaTeX b) (dumping-LaTeX? b))
-  (provide (contract-out 
-            [bystro-dump-LaTeX? (-> boolean?)]))
-  (define (bystro-dump-LaTeX?) (dumping-LaTeX?))
 ;; ---------------------------------------------------------------------------------------------------
   (define to-hide (list 'non-toc 'no-toc 'unnumbered 'hidden 'hidden-number 'quiet))
 ;; ---------------------------------------------------------------------------------------------------
@@ -350,39 +341,34 @@ along with bystroTeX.  If not, see <http://www.gnu.org/licenses/>.
     ;;   (collect-put! ci `(amkhlv-formula-number ,lbl ,n) #f))
     )
   (define (number-for-formula lbl)
-    (if (dumping-LaTeX?) 
-        lbl
-        (begin
-          (set-current-formulanumber! state (+ 1 (current-formulanumber state)))
-          (set-current-formula-ref-dict! 
-           state
-           (if (dict-has-key? (current-formula-ref-dict state) lbl) 
-               (error (string-append "ERROR: same label used twice -->" 
-                                     lbl 
-                                     "<-- refusing to proceed..."))
-                                        ;(current-formula-ref-dict state) ;; do nothing if already registered such label
-               (cons (cons lbl (current-formulanumber state)) (current-formula-ref-dict state))))
-          (collect-element 
-           (make-style #f '()) 
-           (string-append "(" (number->string (current-formulanumber state)) ")")
-           (fn-to-collect-formula-number lbl (current-formulanumber state))
-           )
-          )))
+    (set-current-formulanumber! state (+ 1 (current-formulanumber state)))
+    (set-current-formula-ref-dict! 
+     state
+     (if (dict-has-key? (current-formula-ref-dict state) lbl) 
+         (error (string-append "ERROR: same label used twice -->" 
+                               lbl 
+                               "<-- refusing to proceed..."))
+         ;(current-formula-ref-dict state) ;; do nothing if already registered such label
+         (cons (cons lbl (current-formulanumber state)) (current-formula-ref-dict state))))
+    (collect-element 
+     (make-style #f '()) 
+     (string-append "(" (number->string (current-formulanumber state)) ")")
+     (fn-to-collect-formula-number lbl (current-formulanumber state))
+     )
+    )
 ;; ---------------------------------------------------------------------------------------------------
   (provide (contract-out 
                                         ; reference a formula
    [ref-formula (-> string? (or/c element? delayed-element?))]))
   (define (ref-formula lbl)
-    (if (dumping-LaTeX?)
-        (literal "\\ref{" lbl "}")
-        (make-delayed-element
-         (lambda (renderer pt ri) 
-           (if (dict-has-key? (current-formula-ref-dict state) lbl)
-               (number->string (dict-ref (current-formula-ref-dict state) lbl))
-               (error (string-append "Formula reference -->" lbl "<-- is not found"))))
-         (lambda () "100") ; TODO: what is this?
-         (lambda () "")    ; TODO: what is this?
-         )))
+    (make-delayed-element
+     (lambda (renderer pt ri) 
+       (if (dict-has-key? (current-formula-ref-dict state) lbl)
+           (number->string (dict-ref (current-formula-ref-dict state) lbl))
+           (error (string-append "Formula reference -->" lbl "<-- is not found"))))
+     (lambda () "100") ; TODO: what is this?
+     (lambda () "")    ; TODO: what is this?
+     ))
   ;; ---------------------------------------------------------------------------------------------------
   (define (get-svg-from-zeromq texstring filepath)
     (let* ([path
@@ -586,16 +572,9 @@ along with bystroTeX.  If not, see <http://www.gnu.org/licenses/>.
            #:label [l #f] 
            #:css-class [css-class equation-css-class])
     (let* ([frml1 (keyword-apply bystro-formula '() '() x #:scale n #:css-class css-class #:align #f #:use-depth #t)]
-           [frml (if (dumping-LaTeX?) 
-                     (deep-literal `("\\begin{equation}" 
-                                     ,(if l (string-append "\\label{" l "}\n") "\n")
-                                     ,@x
-                                     "\n\\end{equation}"))
-                     frml1)])
+           [frml frml1])
       (if l
-          (table-with-alignment "c.n" (list (list frml (if (dumping-LaTeX?)
-                                                           (string-append "\\label{" l "}")
-                                                           (elemtag l (elemref l (number-for-formula l)))))))
+          (table-with-alignment "c.n" (list (list frml (elemtag l (elemref l (number-for-formula l))))))
           (table-with-alignment "c.n" (list (list frml "" ))))))
 ;; ---------------------------------------------------------------------------------------------------
   (define (aligned-formula-image filepath valign width height css-class)
@@ -647,8 +626,6 @@ along with bystroTeX.  If not, see <http://www.gnu.org/licenses/>.
          #:use-depth [use-depth #f] 
          #:aa-adjust [aa-adj (bystro-autoalign-adjust configuration)] 
          . tex)
-    (if (dumping-LaTeX?)
-        (if (bystro-dump-LaTeX-with-$) (deep-literal `("$" ,@tex "$")) (deep-literal tex)) 
         (let* ([lookup (prepare 
                         mydb
                         "select filename,valign,width,height  from formulas2 where tex = ?")]
@@ -687,12 +664,7 @@ along with bystroTeX.  If not, see <http://www.gnu.org/licenses/>.
                    [filename (build-path formdir  (string-append (number->string formnum) ".svg"))]
                    [insert-stmt (prepare mydb "insert into formulas2 values (?,?,?,?,?)")]
                                         ;(tex, filename, valign, width, height)
-                   [procedure-to-typeset-formula
-                    (if (bystroserver? (bystro-formula-processor configuration))
-                        get-svg-from-zeromq
-                        ;get-svg-from-server
-                        (curry bystro-command-to-typeset-formula (bystro-formula-processor configuration)))]
-                   [dims (procedure-to-typeset-formula
+                   [dims (get-svg-from-zeromq 
                           (apply string-append (cons preamble tex))
                           filename)]
                    [dims-json (with-input-from-string dims (λ () (read-json)))]
@@ -716,7 +688,7 @@ along with bystroTeX.  If not, see <http://www.gnu.org/licenses/>.
                  (rescale scale (hash-ref dims-json 'width))
                  (rescale scale (hash-ref dims-json 'height))
                  css-class
-                 ))))))
+                 )))))
 
 ;; ---------------------------------------------------------------------------------------------------
   (provide (contract-out 
@@ -780,94 +752,76 @@ along with bystroTeX.  If not, see <http://www.gnu.org/licenses/>.
                                         ; padded on the top
             [v- (->* (integer?) () #:rest (listof pre-content?) (or/c (listof content?) table?))]))
   (define  (v- n . xs)
-    (if (dumping-LaTeX?)
-        xs
-        (table 
-         (style #f (list (table-cells (list  
-                                       (list 
-                                        (style 
-                                            #f 
-                                          (list 
-                                           (attributes (list 
-                                                        (cons 
-                                                         'style 
-                                                         (format
-                                                          "padding:~apx;0px;0px;0px;"
-                                                          (quotient
-                                                           (* (bystro-formula-size configuration) n)
-                                                           25))))))))
-                                       (list (style #f '()))))))
-         (list (list (para)) (list (if (block? xs) xs (apply para xs)))))))
+    (table 
+     (style #f (list (table-cells (list  
+                                   (list 
+                                    (style 
+                                     #f 
+                                     (list 
+                                      (attributes (list 
+                                                   (cons 
+                                                    'style 
+                                                    (format
+                                                     "padding:~apx;0px;0px;0px;"
+                                                     (quotient
+                                                      (* (bystro-formula-size configuration) n)
+                                                      25))))))))
+                                   (list (style #f '()))))))
+     (list (list (para)) (list (if (block? xs) xs (apply para xs))))))
 ;; ---------------------------------------------------------------------------------------------------
   (provide (contract-out
                                         ; padded on the top
             [v+ (->* (integer?) () #:rest (listof pre-content?) (or/c (listof content?) table?))]))
   (define  (v+ n . xs)
-    (if (dumping-LaTeX?)
-        xs
-        (table 
-         (style #f (list (table-cells (list  
-                                       (list (style #f '()))
-                                       (list 
-                                        (style 
-                                            #f 
-                                          (list 
-                                           (attributes (list 
-                                                        (cons 
-                                                         'style 
-                                                         (format
-                                                          "padding:~apx;0px;0px;0px;"
-                                                          (quotient
-                                                           (* (bystro-formula-size configuration) n)
-                                                           25))))))))
-                                       ))))
-         (list  (list (if (block? xs) xs (apply para xs))) (list (para))))))
+    (table 
+     (style #f (list (table-cells (list  
+                                   (list (style #f '()))
+                                   (list 
+                                    (style 
+                                     #f 
+                                     (list 
+                                      (attributes (list 
+                                                   (cons 
+                                                    'style 
+                                                    (format
+                                                     "padding:~apx;0px;0px;0px;"
+                                                     (quotient
+                                                      (* (bystro-formula-size configuration) n)
+                                                      25))))))))
+                                   ))))
+     (list  (list (if (block? xs) xs (apply para xs))) (list (para)))))
 ;; ---------------------------------------------------------------------------------------------------
   (provide (contract-out
                                         ; padded on the left
             [h+ (->* (integer?) () #:rest (listof pre-content?) (or/c (listof content?) table?))]))
   (define  (h+ n . xs)
-    (if (dumping-LaTeX?)
-        xs
-        (table 
-         (style #f (list (table-cells (list  
-                                       (list 
-                                        (style 
-                                            #f 
-                                          (list 
-                                           (attributes (list 
-                                                        (cons 
-                                                         'style 
-                                                         (format
-                                                          "padding:0px;~apx;0px;0px;"
-                                                          (quotient
-                                                           (* (bystro-formula-size configuration) n)
-                                                           25))))))) 
-                                        (style #f '()))))))
-         (list (list (para) (if (block? xs) xs (apply para xs)))))))
+    (table 
+     (style #f (list (table-cells (list  
+                                   (list 
+                                    (style 
+                                     #f 
+                                     (list 
+                                      (attributes (list 
+                                                   (cons 
+                                                    'style 
+                                                    (format
+                                                     "padding:0px;~apx;0px;0px;"
+                                                     (quotient
+                                                      (* (bystro-formula-size configuration) n)
+                                                      25))))))) 
+                                    (style #f '()))))))
+     (list (list (para) (if (block? xs) xs (apply para xs))))))
 ;; ---------------------------------------------------------------------------------------------------
   (provide (contract-out
-                                        ; padded on the top
+                                        ; padded on the right
             [h- (->* (integer?) () #:rest (listof pre-content?) (or/c (listof content?) table?))]))
   (define  (h- n . xs)
-    (if (dumping-LaTeX?)
-        xs
-        (table 
-         (style #f (list (table-cells (list  
-                                       (list 
-                                        (style #f '())
-                                        (style 
-                                            #f 
-                                          (list 
-                                           (attributes (list 
-                                                        (cons 
-                                                         'style 
-                                                         (format
-                                                          "padding:0px;~apx;0px;0px;"
-                                                          (quotient
-                                                           (* (bystro-formula-size configuration) n)
-                                                           25))))))) 
-                                        )))))
-         (list (list  (if (block? xs) xs (apply para xs)) (para))))))
-
+    (table 
+     (style
+      #f
+      `(,(table-cells `((,(style #f '())
+                         ,(style #f `(,(attributes '(('style "padding:0ex;0.2ex;0ex;0ex;")))))
+                         ,(style #f '())
+                         )))))
+     (list (list  (if (block? xs) xs (apply para xs)) (para)))))
 )
