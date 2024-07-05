@@ -9,6 +9,7 @@ const { AllPackages } = require('mathjax-full/js/input/tex/AllPackages.js');
 
 const fs = require('node:fs');
 const zmq = require('zeromq');
+const homedir = require('os').homedir();
 const ASSISTIVE_MML = false, FONT_CACHE = true, INLINE = false, packages = AllPackages.sort().join(', ').split(/\s*,\s*/);
 
 const adaptor = liteAdaptor();
@@ -18,6 +19,7 @@ if (ASSISTIVE_MML) AssistiveMmlHandler(handler);
 const tex = new TeX({ packages });
 const svg = new SVG({ fontCache: (FONT_CACHE ? 'local' : 'none') });
 const html = mathjax.document('', { InputJax: tex, OutputJax: svg });
+const path = require('node:path');
 
 const CSS = [
     'svg a{fill:blue;stroke:blue}',
@@ -28,10 +30,16 @@ const CSS = [
     '.mjx-dotted{stroke-linecap:round;stroke-dasharray:0,140}',
     'use[data-c]{stroke-width:3px}'
 ].join('');
+
+const sock_dir = path.join(homedir,".local", "run");
+if (!fs.existsSync(sock_dir)) {
+  fs.mkdirSync(sock_dir);
+}
+
 async function runServer() {
   const sock = new zmq.Reply();
 
-  await sock.bind('ipc:///home/andrei/.local/run/bystrotex.ipc');
+  await sock.bind(`ipc://${path.join(sock_dir, "bystrotex.ipc")}`);
 
   for await (const [msg] of sock) {
     console.log('Received ' + ': ' + msg.toString() );

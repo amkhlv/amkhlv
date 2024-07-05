@@ -181,6 +181,13 @@ table, th, td
     margin-left: 20%;
 }
 
+.bystro-formula {
+  filter: invert(74%) sepia(71%) saturate(6193%) hue-rotate(161deg) brightness(94%) contrast(101%);
+}
+.bystro-equation {
+  filter: invert(74%) sepia(71%) saturate(6193%) hue-rotate(161deg) brightness(94%) contrast(101%);
+}
+
 talk {
     font-size: 18pt;
     font-family: Courier;

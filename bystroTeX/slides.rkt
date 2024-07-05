@@ -67,7 +67,7 @@ along with bystroTeX.  If not, see <http://www.gnu.org/licenses/>.
                   formula-processor
                   formula-database-name
                   formula-dir-name
-                  formula-size 
+                  formula-size
                   formula-bg-color
                   formula-fg-color
                   autoalign-adjust
@@ -82,9 +82,12 @@ along with bystroTeX.  If not, see <http://www.gnu.org/licenses/>.
             [bystro-connect-to-server (-> (or/c #f path?) (or/c 'running-without-LaTeX-server bystroserver?))]))
   (define (get-zeromq-socket)
     (let* ([ctxt (context 1)]
-           [sock (socket ctxt 'REQ)])
-      (displayln " -- connecting to ipc:///home/andrei/.local/run/bystrotex.ipc")
-      (socket-connect! sock "ipc:///home/andrei/.local/run/bystrotex.ipc")
+           [sock (socket ctxt 'REQ)]
+           [sock-path
+            (format "ipc://~a/.local/run/bystrotex.ipc" (path->string (find-system-path 'home-dir)))]
+           )
+      (printf " -- connecting to ~a ~n" sock-path)
+      (socket-connect! sock sock-path)
       (displayln " -- connected")
       sock))
   (define zeromq-socket #f)
@@ -115,7 +118,14 @@ along with bystroTeX.  If not, see <http://www.gnu.org/licenses/>.
                                 1
                                 (- 2)
                                 ))
-
+  (define equation-css-class "bystro-equation")
+  (provide (contract-out
+            (bystro-set-equation-css-class (-> string? void?))))
+  (define (bystro-set-equation-css-class x) (set! equation-css-class x))
+  (define formula-css-class "bystro-formula")
+  (provide (contract-out
+            (bystro-set-formula-css-class (-> string? void?))))
+  (define (bystro-set-formula-css-class x) (set! formula-css-class x))
   (provide (contract-out
                                         ; configures the bystro-conf 
             [configure-bystroTeX-using (-> bystro? void?)]))
@@ -323,9 +333,9 @@ along with bystroTeX.  If not, see <http://www.gnu.org/licenses/>.
       (make-directory (string->path (bystro-formula-dir-name bstr))))
     (let* ([mydb (sqlite3-connect #:database (bystro-formula-database-name bstr) #:mode 'create)]
            [sqlite-master_rows (query-rows mydb "select name from SQLITE_MASTER")])
-      (and (not (for/or ([r sqlite-master_rows]) (equal? (vector-ref r 0) "formulas")))
+      (and (not (for/or ([r sqlite-master_rows]) (equal? (vector-ref r 0) "formulas2")))
            (begin
-             (query-exec mydb "CREATE TABLE formulas (tex, scale, bg, fg, filename, valign, width, height)")
+             (query-exec mydb "CREATE TABLE formulas2 (tex, filename, valign, width, height)")
              (commit-transaction mydb))
            )
       (set-current-running-database! state mydb)
@@ -374,22 +384,17 @@ along with bystroTeX.  If not, see <http://www.gnu.org/licenses/>.
          (lambda () "")    ; TODO: what is this?
          )))
   ;; ---------------------------------------------------------------------------------------------------
-  (define (get-svg-from-zeromq texstring size bg-color fg-color filepath)
-    (displayln "\n------ getting SVG ------")
+  (define (get-svg-from-zeromq texstring filepath)
     (let* ([path
             (build-path (current-directory) filepath)]
            [j
              (make-hash
-              (list (cons 'texstring texstring)
-                (cons 'size size)
-                (cons 'bg bg-color)
-                (cons 'fg fg-color)
-                (cons 'outpath (path->string path))))])
-      (displayln j)
+              (list (cons 'texstring texstring) (cons 'outpath (path->string path))))])
+      (display j)
       (socket-send! zeromq-socket (jsexpr->bytes j))
       (define reply (socket-recv! zeromq-socket))
-      (displayln "\n --- REPLY was: ")
-      (displayln reply)
+      ;(displayln "\n --- REPLY was: ")
+      ;(displayln reply)
       (bytes->string/utf-8 reply)
       )
     )
@@ -570,19 +575,17 @@ along with bystroTeX.  If not, see <http://www.gnu.org/licenses/>.
   (provide (contract-out  
                                         ; corresponds to \equation in LaTeX
             [bystro-equation (->* ((listof string?) 
-                          #:size natural-number/c) 
+                          #:scale number?) 
                          (#:label (or/c string? #f)
-                          #:bg-color (listof natural-number/c)
-                          #:fg-color (listof natural-number/c)
+                          #:css-class string?
                           )
                          table?)]))
   (define (bystro-equation 
            x 
-           #:size n 
+           #:scale n 
            #:label [l #f] 
-           #:bg-color [bgcol (bystro-formula-bg-color configuration)] 
-           #:fg-color [fgcol (bystro-formula-fg-color configuration)])
-    (let* ([frml1 (keyword-apply bystro-formula '() '() x #:size n #:bg-color bgcol #:fg-color fgcol #:align #f #:use-depth #t)]
+           #:css-class [css-class equation-css-class])
+    (let* ([frml1 (keyword-apply bystro-formula '() '() x #:scale n #:css-class css-class #:align #f #:use-depth #t)]
            [frml (if (dumping-LaTeX?) 
                      (deep-literal `("\\begin{equation}" 
                                      ,(if l (string-append "\\label{" l "}\n") "\n")
@@ -595,7 +598,7 @@ along with bystroTeX.  If not, see <http://www.gnu.org/licenses/>.
                                                            (elemtag l (elemref l (number-for-formula l)))))))
           (table-with-alignment "c.n" (list (list frml "" ))))))
 ;; ---------------------------------------------------------------------------------------------------
-  (define (aligned-formula-image filepath valign width height)
+  (define (aligned-formula-image filepath valign width height css-class)
     ;(element 
      ;(bystro-elemstyle stl)
     ;(tg image #:attrs ([src (path->string (car (reverse (explode-path filepath))))])))
@@ -603,9 +606,15 @@ along with bystroTeX.  If not, see <http://www.gnu.org/licenses/>.
     (tg image
         #:attrs
         ([src (path->string (car (reverse (explode-path filepath))))]
-         [style (string-append valign "; width: " width "; height: " height ";")]
-         ))
-    )
+         [class css-class]
+         [style
+          (format
+           "~a width: ~a; height: ~a;"
+           valign
+           width
+           height
+           )]
+         )))
 ;; ---------------------------------------------------------------------------------------------------
   (define (rgb-list->string x) 
     (string-append
@@ -620,9 +629,8 @@ along with bystroTeX.  If not, see <http://www.gnu.org/licenses/>.
                                  (#:shell-command path?
                                   #:database connection? 
                                   #:formulas-in-dir string?
-                                  #:size natural-number/c 
-                                  #:bg-color (listof natural-number/c)
-                                  #:fg-color (listof natural-number/c) 
+                                  #:scale number?
+                                  #:css-class string?
                                   #:align (or/c (integer-in (- 99) 99) #f) 
                                   #:use-depth boolean? 
                                   #:aa-adjust (integer-in (- 99) 99)
@@ -633,9 +641,8 @@ along with bystroTeX.  If not, see <http://www.gnu.org/licenses/>.
          #:shell-command [shell-command-path (bystro-formula-processor configuration)]
          #:database [mydb (current-running-database state)]
          #:formulas-in-dir [formdir (bystro-formula-dir-name configuration)]
-         #:size [bsz (bystro-formula-size configuration)] 
-         #:bg-color [bg-color (bystro-formula-bg-color configuration)]
-         #:fg-color [fg-color (bystro-formula-fg-color configuration)]
+         #:scale [scale 1] 
+         #:css-class [css-class formula-css-class]
          #:align [align #f] 
          #:use-depth [use-depth #f] 
          #:aa-adjust [aa-adj (bystro-autoalign-adjust configuration)] 
@@ -644,29 +651,42 @@ along with bystroTeX.  If not, see <http://www.gnu.org/licenses/>.
         (if (bystro-dump-LaTeX-with-$) (deep-literal `("$" ,@tex "$")) (deep-literal tex)) 
         (let* ([lookup (prepare 
                         mydb
-                        "select filename,valign,width,height  from formulas where scale = ? and tex = ? and bg = ? and fg = ?")]
+                        "select filename,valign,width,height  from formulas2 where tex = ?")]
                [rows  (query-rows mydb (bind-prepared-statement
                                         lookup
                                         (list 
-                                         bsz 
-                                         (apply string-append tex)
-                                         (rgb-list->string bg-color) 
-                                         (rgb-list->string fg-color))))]
+                                         (apply string-append tex))))]
                [row (if (cons? rows) (car rows) #f)]
-               [totalnumber (query-value mydb "select count(*) from formulas")]
+               [totalnumber (query-value mydb "select count(*) from formulas2")]
+               [rescale (λ (n x)
+                          (if (eq? n 1)
+                              x
+                              (let ([sz (string->number (string-trim x "ex"))])
+                                (string-append (number->string (* n sz)) "ex"))))]
+               [realign (λ (n x)
+                          (let* ([xs (regexp-match #rx"(.*vertical-align: *)(-*[\\.0-9]*)(.*)" x)])
+                            (string-append
+                             (cadr xs)
+                             (number->string
+                              (let ([orig (string->number (caddr xs))])
+                                (if (orig . < . 0)
+                                    (* (1 . - . (n . / . 10)) (string->number (caddr xs)))
+                                    (* (1 . + . (n . / . 10)) (string->number (caddr xs))))))
+                             (cadddr xs))))]
                )
           (if row
               (aligned-formula-image 
                (build-path formdir (string-append (vector-ref row 0) ".svg")) 
-               (vector-ref row 1)
-               (vector-ref row 2)
-               (vector-ref row 3)
+               (if align   (realign align (vector-ref row 1))   (vector-ref row 1))
+               (rescale scale (vector-ref row 2))
+               (rescale scale (vector-ref row 3))
+               css-class
                )
               (let* 
                   ([formnum (totalnumber . + . 1)]
                    [filename (build-path formdir  (string-append (number->string formnum) ".svg"))]
-                   [insert-stmt (prepare mydb "insert into formulas values (?,?,?,?,?,?,?,?)")]
-                                        ;(tex, scale, bg, fg, filename, depth, width, height)
+                   [insert-stmt (prepare mydb "insert into formulas2 values (?,?,?,?,?)")]
+                                        ;(tex, filename, valign, width, height)
                    [procedure-to-typeset-formula
                     (if (bystroserver? (bystro-formula-processor configuration))
                         get-svg-from-zeromq
@@ -674,9 +694,6 @@ along with bystroTeX.  If not, see <http://www.gnu.org/licenses/>.
                         (curry bystro-command-to-typeset-formula (bystro-formula-processor configuration)))]
                    [dims (procedure-to-typeset-formula
                           (apply string-append (cons preamble tex))
-                          bsz 
-                          bg-color
-                          fg-color
                           filename)]
                    [dims-json (with-input-from-string dims (λ () (read-json)))]
                    )
@@ -686,22 +703,21 @@ along with bystroTeX.  If not, see <http://www.gnu.org/licenses/>.
                  mydb
                  (bind-prepared-statement
                   insert-stmt 
-                  (list (apply string-append tex)
-                        bsz 
-                        (rgb-list->string bg-color) 
-                        (rgb-list->string fg-color) 
-                        (number->string formnum) 
-                        (hash-ref dims-json 'valign)
-                        (hash-ref dims-json 'width)
-                        (hash-ref dims-json 'height)
-                        )))
+                  `(,(apply string-append tex)
+                    ,(number->string formnum) 
+                    ,(hash-ref dims-json 'valign)
+                    ,(hash-ref dims-json 'width)
+                    ,(hash-ref dims-json 'height)
+                    )))
                 (commit-transaction mydb)
                 (aligned-formula-image 
                  (build-path filename)
-                 (hash-ref dims-json 'valign)
-                 (hash-ref dims-json 'width)
-                 (hash-ref dims-json 'height)
+                 (if align (realign align (hash-ref dims-json 'valign)) (hash-ref dims-json 'valign))
+                 (rescale scale (hash-ref dims-json 'width))
+                 (rescale scale (hash-ref dims-json 'height))
+                 css-class
                  ))))))
+
 ;; ---------------------------------------------------------------------------------------------------
   (provide (contract-out 
                                         ; change the background color for the formulas

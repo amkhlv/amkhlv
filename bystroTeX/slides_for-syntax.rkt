@@ -32,9 +32,14 @@ along with bystroTeX.  If not, see <http://www.gnu.org/licenses/>.
                                  #:calc-align               
                                  [calc-align
                                   (lambda (s) `(+ (bystro-manual-base-alignment bystro-conf) ,s))]
-                                 #:calc-size
-                                 [calc-size
-                                  (lambda (s) `(+ (bystro-formula-size bystro-conf) ,(* 2 s)))]
+                                 #:calc-scale
+                                 [calc-scale
+                                  (lambda (i)
+                                    (let rec ([j i])
+                                      (cond
+                                        [(zero? j) 1]
+                                        [(positive? j) (* 1.1 (rec (j . - . 1)))]
+                                        [(negative? j) (* 0.9 (rec (j . + . 1)))])))]
                                  #:color-reset-command [color-reset-command "bystro-reset-colors"]
                                  stx)
     (let* (
@@ -48,9 +53,13 @@ along with bystroTeX.  If not, see <http://www.gnu.org/licenses/>.
                     (lambda u (bystro-formula #:use-depth #t (apply string-append u))))]
            [disp `(define ( ,(string->symbol display-math-prefix) 
                             #:label (lbl #f) 
-                            #:size (n (bystro-formula-size bystro-conf)) 
+                            #:scale (n 1)
+                            #:css-class (css-class #f)
                             . x)
-                    (bystro-equation #:label lbl #:size n x))]
+                    (if css-class
+                        (bystro-equation #:label lbl #:scale n #:css-class css-class  x)
+                        (bystro-equation #:label lbl #:scale n  x)
+                        ))]
            [old-formula-size      (string->unreadable-symbol "oldfsize")]
            [old-autoalign-adjust  (string->unreadable-symbol "old-aa-adjust")]
            [old-bg-color (string->unreadable-symbol "old-bg")]
@@ -101,25 +110,25 @@ along with bystroTeX.  If not, see <http://www.gnu.org/licenses/>.
                   `(define 
                      (,(string->symbol (format "~a+~a+~a" formula-prefix m z)) . u)
                      (bystro-formula #:align ,(calc-align m) 
-                                     #:size  ,(calc-size z)
+                                     #:scale  ,(calc-scale z)
                                      (apply string-append u))))]
            [l+- (lambda (m z)
                   `(define 
                      (,(string->symbol (format "~a+~a-~a" formula-prefix m z)) . u)
                      (bystro-formula #:align ,(calc-align m) 
-                                     #:size  ,(calc-size (- z))
+                                     #:scale  ,(calc-scale (- z))
                                      (apply string-append u))))]
            [l-+ (lambda (m z)
                   `(define 
                      (,(string->symbol (format "~a-~a+~a" formula-prefix m z)) . u)
                      (bystro-formula #:align ,(calc-align (- m)) 
-                                     #:size  ,(calc-size z)
+                                     #:scale ,(calc-scale z)
                                      (apply string-append u))))]
            [l-- (lambda (m z)
                   `(define 
                      (,(string->symbol (format "~a-~a-~a" formula-prefix m z)) . u)
                      (bystro-formula #:align ,(calc-align (- m)) 
-                                     #:size  ,(calc-size (- z)) 
+                                     #:scale ,(calc-scale (- z)) 
                                      (apply string-append u))))]
            [set-css-dir '(define (bystro-set-css-dir x) 
                            (bystro-set-css-dir_common x) 
