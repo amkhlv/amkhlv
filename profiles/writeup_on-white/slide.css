@@ -158,3 +158,41 @@ table, th, td
     text-align: left;
     padding: 5px;
 }
+
+.bystro-summary {
+    background-color: white;
+    line-height: 1.5;
+    margin-left: 0;
+    padding-left: 5pt;
+    padding-right: 5pt;
+}
+
+.bystro-indent-1 {
+    margin-left: 10%;
+}
+
+.bystro-indent-2 {
+    margin-left: 20%;
+}
+
+.bystro-formula {
+  filter: invert(.1) sepia() saturate(1000) hue-rotate(240deg);
+}
+.bystro-equation {
+  filter: invert(.1) sepia() saturate(1000) hue-rotate(240deg);
+}
+
+talk {
+    font-size: 18pt;
+    font-family: Courier;
+    background-color: red;
+    color: white;
+}
+
+doubt {
+    background-color: peru;
+    color: darkblue;
+    padding: 3px;
+    border-radius: 5px;
+}
+
