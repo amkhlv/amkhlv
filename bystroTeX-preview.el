@@ -71,7 +71,7 @@
           (setq b (match-beginning 0))
           (when (bystroTeX--TeX-matches tex)
             (setq e (+ 1 (point)))
-            (put-image (create-image svg) (+ 1 (point)))
+            (put-image (create-image svg 'svg nil :scale 1.5 :ascent 'center) (+ 1 (point)))
             (bystroTeX--make-hide-overlay b e)))
       (setq bystroTeX--formula-insertion-in-progress nil))))
 
@@ -108,7 +108,7 @@
          (shell-command-to-string
           (concat "sqlite3 "
                   formulas-database
-                  " \"SELECT json_object('tex', tex, 'svg', filename) FROM formulas ORDER BY CAST(filename AS INT);\""))
+                  " \"SELECT json_object('tex', tex, 'svg', filename) FROM formulas2 ORDER BY CAST(filename AS INT);\""))
          "\n")))))))
 
 
