@@ -182,10 +182,10 @@ table, th, td
 }
 
 .bystro-formula {
-  filter: invert(.1) sepia() saturate(1000) hue-rotate(240deg);
+  filter: invert(.1) sepia() saturate(50) hue-rotate(240deg);
 }
 .bystro-equation {
-  filter: invert(.1) sepia() saturate(1000) hue-rotate(240deg);
+  filter: invert(.1) sepia() saturate(50) hue-rotate(240deg);
 }
 
 talk {

@@ -44,6 +44,10 @@ along with bystroTeX.  If not, see <http://www.gnu.org/licenses/>.
 
   ;; ------------------ start of compatibility block ---------------------
 
+  (provide bystro-dump-LaTeX?)
+  (define  bystro-dump-LaTeX? #f)
+  (provide bystro-dump-LaTeX)
+  (define (bystro-dump-LaTeX x) (set! bystro-dump-LaTeX? x))
   (provide bystroserver)
   (define-struct/contract bystroserver 
     ([connection net:http-conn?] 
@@ -86,6 +90,8 @@ along with bystroTeX.  If not, see <http://www.gnu.org/licenses/>.
                                 1
                                 (- 2)
                                 ))
+  (provide set-bystro-extension!)
+  (define (set-bystro-extension! x y) '())
 
   ;; ---------------- end of compatibility block --------------------------------
 
@@ -104,7 +110,7 @@ along with bystroTeX.  If not, see <http://www.gnu.org/licenses/>.
   (provide (contract-out
             [bystro-close-connection (-> bystro? void?)]))
   (define (bystro-close-connection bconf)
-    (when zeromq-socket (socket-close! zeromq-socket)))
+    (when (socket? zeromq-socket) (socket-close! zeromq-socket)))
   
   (define database-filename "bystrotex.db")
   (provide (proc-doc bystro-set-database-filename (->i ([filename string?]) () [result void?]) ()))
@@ -375,7 +381,7 @@ along with bystroTeX.  If not, see <http://www.gnu.org/licenses/>.
             (build-path (current-directory) filepath)]
            [j
              (make-hash
-              (list (cons 'texstring texstring) (cons 'outpath (path->string path))))])
+              `((texstring . ,texstring) (outpath . ,(path->string path))))])
       (display j)
       (socket-send! zeromq-socket (jsexpr->bytes j))
       (define reply (socket-recv! zeromq-socket))
@@ -385,75 +391,7 @@ along with bystroTeX.  If not, see <http://www.gnu.org/licenses/>.
       )
     )
 
-  ;; ---------------------------------------------------------------------------------------------------
-  (define (get-svg-from-server texstring size bg-color fg-color filepath)
-                                        ; The procedure returns an integer representing the vertical offset.
-    (let*-values
-     ([(bserv) (values (bystro-formula-processor configuration))]
-      [(u) (values
-            (net:url
-             "http"                          ;scheme
-             (bystroserver-user bserv)      ;user
-             (bystroserver-host bserv)      ;host 
-             (bystroserver-port bserv)      ;port
-             #t                              ;path-absolute?
-             (list (net:path/param "svg" '()))   ;path
-             (if (bystroserver-version bserv)
-                 '()
-                 (list 
-                  (cons 'token (bystroserver-token bserv))
-                  (cons 'latex texstring)
-                  (cons 'size (number->string size))
-                  (cons 'bg (rgb-list->string bg-color))
-                  (cons 'fg (rgb-list->string fg-color)))) ;query (when version >= 2 we send in body)
-             #f ;fragment
-             ))]
-      [(status headers inport)
-       (net:http-conn-sendrecv!
-        (bystroserver-connection bserv)
-        (net:url->string u)
-        #:method #"POST"
-        #:headers '("BystroTeX:yes")
-        #:data (if (bystroserver-version bserv) ; when version >= 2 we send everything in body
-                   (jsexpr->string
-                    (hash
-                     'token
-                     (bystroserver-token bserv)
-                     'latex
-                     texstring
-                     'size
-                     size
-                     'bg
-                     (rgb-list->string bg-color)
-                     'fg
-                     (rgb-list->string fg-color)))
-                   #f)
-        )]
-      [(result) (values (port->string inport))]
-      [(error-type) (values
-                     (for/first ([h headers] #:when (equal?
-                                                     "BystroTeX-error:"
-                                                     (car (string-split (bytes->string/utf-8 h)))))
-                       (cadr (string-split (bytes->string/utf-8 h)))))]                
-      )
-     (close-input-port inport)
-     (if error-type
-         (begin 
-           (display (string-append "\n\n --- ERROR of the type: <<"
-                                   error-type
-                                   ">>, while processing:\n"
-                                   texstring
-                                   "\n\n --- The error message was:\n"
-                                   result))
-           (error "*** please make corrections and run again ***")
-           )
-         (let ([depth-string (for/first ([h headers]
-                                         #:when (equal?
-                                                 "BystroTeX-depth:"
-                                                 (car (string-split (bytes->string/utf-8 h)))))
-                               (cadr (string-split (bytes->string/utf-8 h))))])
-           (with-output-to-file #:exists 'replace filepath (lambda () (display result)))
-           depth-string))))
+
   ;; ---------------------------------------------------------------------------------------------------
   (provide (contract-out  
                                         ; enumerate a formula
@@ -556,8 +494,6 @@ along with bystroTeX.  If not, see <http://www.gnu.org/licenses/>.
           ;; if no error, return the depth (as a string):
           (xml:se-path* '(depth) report-xexpr))))
   ;; ---------------------------------------------------------------------------------------------------
-
-;; ---------------------------------------------------------------------------------------------------
   (provide (contract-out  
                                         ; corresponds to \equation in LaTeX
             [bystro-equation (->* ((listof string?) 
@@ -707,121 +643,76 @@ along with bystroTeX.  If not, see <http://www.gnu.org/licenses/>.
                                         ; table of contents on the title-slide
    [bystro-toc (-> delayed-block?)]))
   (define (bystro-toc)
-    (make-delayed-block 
-     (lambda (renderer pt ri) 
-       (let ([ks (resolve-get-keys pt ri (lambda (key)
-                                           (eq? (car key) 'amkhlv-slide)))])
-         (apply 
-          nested 
-          (apply 
-           append
-           (for/list ([k (sort ks < #:key (lambda (k) (caddr k)))])
-             (list (element
-                    (make-style
-                     "bystro-toc-section"
-                     `(,(target-url (string-append
-                                     (regexp-replace* "[^-a-zA-Z0-9_=]" (car (cdr k)) "_")
-                                     ".html"))))
-                    ; Derivation of .html filename :  (define/override (derive-filename d ci ri depth) ...) in:
-                    ; https://github.com/racket/scribble/blob/master/scribble-lib/scribble/html-render.rkt
-                    (resolve-get pt ri k))
-                   (linebreak)))))))))
+    (if (current-singlepage-mode state)
+        (table-of-contents)
+        (make-delayed-block 
+         (lambda (renderer pt ri) 
+           (let ([ks (resolve-get-keys pt ri (lambda (key)
+                                               (eq? (car key) 'amkhlv-slide)))])
+             (apply 
+              nested 
+              (apply 
+               append
+               (for/list ([k (sort ks < #:key (lambda (k) (caddr k)))])
+                 (list (element
+                        (make-style
+                         "bystro-toc-section"
+                         `(,(target-url (string-append
+                                         (regexp-replace* "[^-a-zA-Z0-9_=]" (car (cdr k)) "_")
+                                         ".html"))))
+                        ; Derivation of .html filename :  (define/override (derive-filename d ci ri depth) ...) in:
+                        ; https://github.com/racket/scribble/blob/master/scribble-lib/scribble/html-render.rkt
+                        (resolve-get pt ri k))
+                       (linebreak))))))))))
 ;; ---------------------------------------------------------------------------------------------------
   (provide (contract-out  
                                         ; table of contents on the title-slide
    [bystro-local-toc (-> delayed-block?)]))
   (define (bystro-local-toc)
-    (make-delayed-block 
-     (lambda (renderer pt ri) 
-       (let ([ks (resolve-get-keys pt ri (lambda (key)
-                                           (eq? (car key) 'amkhlv-subpage)))])
-         (apply 
-          nested 
-          (apply 
-           append
-           (for/list ([k (sort ks < #:key (lambda (k) (cadddr k)))])
-             (list
-              (hspace (* 4 (caddr k)))
-              (element
-               (make-style (string-append "local-toc-" (number->string (caddr k))) '())
-               (seclink (car (cdr k)) (resolve-get pt ri k))
-               )
-              (linebreak)))))))))
+    (if (current-singlepage-mode state)
+        (local-table-of-contents)
+        (make-delayed-block 
+         (lambda (renderer pt ri) 
+           (let ([ks (resolve-get-keys pt ri (lambda (key)
+                                               (eq? (car key) 'amkhlv-subpage)))])
+             (apply 
+              nested 
+              (apply 
+               append
+               (for/list ([k (sort ks < #:key (lambda (k) (cadddr k)))])
+                 (list
+                  (hspace (* 4 (caddr k)))
+                  (element
+                   (make-style (string-append "local-toc-" (number->string (caddr k))) '())
+                   (seclink (car (cdr k)) (resolve-get pt ri k))
+                   )
+                  (linebreak))))))))))
 ;; ---------------------------------------------------------------------------------------------------
-  (provide (contract-out
-                                        ; padded on the top
+  (provide (contract-out ; padded on the bottom
             [v- (->* (integer?) () #:rest (listof pre-content?) (or/c (listof content?) table?))]))
-  (define  (v- n . xs)
-    (table 
-     (style #f (list (table-cells (list  
-                                   (list 
-                                    (style 
-                                     #f 
-                                     (list 
-                                      (attributes (list 
-                                                   (cons 
-                                                    'style 
-                                                    (format
-                                                     "padding:~apx;0px;0px;0px;"
-                                                     (quotient
-                                                      (* (bystro-formula-size configuration) n)
-                                                      25))))))))
-                                   (list (style #f '()))))))
-     (list (list (para)) (list (if (block? xs) xs (apply para xs))))))
-;; ---------------------------------------------------------------------------------------------------
-  (provide (contract-out
-                                        ; padded on the top
-            [v+ (->* (integer?) () #:rest (listof pre-content?) (or/c (listof content?) table?))]))
-  (define  (v+ n . xs)
-    (table 
-     (style #f (list (table-cells (list  
-                                   (list (style #f '()))
-                                   (list 
-                                    (style 
-                                     #f 
-                                     (list 
-                                      (attributes (list 
-                                                   (cons 
-                                                    'style 
-                                                    (format
-                                                     "padding:~apx;0px;0px;0px;"
-                                                     (quotient
-                                                      (* (bystro-formula-size configuration) n)
-                                                      25))))))))
-                                   ))))
-     (list  (list (if (block? xs) xs (apply para xs))) (list (para)))))
-;; ---------------------------------------------------------------------------------------------------
-  (provide (contract-out
-                                        ; padded on the left
-            [h+ (->* (integer?) () #:rest (listof pre-content?) (or/c (listof content?) table?))]))
-  (define  (h+ n . xs)
-    (table 
-     (style #f (list (table-cells (list  
-                                   (list 
-                                    (style 
-                                     #f 
-                                     (list 
-                                      (attributes (list 
-                                                   (cons 
-                                                    'style 
-                                                    (format
-                                                     "padding:0px;~apx;0px;0px;"
-                                                     (quotient
-                                                      (* (bystro-formula-size configuration) n)
-                                                      25))))))) 
-                                    (style #f '()))))))
-     (list (list (para) (if (block? xs) xs (apply para xs))))))
-;; ---------------------------------------------------------------------------------------------------
-  (provide (contract-out
-                                        ; padded on the right
-            [h- (->* (integer?) () #:rest (listof pre-content?) (or/c (listof content?) table?))]))
-  (define  (h- n . xs)
-    (table 
+  (define (v- n . xs)
+    (table
      (style
       #f
-      `(,(table-cells `((,(style #f '())
-                         ,(style #f `(,(attributes '(('style "padding:0ex;0.2ex;0ex;0ex;")))))
-                         ,(style #f '())
-                         )))))
-     (list (list  (if (block? xs) xs (apply para xs)) (para)))))
+      `(,(table-cells
+          `((,(style
+               #f
+               `(,(attributes `((style . ,(format "padding-top:~aex;" (* 0.2 n))))))))
+            ))))
+     `((,(if (block? xs) xs (apply para xs))) )))
+
+;; ---------------------------------------------------------------------------------------------------
+  (provide (contract-out ; padded on the bottom
+            [v+ (->* (integer?) () #:rest (listof pre-content?) (or/c (listof content?) table?))]))
+  (define (v+ n . xs)
+    (table
+     (style
+      #f
+      `(,(table-cells
+          `((,(style
+               #f
+               `(,(attributes `((style . ,(format "padding-bottom:~aex;" (* 0.2 n))))))))
+            ))))
+     `((,(if (block? xs) xs (apply para xs))) )))
+
 )

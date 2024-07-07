@@ -188,15 +188,13 @@ along with bystroTeX.  If not, see <http://www.gnu.org/licenses/>.
       (table 
        (style #f style-list) 
        (if numbered? 
-             (map 
-              (lambda (xs) 
-                (map mytab1 (append '("") (drop-right xs 1) `("" ,(last xs)))))
-              lines)
-             (map
-              (lambda (xs) 
-                (map mytab1 (append '("") xs '(""))))
-              lines)
-           ))))
+           (for/list ([xs lines])
+             (for/list ([x (append '("") (drop-right xs 1) `("" ,(last xs)))])
+               (if (block? x) x (para x))))
+           (for/list ([xs lines])
+             (for/list ([x (append '("") xs '(""))])
+               (if (block? x) x (para x))))))
+      ))
   (provide (contract-out
                                         ; table with alignments
             [dump-align (-> string? (listof (listof any/c)) paragraph?)]))
@@ -241,14 +239,8 @@ along with bystroTeX.  If not, see <http://www.gnu.org/licenses/>.
   (define-syntax (align stx)
     (syntax-case stx ()
       [(_ alignment line ...)
-       (with-syntax ([bdL? (format-id stx "bystro-dump-LaTeX?")]
-                     [dw$  (format-id stx "bystro-dump-LaTeX-with-$")]
-                     )
-         #`(if (bdL?) 
-               (parameterize ([dw$ #f]) 
-                 (dump-align         #,(symbol->string (syntax->datum #'alignment)) (list line ...)))
-               (table-with-alignment #,(symbol->string (syntax->datum #'alignment)) (list line ...))))]))
-;; ---------------------------------------------------------------------------------------------------
+       #`(table-with-alignment #,(symbol->string (syntax->datum #'alignment)) (list line ...))]))
+  ;; ---------------------------------------------------------------------------------------------------
   (provide init-counter)
   (define-syntax (init-counter stx)
     (syntax-case stx ()
