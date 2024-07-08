@@ -71,7 +71,7 @@
           (setq b (match-beginning 0))
           (when (bystroTeX--TeX-matches tex)
             (setq e (+ 1 (point)))
-            (put-image (create-image svg 'svg nil :scale 1.5 :ascent 'center) (+ 1 (point)))
+            (put-image (create-image svg 'svg nil :scale 1.25 :ascent 'center) (+ 1 (point)))
             (bystroTeX--make-hide-overlay b e)))
       (setq bystroTeX--formula-insertion-in-progress nil))))
 
@@ -89,7 +89,7 @@
           (setq b (match-beginning 0))
           (when (bystroTeX--TeX-matches tex)
             (setq e (+ 1 (point)))
-            (put-image (create-image svg) (+ 1 (point)))
+            (put-image (create-image svg 'svg nil :scale 1.4) (+ 1 (point)))
             (bystroTeX--make-hide-overlay b e)))
       (setq bystroTeX--equation-insertion-in-progress nil))))
 

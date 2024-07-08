@@ -42,24 +42,17 @@ async function runServer() {
   await sock.bind(`ipc://${path.join(sock_dir, "bystrotex.ipc")}`);
 
   for await (const [msg] of sock) {
-    console.log('Received ' + ': ' + msg.toString() );
-    const obj = JSON.parse(msg);
-    console.log('Equation ' + ': ' + obj.texstring);
 
+    const obj = JSON.parse(msg);
     const node = html.convert(obj.texstring, {
         display: !INLINE,
     });
-
-    const svgWidth = node.children[0].attributes.viewBox.split(' ')[2];
-
     const align = node.children[0].attributes.style;
     const width = node.children[0].attributes.width;
     const height = node.children[0].attributes.height;
     const dims = { valign : align, width : width , height: height };
-    //const style = `${align} width: ${width}; height: ${height}`;
     let svgString = adaptor.innerHTML(node);
     svgString = svgString.replace(/<defs>/, `<defs><style>${CSS}</style>`)
-    
 
     fs.writeFile(obj.outpath, svgString, err => {
       if (err) {
