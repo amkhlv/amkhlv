@@ -39,7 +39,9 @@ if (!fs.existsSync(sock_dir)) {
 async function runServer() {
   const sock = new zmq.Reply();
 
+  console.log(`Binding to ${path.join(sock_dir, "bystrotex.ipc")}`)
   await sock.bind(`ipc://${path.join(sock_dir, "bystrotex.ipc")}`);
+  console.log(`Bound to ${path.join(sock_dir, "bystrotex.ipc")}`)
 
   for await (const [msg] of sock) {
 

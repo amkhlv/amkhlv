@@ -150,14 +150,32 @@
         (if multipage?
             (begin
               (printf "Building ~a (multipage)\n" name)
-              (run-and-show-results `("scribble" ,@(if dest `("--dest" ,dest) '()) ,@arglist "++arg" "--htmls" "--htmls" ,name.scrbl))
+              (run-and-show-results
+               `("scribble"
+                 ,@arglist
+                 "++arg" "--name"
+                 "++arg" ,name
+                 "++arg" "--dest"
+                 "++arg" ,(if dest dest name)
+                 "++arg" "--htmls"
+                 ,@(if dest `("--dest" ,dest) '())
+                 "--htmls"
+                 ,name.scrbl))
               ;(run-and-show-results `("ln" "-s" "-v" ,(path->string (build-path name "index.html")) ,name.html))
               )
             (begin
               (printf "Building ~a (singlepage)\n" name)
               (if dest
                   (begin
-                    (run-and-show-results `("scribble" ,@arglist "++arg" "--dest" "++arg" ,dest "--dest" ,dest ,name.scrbl))
+                    (run-and-show-results
+                     `("scribble"
+                       ,@arglist
+                       "++arg" "--name"
+                       "++arg" ,name
+                       "++arg" "--dest"
+                       "++arg" ,dest
+                       "--dest" ,dest
+                       ,name.scrbl))
                     ;(run-and-show-results `("ln" "-s" "-v" ,(path->string (build-path dest name.html)) "./"))
                     )
                   (run-and-show-results `("scribble" ,@arglist ,name.scrbl))))))))

@@ -29,9 +29,6 @@ along with bystroTeX.  If not, see <http://www.gnu.org/licenses/>.
                                  #:max-vert-adjust          [max-vert-adjust 12]
                                  #:max-size-increase        [max-size-increase 9]
                                  #:max-size-decrease        [max-size-decrease 9]
-                                 #:calc-align               
-                                 [calc-align
-                                  (lambda (s) `(+ (bystro-manual-base-alignment bystro-conf) ,s))]
                                  #:calc-scale
                                  [calc-scale
                                   (lambda (i)
@@ -99,35 +96,35 @@ along with bystroTeX.  If not, see <http://www.gnu.org/licenses/>.
            [l+ (lambda (m)
                  `(define 
                     (,(string->symbol (format "~a+~a" formula-prefix m)) . u)
-                    (bystro-formula #:align ,(calc-align  m) 
+                    (bystro-formula #:align ,m
                                     (apply string-append u))))]
            [l- (lambda (m)
                  `(define 
                     (,(string->symbol (format "~a-~a" formula-prefix m)) . u)
-                    (bystro-formula #:align ,(calc-align (-  m)) 
+                    (bystro-formula #:align ,(-  m)
                                     (apply string-append u))))]
            [l++ (lambda (m z)
                   `(define 
                      (,(string->symbol (format "~a+~a+~a" formula-prefix m z)) . u)
-                     (bystro-formula #:align ,(calc-align m) 
+                     (bystro-formula #:align ,m
                                      #:scale  ,(calc-scale z)
                                      (apply string-append u))))]
            [l+- (lambda (m z)
                   `(define 
                      (,(string->symbol (format "~a+~a-~a" formula-prefix m z)) . u)
-                     (bystro-formula #:align ,(calc-align m) 
+                     (bystro-formula #:align ,m
                                      #:scale  ,(calc-scale (- z))
                                      (apply string-append u))))]
            [l-+ (lambda (m z)
                   `(define 
                      (,(string->symbol (format "~a-~a+~a" formula-prefix m z)) . u)
-                     (bystro-formula #:align ,(calc-align (- m)) 
+                     (bystro-formula #:align ,(- m)
                                      #:scale ,(calc-scale z)
                                      (apply string-append u))))]
            [l-- (lambda (m z)
                   `(define 
                      (,(string->symbol (format "~a-~a-~a" formula-prefix m z)) . u)
-                     (bystro-formula #:align ,(calc-align (- m)) 
+                     (bystro-formula #:align ,(- m)
                                      #:scale ,(calc-scale (- z)) 
                                      (apply string-append u))))]
            [set-css-dir '(define (bystro-set-css-dir x) 
@@ -153,6 +150,7 @@ along with bystroTeX.  If not, see <http://www.gnu.org/licenses/>.
                 #'x
                 (append (list 
                          'begin 
+                         fname
                          formula-db
                          formula-proc
                          auto 
@@ -165,7 +163,6 @@ along with bystroTeX.  If not, see <http://www.gnu.org/licenses/>.
                          inc-sz 
                          rs-sz
                          rs-clr
-                         fname
                          ttp-init
                          set-css-dir
                          ) 

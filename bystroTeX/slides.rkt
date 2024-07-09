@@ -21,7 +21,6 @@ along with bystroTeX.  If not, see <http://www.gnu.org/licenses/>.
   (require scribble/core scribble/base scribble/html-properties scribble/decode scriblib/render-cond)
   (require "common.rkt")
   (require setup/dirs)
-  (require scribble/decode)
 
   (require db/base db/sqlite3)
   (require racket/vector)
@@ -79,7 +78,7 @@ along with bystroTeX.  If not, see <http://www.gnu.org/licenses/>.
                   manual-base-alignment
                   )
           #:mutable)
-  (provide (proc-doc bystro-connect-to-server (->i ([xmlconf path?]) () [result 'running-without-LaTeX-server]) ()))
+  (provide (proc-doc bystro-connect-to-server (->i ([xmlconf (or/c #f path?)]) () [result 'running-without-LaTeX-server]) ()))
   (define (bystro-connect-to-server x) 'running-without-LaTeX-server)
   (define configuration (bystro 'running-without-LaTeX-server
                                 "bystrotex.db"
@@ -116,7 +115,8 @@ along with bystroTeX.  If not, see <http://www.gnu.org/licenses/>.
   (provide (proc-doc bystro-set-database-filename (->i ([filename string?]) () [result void?]) ()))
   (define (bystro-set-database-filename filename) (set! database-filename filename))
   
-  (define formula-dir "formulas")
+  (define formula-dir (get-bystro-dest-dir))
+
   (provide (proc-doc bystro-set-formula-dir (->i ([dirname string?]) () [result void?]) ()))
   (define (bystro-set-formula-dir dirname) (set! formula-dir dirname))
 
@@ -179,6 +179,14 @@ along with bystroTeX.  If not, see <http://www.gnu.org/licenses/>.
           )
         (bystro-css-element-from-files "misc.css" "slide-title.css")))
 ;; ---------------------------------------------------------------------------------------------------
+  (define (fn-to-collect-slide-link slide-shortname slide-title slide-num)
+    (lambda (ci) 
+      (collect-put! ci `(amkhlv-slide ,slide-shortname ,slide-num) slide-title)))
+;; ---------------------------------------------------------------------------------------------------
+  (define (fn-to-collect-subpage-link subpage-tag subpage-title subpage-depth n)
+    (lambda (ci) 
+      (collect-put! ci `(amkhlv-subpage ,subpage-tag ,subpage-depth ,n) subpage-title)))
+;; ---------------------------------------------------------------------------------------------------
   (provide (contract-out
             ; Page
             [page (->* (content?) 
@@ -221,114 +229,18 @@ along with bystroTeX.  If not, see <http://www.gnu.org/licenses/>.
           (current-slide-part-number state))))
      ))
       
-;; ---------------------------------------------------------------------------------------------------
-  (provide (contract-out 
-                                        ; Slide continuation after pause
-   [after-pause (->* () 
-                           (#:tag (or/c symbol? string? #f)) 
-                           #:rest (listof (or/c part? pre-flow?) )
-                           (or/c part? nested-flow?))]))  
-  (define (after-pause #:tag [tg #f] . more-content)
-    (set-current-slide-part-number! state (+ 1 (current-slide-part-number state)))
-    (when (pair? more-content)
-      (set-current-content! state (append (current-content state) (list more-content))))
-    (let ([stl (if ((current-slide-part-number state) . < . 2) 
-                   to-hide
-                   (cons 'toc-hidden to-hide))]
-          [nm  (if ((current-slide-part-number state) . < . 2)
-                   (current-slidename state)
-                   (if (pair? (current-slidename state))
-                       (append 
-                        (current-slidename state) 
-                        (list " " (number->string (current-slide-part-number state))))
-                       (string-append 
-                        (current-slidename state) 
-                        " " 
-                        (number->string (current-slide-part-number state)))))]     
-          [tgs (if tg (list (list 'part tg)) (list))])
-      (if (current-singlepage-mode state)
-          (decode `(,(title-decl #f tgs #f (style #f (cons 'toc-hidden to-hide)) "")
-                    ,(bystro-css-element-from-files "misc.css" "slide.css")
-                    ,more-content))
-          (decode `(,(title-decl #f tgs #f (style #f stl) nm)
-                    ,(bystro-css-element-from-files "misc.css" "slide.css")
-                    ,@(current-content state))))))
-;; ---------------------------------------------------------------------------------------------------
-  (provide (contract-out  
-                                        ; removes the most recent after-pause
-   [remove-slide (-> void?)]))
-  (define (remove-slide)
-    (if (pair? (current-content state)) 
-        (set-current-content! state (reverse (cdr (reverse (current-content state)))))
-        (error "nothing to remove !")))
-;; ---------------------------------------------------------------------------------------------------
-  (define (fn-to-collect-slide-link slide-shortname slide-title slide-num)
-    (lambda (ci) 
-      (collect-put! ci `(amkhlv-slide ,slide-shortname ,slide-num) slide-title)))
-;; ---------------------------------------------------------------------------------------------------
-  (define (fn-to-collect-subpage-link subpage-tag subpage-title subpage-depth n)
-    (lambda (ci) 
-      (collect-put! ci `(amkhlv-subpage ,subpage-tag ,subpage-depth ,n) subpage-title)))
-;; ---------------------------------------------------------------------------------------------------
-  (provide (contract-out 
-            ; slide
-            [slide (->* (content?) 
-                        (#:tag (or/c symbol? string? #f) #:showtitle boolean?) 
-                        #:rest (listof (or/c pre-flow? part-start?) )
-                        (or/c part? nested-flow?))]))  
-  (define (slide stitle #:tag [tg #f] #:showtitle [sttl #f] . init-content)
-    (set-current-slide-number! state (+ 1 (current-slide-number state)))
-    (set-current-slide-part-number! state 0)
-    (set-current-slidename! state (if tg 
-                                      tg 
-                                      (regexp-replace #px"\\s" stitle "_")))
-    (if (current-singlepage-mode state)
-        (decode (list
-                 (title-decl 
-                  #f 
-                  (if tg (list (list 'part tg)) (list)) 
-                  #f 
-                  (style #f to-hide)
-                  stitle)
-                 (linebreak)
-                 (bystro-css-element-from-files "misc.css" "slide.css")
-                 (if sttl (element (make-style #f `(,(alt-tag "h2"))) `(,stitle ,(linebreak))) "")
-                 (collect-element 
-                  (make-style #f '()) 
-                  "" 
-                  (fn-to-collect-slide-link 
-                   (current-slidename state) 
-                   stitle 
-                   (current-slide-number state)))
-                 init-content))
-        (begin
-          (set-current-content!
-           state
-           (list
-            (bystro-css-element-from-files "misc.css" "slide.css")
-            (if sttl (element (make-style #f `(,(alt-tag "h2"))) `(,stitle ,(linebreak))) "")
-            (collect-element 
-             (make-style #f '()) 
-             "" 
-             (fn-to-collect-slide-link 
-              (current-slidename state) 
-              stitle 
-              (current-slide-number state)))
-            init-content))
-          (after-pause  #:tag tg))))
-;; ---------------------------------------------------------------------------------------------------
   (provide (contract-out  
                                         ; initialize formula collection dir and database
    [bystro-initialize-formula-collection 
     (-> bystro? connection?)]))
   (define (bystro-initialize-formula-collection bstr)
     (display "\n --- initializing formula collection in the directory: ")
-    (display (bystro-formula-dir-name bstr))
+    (display formula-dir)
     (display "\n --- using the sqlite file: ")
-    (display (bystro-formula-database-name bstr))
-    (unless (directory-exists? (string->path (bystro-formula-dir-name bstr)))
-      (make-directory (string->path (bystro-formula-dir-name bstr))))
-    (let* ([mydb (sqlite3-connect #:database (bystro-formula-database-name bstr) #:mode 'create)]
+    (display (build-path formula-dir database-filename))
+    (unless (directory-exists? (string->path formula-dir))
+      (make-directory (string->path formula-dir)))
+    (let* ([mydb (sqlite3-connect #:database (build-path formula-dir database-filename) #:mode 'create)]
            [sqlite-master_rows (query-rows mydb "select name from SQLITE_MASTER")])
       (and (not (for/or ([r sqlite-master_rows]) (equal? (vector-ref r 0) "formulas2")))
            (begin
@@ -555,7 +467,7 @@ along with bystroTeX.  If not, see <http://www.gnu.org/licenses/>.
   (define (bystro-formula 
          #:shell-command [shell-command-path (bystro-formula-processor configuration)]
          #:database [mydb (current-running-database state)]
-         #:formulas-in-dir [formdir (bystro-formula-dir-name configuration)]
+         #:formulas-in-dir [formdir formula-dir]
          #:scale [scale 1] 
          #:css-class [css-class formula-css-class]
          #:align [align #f] 

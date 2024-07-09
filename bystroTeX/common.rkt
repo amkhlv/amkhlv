@@ -37,6 +37,7 @@ along with bystroTeX.  If not, see <http://www.gnu.org/licenses/>.
   (define bystro-scrbl-filename "")
   (provide (contract-out [register-path-to-scribble-file (-> path? void?)]))
   (define (register-path-to-scribble-file s)
+    (displayln (format "registering path to scribble file >>>~a<<<" s))
     (set! bystro-scrbl-filename (path->string (file-name-from-path s))))
 ;; ---------------------------------------------------------------------------------------------------
   (provide (contract-out
@@ -46,8 +47,11 @@ along with bystroTeX.  If not, see <http://www.gnu.org/licenses/>.
   (provide (contract-out
             ; Get the name without extention
             [get-bystro-scrbl-name (-> string?)]))
-  (define (get-bystro-scrbl-name) 
-    (substring bystro-scrbl-filename 0 (max 0 (- (string-length bystro-scrbl-filename) 6))))
+  (define (get-bystro-scrbl-name) (bystro-get-cl-argument "dest"))
+  (provide (contract-out
+            [get-bystro-dest-dir (-> string?)]))
+  (define (get-bystro-dest-dir) (bystro-get-cl-argument "dest"))
+           
 ;; ---------------------------------------------------------------------------------------------------
   (provide (contract-out 
             ; Location of CSS files
@@ -629,5 +633,6 @@ along with bystroTeX.  If not, see <http://www.gnu.org/licenses/>.
       (if (or Cmultipage? Cdest)
           (hyperlink (path->string (build-path "../" Cname.scrbl)) (path->string Cname.scrbl))
           (hyperlink Cname.scrbl Cname.scrbl))))
+
 
 )
