@@ -41,11 +41,12 @@ if (!fs.existsSync(sock_dir)) {
 }
 
 function processBibField(field) {
+  if (field === undefined) {return null}
   if (typeof field == "number") {
     return field
   } else {
     const fdata = field.data;
-    return fdata.map(x => x.stringify()).join(' ')    
+    return fdata.map(x => {try { return x.stringify() } catch (e) { return x.toString() }}).join(' ')    
   }
 }
 
