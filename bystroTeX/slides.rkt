@@ -299,15 +299,22 @@ along with bystroTeX.  If not, see <http://www.gnu.org/licenses/>.
       (define reply (socket-recv! zeromq-socket))
       ;(displayln "\n --- REPLY was: ")
       ;(displayln reply)
-      (bytes->string/utf-8 reply)
+      (bytes->jsexpr reply)
       )
     )
-
-
   ;; ---------------------------------------------------------------------------------------------------
   (provide (contract-out  
-                                        ; enumerate a formula
-   [get-bib-from-server (-> string? hash?)]))
+            [get-bib-from-zeromq (-> string? jsexpr?)]))
+  (define (get-bib-from-zeromq k)
+    (let* ([j (make-hash `((bibkey . ,k)))])
+      (socket-send! zeromq-socket (jsexpr->bytes j))
+      (define reply (socket-recv! zeromq-socket))
+      (bytes->jsexpr reply)
+      )
+    )
+  ;; ---------------------------------------------------------------------------------------------------
+  (provide (contract-out  
+            [get-bib-from-server (-> string? hash?)]))
   (define (get-bib-from-server k)
     (let*-values
      ([(bserv) (values (bystro-formula-processor configuration))]
@@ -419,7 +426,7 @@ along with bystroTeX.  If not, see <http://www.gnu.org/licenses/>.
            #:scale n 
            #:label [l #f] 
            #:css-class [css-class equation-css-class])
-    (let* ([frml1 (keyword-apply bystro-formula '() '() x #:scale n #:css-class css-class #:align #f #:use-depth #t)]
+    (let* ([frml1 (keyword-apply bystro-formula '() '() x #:scale n #:css-class css-class)]
            [frml frml1])
       (if l
           (table-with-alignment "c.n" (list (list frml (elemtag l (elemref l (number-for-formula l))))))
@@ -453,26 +460,20 @@ along with bystroTeX.  If not, see <http://www.gnu.org/licenses/>.
   (provide (contract-out  
                                         ; inline formula
             [bystro-formula (->* () 
-                                 (#:shell-command path?
-                                  #:database connection? 
+                                 (#:database connection? 
                                   #:formulas-in-dir string?
                                   #:scale number?
                                   #:css-class string?
                                   #:align (or/c (integer-in (- 99) 99) #f) 
-                                  #:use-depth boolean? 
-                                  #:aa-adjust (integer-in (- 99) 99)
                                   ) 
                                  #:rest (listof string?) 
                                  element? )]))
   (define (bystro-formula 
-         #:shell-command [shell-command-path (bystro-formula-processor configuration)]
          #:database [mydb (current-running-database state)]
          #:formulas-in-dir [formdir formula-dir]
          #:scale [scale 1] 
          #:css-class [css-class formula-css-class]
          #:align [align #f] 
-         #:use-depth [use-depth #f] 
-         #:aa-adjust [aa-adj (bystro-autoalign-adjust configuration)] 
          . tex)
         (let* ([lookup (prepare 
                         mydb
@@ -512,12 +513,9 @@ along with bystroTeX.  If not, see <http://www.gnu.org/licenses/>.
                    [filename (build-path formdir  (string-append (number->string formnum) ".svg"))]
                    [insert-stmt (prepare mydb "insert into formulas2 values (?,?,?,?,?)")]
                                         ;(tex, filename, valign, width, height)
-                   [dims (get-svg-from-zeromq 
-                          (apply string-append (cons preamble tex))
-                          filename)]
-                   [dims-json (with-input-from-string dims (λ () (read-json)))]
-                   )
-                (unless (string? dims) (error "ERROR: formula processor did not return style"))
+                   [dims-json (get-svg-from-zeromq 
+                               (apply string-append (cons preamble tex))
+                               filename)])
                 (displayln dims-json)
                 (query
                  mydb

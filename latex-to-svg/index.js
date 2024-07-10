@@ -10,6 +10,9 @@ const { AllPackages } = require('mathjax-full/js/input/tex/AllPackages.js');
 const fs = require('node:fs');
 const zmq = require('zeromq');
 const homedir = require('os').homedir();
+
+const {parseBibFile} = require("bibtex");
+
 const ASSISTIVE_MML = false, FONT_CACHE = true, INLINE = false, packages = AllPackages.sort().join(', ').split(/\s*,\s*/);
 
 const adaptor = liteAdaptor();
@@ -32,8 +35,18 @@ const CSS = [
 ].join('');
 
 const sock_dir = path.join(homedir,".local", "run");
+const bib_file = path.join(homedir, ".config", "bystrotex.bib");
 if (!fs.existsSync(sock_dir)) {
   fs.mkdirSync(sock_dir);
+}
+
+function processBibField(field) {
+  if (typeof field == "number") {
+    return field
+  } else {
+    const fdata = field.data;
+    return fdata.map(x => x.stringify()).join(' ')    
+  }
 }
 
 async function runServer() {
@@ -46,24 +59,41 @@ async function runServer() {
   for await (const [msg] of sock) {
 
     const obj = JSON.parse(msg);
-    const node = html.convert(obj.texstring, {
-        display: !INLINE,
-    });
-    const align = node.children[0].attributes.style;
-    const width = node.children[0].attributes.width;
-    const height = node.children[0].attributes.height;
-    const dims = { valign : align, width : width , height: height };
-    let svgString = adaptor.innerHTML(node);
-    svgString = svgString.replace(/<defs>/, `<defs><style>${CSS}</style>`)
+    if ('texstring' in obj) {
+      const node = html.convert(obj.texstring, {
+          display: !INLINE,
+      });
+      const align = node.children[0].attributes.style;
+      const width = node.children[0].attributes.width;
+      const height = node.children[0].attributes.height;
+      const dims = { valign : align, width : width, height: height };
+      let svgString = adaptor.innerHTML(node);
+      svgString = svgString.replace(/<defs>/, `<defs><style>${CSS}</style>`)
 
-    fs.writeFile(obj.outpath, svgString, err => {
-      if (err) {
-        console.error(err);
-      } else {
-        // file written successfully
-      }
-    });
-    await sock.send(JSON.stringify(dims));
+      fs.writeFile(obj.outpath, svgString, err => {
+        if (err) {
+          console.error(err);
+        } else {
+          // file written successfully
+        }
+      });
+      await sock.send(JSON.stringify(dims));
+    }
+    if ('bibkey' in obj) {
+      const bib = parseBibFile(fs.readFileSync(bib_file).toString());
+      const entry = bib.getEntry(obj.bibkey);
+      await sock.send(
+        JSON.stringify(
+          {year: processBibField(entry.getField("year")),
+           journal: processBibField(entry.getField("journal")),
+           volume: processBibField(entry.getField("volume")),
+           pages: processBibField(entry.getField("pages")),
+           title: processBibField(entry.getField("title")),
+           author: processBibField(entry.getField("author")),
+           }
+        )
+      );
+    }
   }
 }
 

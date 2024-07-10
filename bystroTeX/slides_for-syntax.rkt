@@ -47,7 +47,7 @@ along with bystroTeX.  If not, see <http://www.gnu.org/licenses/>.
            [formula-proc `(unless (bystro-formula-processor bystro-conf)
                             (error "*** could not find executable for formula processing ***"))]
            [auto `(define ,(string->symbol auto-prefix) 
-                    (lambda u (bystro-formula #:use-depth #t (apply string-append u))))]
+                    (lambda u (bystro-formula (apply string-append u))))]
            [disp `(define ( ,(string->symbol display-math-prefix) 
                             #:label (lbl #f) 
                             #:scale (n 1)
