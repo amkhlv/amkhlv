@@ -41,11 +41,10 @@ along with bystroTeX.  If not, see <http://www.gnu.org/licenses/>.
                                  stx)
     (let* (
            [formula-db `(define formula-database
-                          (begin 
-                            (configure-bystroTeX-using bystro-conf)
-                            (bystro-initialize-formula-collection bystro-conf)))]
-           [formula-proc `(unless (bystro-formula-processor bystro-conf)
-                            (error "*** could not find executable for formula processing ***"))]
+                          #|(begin 
+                          (configure-bystroTeX-using bystro-conf)|#
+                          (bystro-initialize-formula-collection)
+                          )]
            [auto `(define ,(string->symbol auto-prefix) 
                     (lambda u (bystro-formula (apply string-append u))))]
            [disp `(define ( ,(string->symbol display-math-prefix) 
@@ -57,41 +56,10 @@ along with bystroTeX.  If not, see <http://www.gnu.org/licenses/>.
                         (bystro-equation #:label lbl #:scale n #:css-class css-class  x)
                         (bystro-equation #:label lbl #:scale n  x)
                         ))]
-           [old-formula-size      (string->unreadable-symbol "oldfsize")]
-           [old-autoalign-adjust  (string->unreadable-symbol "old-aa-adjust")]
-           [old-bg-color (string->unreadable-symbol "old-bg")]
-           [old-fg-color (string->unreadable-symbol "old-fg")]
-           [oldsz `(define ,old-formula-size (bystro-formula-size bystro-conf))]
-           [oldaa `(define ,old-autoalign-adjust (bystro-autoalign-adjust bystro-conf))]
-           [oldbg `(define ,old-bg-color (bystro-formula-bg-color bystro-conf))]
-           [oldfg `(define ,old-fg-color (bystro-formula-fg-color bystro-conf))]
-           [ch-sz `(define (,(string->symbol size-change-id) (i #f) (aaadj #f))
-                     (if i (begin 
-                             (set! ,old-formula-size (bystro-formula-size bystro-conf))
-                             (set-bystro-formula-size! bystro-conf i)
-                             (when aaadj (begin 
-                                           (set! ,old-autoalign-adjust 
-                                                 (bystro-autoalign-adjust bystro-conf))
-                                           (set-bystro-autoalign-adjust! bystro-conf aaadj))))
-                         (begin 
-                           (set-bystro-formula-size! bystro-conf ,old-formula-size)
-                           (set-bystro-autoalign-adjust! bystro-conf ,old-autoalign-adjust)
-                           )))]
-           [inc-sz `(define (,(string->symbol size-increase-id) i (aaadj #f))
-                      (set! ,old-formula-size (bystro-formula-size bystro-conf))
-                      (set-bystro-formula-size! bystro-conf (+ (bystro-formula-size bystro-conf) i))
-                      (when aaadj 
-                        (begin (set! ,old-autoalign-adjust 
-                                     (bystro-autoalign-adjust bystro-conf))
-                               (set-bystro-autoalign-adjust! bystro-conf aaadj))))]
-           [rs-sz  `(define (,(string->symbol size-restore-id))
-                      (set-bystro-formula-size! bystro-conf ,old-formula-size)
-                      (set-bystro-autoalign-adjust! bystro-conf ,old-autoalign-adjust)
-                      )]
-           [rs-clr `(define (,(string->symbol color-reset-command))
-                      (set-bystro-formula-bg-color! bystro-conf ,old-bg-color)
-                      (set-bystro-formula-fg-color! bystro-conf ,old-fg-color))]
-           [fname  `(register-path-to-scribble-file (syntax-source #`stx))]
+           [ch-sz `(define (,(string->symbol size-change-id) (i #f) (aaadj #f)) (displayln "deprecated size-change"))]
+           [inc-sz `(define (,(string->symbol size-increase-id) i (aaadj #f)) (displayln "deprecated size-change"))]
+           [rs-sz  `(define (,(string->symbol size-restore-id)) (displayln "deprecated size-reset"))]
+           [rs-clr `(define (,(string->symbol color-reset-command)) (displayln "color-reset is deprecated"))]
            [ttp-init '(bystro-titlepage-init #:singlepage-mode singlepage-mode)]
            [l+ (lambda (m)
                  `(define 
@@ -150,15 +118,9 @@ along with bystroTeX.  If not, see <http://www.gnu.org/licenses/>.
                 #'x
                 (append (list 
                          'begin 
-                         fname
                          formula-db
-                         formula-proc
                          auto 
                          disp 
-                         oldsz 
-                         oldaa
-                         oldbg
-                         oldfg
                          ch-sz 
                          inc-sz 
                          rs-sz

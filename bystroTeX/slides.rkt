@@ -80,6 +80,8 @@ along with bystroTeX.  If not, see <http://www.gnu.org/licenses/>.
           #:mutable)
   (provide (proc-doc bystro-connect-to-server (->i ([xmlconf (or/c #f path?)]) () [result 'running-without-LaTeX-server]) ()))
   (define (bystro-connect-to-server x) 'running-without-LaTeX-server)
+  (provide set-bystro-extension!)
+  (define (set-bystro-extension! x y) '())
   (define configuration (bystro 'running-without-LaTeX-server
                                 "bystrotex.db"
                                 "formulas"
@@ -89,10 +91,26 @@ along with bystroTeX.  If not, see <http://www.gnu.org/licenses/>.
                                 1
                                 (- 2)
                                 ))
-  (provide set-bystro-extension!)
-  (define (set-bystro-extension! x y) '())
+  (provide (contract-out
+            ; configures the bystro-conf 
+            [configure-bystroTeX-using (-> bystro? void?)]))
+  (define (configure-bystroTeX-using c)
+    (set! configuration c))
+
+  (provide (contract-out 
+            ; change the background color for the formulas
+            [bystro-bg (-> natural-number/c natural-number/c natural-number/c void?)]))
+  (define (bystro-bg r g b)
+    (set-bystro-formula-bg-color! configuration (list r g b)))
+  (provide (contract-out 
+            ; change the background color for the formulas
+            [bystro-fg (-> natural-number/c natural-number/c natural-number/c void?)]))
+  (define (bystro-fg r g b)
+    (set-bystro-formula-fg-color! configuration (list r g b)))
 
   ;; ---------------- end of compatibility block --------------------------------
+
+  
 
   (define (get-zeromq-socket)
     (let* ([ctxt (context 1)]
@@ -107,8 +125,8 @@ along with bystroTeX.  If not, see <http://www.gnu.org/licenses/>.
   (define zeromq-socket (get-zeromq-socket))
 
   (provide (contract-out
-            [bystro-close-connection (-> bystro? void?)]))
-  (define (bystro-close-connection bconf)
+            [bystro-close-connection (->* () #:rest (listof any/c) void?)]))
+  (define (bystro-close-connection . args-for-compat)
     (when (socket? zeromq-socket) (socket-close! zeromq-socket)))
   
   (define database-filename "bystrotex.db")
@@ -129,11 +147,8 @@ along with bystroTeX.  If not, see <http://www.gnu.org/licenses/>.
   (provide (contract-out
             (bystro-set-formula-css-class (-> string? void?))))
   (define (bystro-set-formula-css-class x) (set! formula-css-class x))
-  (provide (contract-out
-                                        ; configures the bystro-conf 
-            [configure-bystroTeX-using (-> bystro? void?)]))
-  (define (configure-bystroTeX-using c)
-    (set! configuration c))
+
+
   (define css-dir_slides (build-path 'same))
   (provide (contract-out
                                         ; Set the path to the folder containing the .css files
@@ -232,8 +247,8 @@ along with bystroTeX.  If not, see <http://www.gnu.org/licenses/>.
   (provide (contract-out  
                                         ; initialize formula collection dir and database
    [bystro-initialize-formula-collection 
-    (-> bystro? connection?)]))
-  (define (bystro-initialize-formula-collection bstr)
+    (-> connection?)]))
+  (define (bystro-initialize-formula-collection)
     (display "\n --- initializing formula collection in the directory: ")
     (display formula-dir)
     (display "\n --- using the sqlite file: ")
@@ -312,66 +327,6 @@ along with bystroTeX.  If not, see <http://www.gnu.org/licenses/>.
       (bytes->jsexpr reply)
       )
     )
-  ;; ---------------------------------------------------------------------------------------------------
-  (provide (contract-out  
-            [get-bib-from-server (-> string? hash?)]))
-  (define (get-bib-from-server k)
-    (let*-values
-     ([(bserv) (values (bystro-formula-processor configuration))]
-      [(u) (values
-            (net:url
-             "http"                          ;scheme
-             (bystroserver-user bserv)      ;user
-             (bystroserver-host bserv)      ;host 
-             (bystroserver-port bserv)      ;port
-             #t                              ;path-absolute?
-             (list (net:path/param "bibtex" '()))   ;path
-             (list 
-              (cons 'token (bystroserver-token bserv))
-              (cons 'k k))
-             #f ;fragment
-             ))]
-      [(status headers inport)
-       (net:http-conn-sendrecv!
-        (bystroserver-connection bserv)
-        (net:url->string u)
-        #:method #"POST"
-        #:headers '("BystroTeX:yes")
-        )]
-      [(error-type) (values
-                     (for/first ([h headers] #:when (equal?
-                                                     "BystroTeX-error:"
-                                                     (car (string-split (bytes->string/utf-8 h)))))
-                       (apply string-append (add-between (cdr (string-split (bytes->string/utf-8 h))) " "))))]                
-      )
-     (if error-type
-         (begin 
-           (display (string-append "\n\n --- ERROR of the type: <<"
-                                   error-type
-                                   ">>, while processing the BibTeX entry:\n"
-                                   k
-                                   "\n\n --- The error message was:\n"
-                                   (port->string inport)))
-           (close-input-port inport)
-           (error "*** please make corrections and run again ***")
-           )
-         (let* ([bibxexpr
-                 (with-handlers
-                   ([exn:fail:read?
-                     (λ (e)
-                       (error (string-append "\n Citation not found: " k))
-                       )
-                     ])
-                  (xml:xml->xexpr (xml:document-element (xml:read-xml inport)))
-                  )
-                 ]
-                [xs (xml:se-path*/list '(bibentry) bibxexpr)]
-                )
-           (close-input-port inport)
-           (make-hash 
-            (for/list ([x xs] #:when (cons? x)) 
-              (cons (string-downcase (xml:se-path* '(v #:key) x)) (xml:se-path* '(v) x)))))
-         )))
   ;; ---------------------------------------------------------------------------------------------------
   (define (bystro-command-to-typeset-formula shell-command-path texstring size bg-color fg-color filename)
                                         ; The procedure returns an integer representing the vertical offset.
@@ -536,18 +491,7 @@ along with bystroTeX.  If not, see <http://www.gnu.org/licenses/>.
                  css-class
                  )))))
 
-;; ---------------------------------------------------------------------------------------------------
-  (provide (contract-out 
-                                        ; change the background color for the formulas
-            [bystro-bg (-> natural-number/c natural-number/c natural-number/c void?)]))
-  (define (bystro-bg r g b)
-    (set-bystro-formula-bg-color! configuration (list r g b)))
-;; ---------------------------------------------------------------------------------------------------
-  (provide (contract-out 
-                                        ; change the background color for the formulas
-            [bystro-fg (-> natural-number/c natural-number/c natural-number/c void?)]))
-  (define (bystro-fg r g b)
-    (set-bystro-formula-fg-color! configuration (list r g b)))
+
 ;; ---------------------------------------------------------------------------------------------------
   (provide (contract-out  
                                         ; table of contents on the title-slide

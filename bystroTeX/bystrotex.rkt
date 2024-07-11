@@ -153,9 +153,9 @@
               (run-and-show-results
                `("scribble"
                  ,@arglist
-                 "++arg" "--name"
+                 "++arg" "--bystro-name"
                  "++arg" ,name
-                 "++arg" "--dest"
+                 "++arg" "--bystro-dest"
                  "++arg" ,(if dest dest name)
                  "++arg" "--htmls"
                  ,@(if dest `("--dest" ,dest) '())
@@ -170,9 +170,9 @@
                     (run-and-show-results
                      `("scribble"
                        ,@arglist
-                       "++arg" "--name"
+                       "++arg" "--bystro-name"
                        "++arg" ,name
-                       "++arg" "--dest"
+                       "++arg" "--bystro-dest"
                        "++arg" ,dest
                        "--dest" ,dest
                        ,name.scrbl))

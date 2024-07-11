@@ -34,23 +34,19 @@ along with bystroTeX.  If not, see <http://www.gnu.org/licenses/>.
   (define (bystro-common-dump-LaTeX b) (dumping-LaTeX? b))
   (provide bystro-dump-LaTeX-with-$)
   (define bystro-dump-LaTeX-with-$ (make-parameter #t))
-  (define bystro-scrbl-filename "")
-  (provide (contract-out [register-path-to-scribble-file (-> path? void?)]))
-  (define (register-path-to-scribble-file s)
-    (displayln (format "registering path to scribble file >>>~a<<<" s))
-    (set! bystro-scrbl-filename (path->string (file-name-from-path s))))
+
 ;; ---------------------------------------------------------------------------------------------------
-  (provide (contract-out
-            ; Get the filename of the scribble file
-            [get-bystro-scrbl-filename (-> string?)]))
-  (define (get-bystro-scrbl-filename) bystro-scrbl-filename)
   (provide (contract-out
             ; Get the name without extention
             [get-bystro-scrbl-name (-> string?)]))
-  (define (get-bystro-scrbl-name) (bystro-get-cl-argument "dest"))
+  (define (get-bystro-scrbl-name) (bystro-get-cl-argument "bystro-name"))
+  (provide (contract-out
+            ; Get the filename of the scribble file
+            [get-bystro-scrbl-filename (-> string?)]))
+  (define (get-bystro-scrbl-filename) (format "~a.scrbl" (get-bystro-scrbl-name)))
   (provide (contract-out
             [get-bystro-dest-dir (-> string?)]))
-  (define (get-bystro-dest-dir) (bystro-get-cl-argument "dest"))
+  (define (get-bystro-dest-dir) (bystro-get-cl-argument "bystro-dest"))
            
 ;; ---------------------------------------------------------------------------------------------------
   (provide (contract-out 
@@ -471,7 +467,7 @@ along with bystroTeX.  If not, see <http://www.gnu.org/licenses/>.
                  )
             (and 
              (equal? ".scrbl" (substring ps (max 0 (- n 6))))
-             (not (and x (equal? bystro-scrbl-filename (path->string name)))))))))
+             (not (and x (equal? (get-bystro-scrbl-filename) (path->string name)))))))))
 ;; ---------------------------------------------------------------------------------------------------
   (provide (contract-out 
             [bystro-dir-contains-scrbl? 
