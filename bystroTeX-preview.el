@@ -98,7 +98,7 @@
          (json-array-type 'list)
          (json-key-type 'string)
          (d (replace-regexp-in-string "\\.scrbl$" "/" (buffer-file-name)))
-         (formulas-database (concat d "formulas.sqlite")))
+         (formulas-database (concat d "bystrotex.db")))
     (mapcar
      (lambda (x) (json-read-from-string x))
      (reverse
@@ -121,7 +121,7 @@
   (setq svgnum 0)
   (let* ((oldpos (point))
          (d (replace-regexp-in-string "\\.scrbl$" "/" (buffer-file-name)))
-         (formulas-database (concat d "formulas.sqlite"))
+         (formulas-database (concat d "bystrotex.db"))
          )
     (defvar already-inserted '())
     (dolist
