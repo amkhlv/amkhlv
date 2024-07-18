@@ -1,3 +1,13 @@
+Deprecation notice
+==================
+
+    *************************************
+    * this is an old deprecated version *
+    *************************************
+
+use [bystrotex-etc](https://github.com/amkhlv/bystrotex-etc) instead,
+which is simpler and easy to install
+
 BystroTeX
 =========
 
